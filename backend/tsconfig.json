@@ -17,20 +17,18 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
-
+    "exactOptionalPropertyTypes": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
     "declaration": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
-    },
-
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+      "@/*": ["./src/*"],
+      "@/shared/*": ["../shared/src/*"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"],
-  "typeRoots": ["./node_modules/@types", "./src/types"]
-
+  "exclude": ["node_modules", "dist"]
 }

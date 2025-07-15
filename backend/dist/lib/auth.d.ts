@@ -1,9 +1,0 @@
-export type UserRole = "FARMER" | "CUSTOMER" | "DRIVER" | "FARMER_AGENT" | "ADMIN";
-export declare const hashPassword: (password: string) => Promise<string>;
-export declare const verifyPassword: (password: string, hashedPassword: string) => Promise<boolean>;
-export declare const generateToken: (payload: any) => string;
-export declare const verifyToken: (token: string) => any;
-export declare const formatPhoneNumber: (phone: string) => string;
-export declare const validatePhoneNumber: (phone: string) => boolean;
-export declare const validateEmail: (email: string) => boolean;
-export declare const getRoleRedirectPath: (role: UserRole) => string;
