@@ -1,44 +1,16 @@
 {
   "version": 2,
-  "name": "zuasoko-app",
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
-  "installCommand": "npm install && cd frontend && npm install && cd ../backend/api && npm install",
   "functions": {
-    "backend/api/**/*.js": {
-      "runtime": "nodejs18.x",
-      "memory": 512,
-      "maxDuration": 10
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
     }
   },
   "rewrites": [
     {
-      "source": "/api/health",
-      "destination": "/backend/api/index.js"
-    },
-    {
-      "source": "/api/auth/(.*)",
-      "destination": "/backend/api/index.js"
-    },
-    {
-      "source": "/api/products(.*)",
-      "destination": "/backend/api/index.js"
-    },
-    {
-      "source": "/api/consignments(.*)",
-      "destination": "/backend/api/index.js"
-    },
-    {
-      "source": "/api/wallet(.*)",
-      "destination": "/backend/api/wallet.js"
-    },
-    {
-      "source": "/api/orders(.*)",
-      "destination": "/backend/api/orders.js"
-    },
-    {
       "source": "/api/(.*)",
-      "destination": "/backend/api/index.js"
+      "destination": "/api/$1"
     }
   ],
   "headers": [
@@ -59,11 +31,5 @@
         }
       ]
     }
-  ],
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "regions": ["iad1"]
+  ]
 }
