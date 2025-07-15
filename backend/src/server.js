@@ -146,7 +146,7 @@ app.post("/api/auth/register", async (req, res) => {
       return res.status(409).json({ error: "User already exists" });
     }
 
-    const hashedPassword = await argon2.hash(password);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await query(
       `
