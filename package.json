@@ -20,6 +20,9 @@
     "start:production": "cd backend && npm start",
     "setup": "./setup-local.sh",
     "deploy": "./deploy-production.sh",
+    "deploy:vercel": "./deploy-vercel.sh",
+    "vercel:build": "cd frontend && npm install && npm run build",
+    "vercel:install": "cd frontend && npm install && cd ../backend/api && npm install",
     "test": "cd backend && npm test && cd ../frontend && npm test"
   },
   "keywords": [
