@@ -3,7 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
 const morgan = require("morgan");
-const bcrypt = require("bcryptjs");
+const argon2 = require("argon2");
 const jwt = require("jsonwebtoken");
 const mpesaService = require("./mpesa");
 const { query, transaction, initializeDatabase } = require("./database/db");
@@ -92,7 +92,7 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const validPassword = await bcrypt.compare(password, user.password_hash);
+    const validPassword = await argon2.verify(user.password_hash, password);
     if (!validPassword) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
@@ -146,7 +146,7 @@ app.post("/api/auth/register", async (req, res) => {
       return res.status(409).json({ error: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await argon2.hash(password);
 
     const result = await query(
       `
@@ -247,12 +247,10 @@ app.post(
       );
 
       const consignmentId = result.rows[0].id;
-      res
-        .status(201)
-        .json({
-          message: "Consignment created successfully",
-          id: consignmentId,
-        });
+      res.status(201).json({
+        message: "Consignment created successfully",
+        id: consignmentId,
+      });
     } catch (error) {
       console.error("Create consignment error:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -538,12 +536,10 @@ app.post(
           customerMessage: stkResponse.CustomerMessage,
         });
       } else {
-        res
-          .status(400)
-          .json({
-            error: "Failed to initiate withdrawal",
-            details: stkResponse,
-          });
+        res.status(400).json({
+          error: "Failed to initiate withdrawal",
+          details: stkResponse,
+        });
       }
     } catch (error) {
       console.error("Withdrawal error:", error);
