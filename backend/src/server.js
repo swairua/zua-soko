@@ -3,7 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
 const morgan = require("morgan");
-const argon2 = require("argon2");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const mpesaService = require("./mpesa");
 const { query, transaction, initializeDatabase } = require("./database/db");
@@ -92,7 +92,7 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const validPassword = await argon2.verify(user.password_hash, password);
+    const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
@@ -146,7 +146,7 @@ app.post("/api/auth/register", async (req, res) => {
       return res.status(409).json({ error: "User already exists" });
     }
 
-    const hashedPassword = await argon2.hash(password);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await query(
       `
