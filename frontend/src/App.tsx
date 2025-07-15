@@ -89,10 +89,15 @@ const RoleBasedRedirect: React.FC = () => {
 function App() {
   const { isAuthenticated, user } = useAuthStore();
 
+  useEffect(() => {
+    setupGlobalErrorHandling();
+  }, []);
+
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
+    <ErrorBoundary>
+      <Router>
+        <div className="min-h-screen bg-gray-50">
+          <Navbar />
 
         <main className="pb-16 lg:pb-0">
           <Routes>
