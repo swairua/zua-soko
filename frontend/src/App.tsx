@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,6 +7,8 @@ import {
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/auth";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { setupGlobalErrorHandling } from "./utils/errorHandler";
 
 // Layout components
 import Navbar from "./components/layout/Navbar";
