@@ -190,10 +190,20 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Don't redirect on auth errors during fetch failures
+    if (
+      error.response?.status === 401 &&
+      !error.message?.includes("Failed to fetch")
+    ) {
       localStorage.removeItem("token");
       window.location.href = "/auth/login";
     }
+
+    // Log network errors but don't spam console in production
+    if (error.message?.includes("Failed to fetch") && !import.meta.env.PROD) {
+      console.warn("Network request failed, falling back to cached data");
+    }
+
     return Promise.reject(error);
   },
 );
