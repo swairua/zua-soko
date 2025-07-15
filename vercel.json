@@ -11,42 +11,34 @@
       "maxDuration": 10
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/health",
-      "dest": "/backend/api/index.js"
+      "source": "/api/health",
+      "destination": "/backend/api/index.js"
     },
     {
-      "src": "/api/auth/(.*)",
-      "dest": "/backend/api/index.js"
+      "source": "/api/auth/(.*)",
+      "destination": "/backend/api/index.js"
     },
     {
-      "src": "/api/products(.*)",
-      "dest": "/backend/api/index.js"
+      "source": "/api/products(.*)",
+      "destination": "/backend/api/index.js"
     },
     {
-      "src": "/api/consignments(.*)",
-      "dest": "/backend/api/index.js"
+      "source": "/api/consignments(.*)",
+      "destination": "/backend/api/index.js"
     },
     {
-      "src": "/api/wallet(.*)",
-      "dest": "/backend/api/wallet.js"
+      "source": "/api/wallet(.*)",
+      "destination": "/backend/api/wallet.js"
     },
     {
-      "src": "/api/orders(.*)",
-      "dest": "/backend/api/orders.js"
+      "source": "/api/orders(.*)",
+      "destination": "/backend/api/orders.js"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/backend/api/index.js"
-    },
-    {
-      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
-      "dest": "/frontend/dist/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/dist/index.html"
+      "source": "/api/(.*)",
+      "destination": "/backend/api/index.js"
     }
   ],
   "headers": [
@@ -68,6 +60,8 @@
       ]
     }
   ],
+  "cleanUrls": true,
+  "trailingSlash": false,
   "env": {
     "NODE_ENV": "production"
   },
