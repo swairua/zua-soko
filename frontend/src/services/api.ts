@@ -151,15 +151,46 @@ const fallbackData = {
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "/api",
-  timeout: 10000,
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    (typeof window !== "undefined" ? "/api" : "http://localhost:3000/api"),
+  timeout: 30000, // Increased timeout for serverless functions
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
+
+// Add request interceptor for authentication
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/auth/login";
+    }
+    return Promise.reject(error);
+  },
+);
 
 // Enhanced API service with fallback support
 export const marketplaceAPI = {
   async getProducts(params?: any) {
     try {
-      const response = await api.get("/marketplace/products", { params });
+      const response = await api.get("/products", { params });
       return response.data;
     } catch (error) {
       console.warn("API unavailable, using fallback data:", error);

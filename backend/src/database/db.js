@@ -60,8 +60,8 @@ async function initializeDemoData() {
       return;
     }
 
-    const bcrypt = require("bcryptjs");
-    const demoPassword = await bcrypt.hash("password123", 10);
+    const argon2 = require("argon2");
+    const demoPassword = await argon2.hash("password123");
 
     // Create demo users
     const users = [

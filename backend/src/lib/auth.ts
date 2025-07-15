@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs";
+import argon2 from "argon2";
 import jwt from "jsonwebtoken";
 
 export type UserRole =
@@ -12,15 +12,14 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 
 export const hashPassword = async (password: string): Promise<string> => {
-  const saltRounds = 12;
-  return bcrypt.hash(password, saltRounds);
+  return argon2.hash(password);
 };
 
 export const verifyPassword = async (
   password: string,
   hashedPassword: string,
 ): Promise<boolean> => {
-  return bcrypt.compare(password, hashedPassword);
+  return argon2.verify(hashedPassword, password);
 };
 
 export const generateToken = (payload: any): string => {

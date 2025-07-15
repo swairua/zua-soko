@@ -1,5 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
-const bcrypt = require("bcryptjs");
+const argon2 = require("argon2");
 
 const prisma = new PrismaClient();
 
@@ -8,7 +8,7 @@ async function main() {
 
   try {
     // Create demo users with hashed passwords
-    const hashedPassword = await bcrypt.hash("password123", 12);
+    const hashedPassword = await argon2.hash("password123");
 
     // Create admin user
     const adminUser = await prisma.user.create({
