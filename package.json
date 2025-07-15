@@ -27,7 +27,7 @@
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
-  "dependencies": {
-    "argon2": "^0.43.1"
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }

@@ -150,14 +150,26 @@ const fallbackData = {
 };
 
 // Create axios instance with base configuration
+const getBaseURL = () => {
+  // In production/Vercel, use the current origin
+  if (import.meta.env.PROD) {
+    return typeof window !== "undefined"
+      ? "/api"
+      : "https://zuasoko-app.vercel.app/api";
+  }
+
+  // In development, use environment variable or fallback
+  return import.meta.env.VITE_API_URL || "/api";
+};
+
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL ||
-    (typeof window !== "undefined" ? "/api" : "http://localhost:3000/api"),
+  baseURL: getBaseURL(),
   timeout: 30000, // Increased timeout for serverless functions
   headers: {
     "Content-Type": "application/json",
   },
+  // Disable Vite's HMR in production
+  withCredentials: false,
 });
 
 // Add request interceptor for authentication
@@ -178,10 +190,20 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Don't redirect on auth errors during fetch failures
+    if (
+      error.response?.status === 401 &&
+      !error.message?.includes("Failed to fetch")
+    ) {
       localStorage.removeItem("token");
       window.location.href = "/auth/login";
     }
+
+    // Log network errors but don't spam console in production
+    if (error.message?.includes("Failed to fetch") && !import.meta.env.PROD) {
+      console.warn("Network request failed, falling back to cached data");
+    }
+
     return Promise.reject(error);
   },
 );

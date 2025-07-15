@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,6 +7,8 @@ import {
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/auth";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { setupGlobalErrorHandling } from "./utils/errorHandler";
 
 // Layout components
 import Navbar from "./components/layout/Navbar";
@@ -87,163 +89,172 @@ const RoleBasedRedirect: React.FC = () => {
 function App() {
   const { isAuthenticated, user } = useAuthStore();
 
+  useEffect(() => {
+    setupGlobalErrorHandling();
+  }, []);
+
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
+    <ErrorBoundary>
+      <Router>
+        <div className="min-h-screen bg-gray-50">
+          <Navbar />
 
-        <main className="pb-16 lg:pb-0">
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/marketplace" element={<MarketplacePage />} />
-            <Route path="/marketplace/product/:id" element={<ProductPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+          <main className="pb-16 lg:pb-0">
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/marketplace" element={<MarketplacePage />} />
+              <Route
+                path="/marketplace/product/:id"
+                element={<ProductPage />}
+              />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
 
-            {/* Role-based dashboard redirect */}
-            <Route path="/dashboard" element={<RoleBasedRedirect />} />
+              {/* Role-based dashboard redirect */}
+              <Route path="/dashboard" element={<RoleBasedRedirect />} />
 
-            {/* Farmer routes */}
-            <Route
-              path="/farmer/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={["FARMER"]}>
-                  <FarmerDashboard />
-                </ProtectedRoute>
-              }
-            />
+              {/* Farmer routes */}
+              <Route
+                path="/farmer/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["FARMER"]}>
+                    <FarmerDashboard />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Customer routes */}
-            <Route
-              path="/customer/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={["CUSTOMER"]}>
-                  <CustomerDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/customer/profile"
-              element={
-                <ProtectedRoute allowedRoles={["CUSTOMER"]}>
-                  <ProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/customer/orders"
-              element={
-                <ProtectedRoute allowedRoles={["CUSTOMER"]}>
-                  <OrderHistoryPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
+              {/* Customer routes */}
+              <Route
+                path="/customer/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["CUSTOMER"]}>
+                    <CustomerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/customer/profile"
+                element={
+                  <ProtectedRoute allowedRoles={["CUSTOMER"]}>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/customer/orders"
+                element={
+                  <ProtectedRoute allowedRoles={["CUSTOMER"]}>
+                    <OrderHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
 
-            {/* Admin routes */}
-            <Route
-              path="/admin/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={["ADMIN"]}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/users"
-              element={
-                <ProtectedRoute allowedRoles={["ADMIN"]}>
-                  <UserManagementPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/consignments"
-              element={
-                <ProtectedRoute allowedRoles={["ADMIN"]}>
-                  <ConsignmentManagementPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/analytics"
-              element={
-                <ProtectedRoute allowedRoles={["ADMIN"]}>
-                  <AnalyticsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/settings"
-              element={
-                <ProtectedRoute allowedRoles={["ADMIN"]}>
-                  <ComingSoonPage
-                    title="System Settings"
-                    description="Platform configuration and settings management will be available soon."
-                    features={[
-                      "Platform configuration",
-                      "User role management",
-                      "Payment settings",
-                      "Notification preferences",
-                      "System monitoring",
-                    ]}
-                  />
-                </ProtectedRoute>
-              }
-            />
+              {/* Admin routes */}
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["ADMIN"]}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute allowedRoles={["ADMIN"]}>
+                    <UserManagementPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/consignments"
+                element={
+                  <ProtectedRoute allowedRoles={["ADMIN"]}>
+                    <ConsignmentManagementPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/analytics"
+                element={
+                  <ProtectedRoute allowedRoles={["ADMIN"]}>
+                    <AnalyticsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/settings"
+                element={
+                  <ProtectedRoute allowedRoles={["ADMIN"]}>
+                    <ComingSoonPage
+                      title="System Settings"
+                      description="Platform configuration and settings management will be available soon."
+                      features={[
+                        "Platform configuration",
+                        "User role management",
+                        "Payment settings",
+                        "Notification preferences",
+                        "System monitoring",
+                      ]}
+                    />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Driver routes */}
-            <Route
-              path="/driver/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={["DRIVER"]}>
-                  <DriverDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/driver/assignments"
-              element={
-                <ProtectedRoute allowedRoles={["DRIVER"]}>
-                  <AssignmentsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/driver/warehouse"
-              element={
-                <ProtectedRoute allowedRoles={["DRIVER"]}>
-                  <WarehousePage />
-                </ProtectedRoute>
-              }
-            />
+              {/* Driver routes */}
+              <Route
+                path="/driver/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["DRIVER"]}>
+                    <DriverDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/driver/assignments"
+                element={
+                  <ProtectedRoute allowedRoles={["DRIVER"]}>
+                    <AssignmentsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/driver/warehouse"
+                element={
+                  <ProtectedRoute allowedRoles={["DRIVER"]}>
+                    <WarehousePage />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Legacy routes - redirect to new structure */}
-            <Route
-              path="/farmer/consignments"
-              element={<Navigate to="/farmer/dashboard" replace />}
-            />
-            <Route
-              path="/farmer/wallet"
-              element={<Navigate to="/farmer/dashboard" replace />}
-            />
+              {/* Legacy routes - redirect to new structure */}
+              <Route
+                path="/farmer/consignments"
+                element={<Navigate to="/farmer/dashboard" replace />}
+              />
+              <Route
+                path="/farmer/wallet"
+                element={<Navigate to="/farmer/dashboard" replace />}
+              />
 
-            {/* Test routes */}
-            <Route path="/test-mpesa" element={<TestMpesaPage />} />
+              {/* Test routes */}
+              <Route path="/test-mpesa" element={<TestMpesaPage />} />
 
-            {/* Catch-all route */}
-            <Route path="*" element={<ComingSoonPage />} />
-          </Routes>
-        </main>
+              {/* Catch-all route */}
+              <Route path="*" element={<ComingSoonPage />} />
+            </Routes>
+          </main>
 
-        {/* Mobile bottom navigation for authenticated users */}
-        {isAuthenticated && user && <MobileBottomNav />}
+          {/* Mobile bottom navigation for authenticated users */}
+          {isAuthenticated && user && <MobileBottomNav />}
 
-        <Toaster position="top-right" />
-      </div>
-    </Router>
+          <Toaster position="top-right" />
+        </div>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
