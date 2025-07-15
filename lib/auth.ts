@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs";
+import argon2 from "argon2";
 
 export type UserRole =
   | "FARMER"
@@ -8,15 +8,14 @@ export type UserRole =
   | "ADMIN";
 
 export const hashPassword = async (password: string): Promise<string> => {
-  const saltRounds = 12;
-  return bcrypt.hash(password, saltRounds);
+  return argon2.hash(password);
 };
 
 export const verifyPassword = async (
   password: string,
   hashedPassword: string,
 ): Promise<boolean> => {
-  return bcrypt.compare(password, hashedPassword);
+  return argon2.verify(hashedPassword, password);
 };
 
 export const formatPhoneNumber = (phone: string): string => {
