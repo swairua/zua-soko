@@ -190,7 +190,7 @@ api.interceptors.response.use(
 export const marketplaceAPI = {
   async getProducts(params?: any) {
     try {
-      const response = await api.get("/marketplace/products", { params });
+      const response = await api.get("/products", { params });
       return response.data;
     } catch (error) {
       console.warn("API unavailable, using fallback data:", error);
