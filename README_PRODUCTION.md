@@ -83,7 +83,7 @@ psql -h localhost -U caeybwbb_user -d caeybwbb_zuasoko_db -c "\dt"
 
 - ✅ HTTPS with SSL certificates
 - ✅ JWT authentication
-- ✅ Password hashing with bcrypt
+- ✅ Password hashing with Argon2
 - ✅ CORS protection
 - ✅ Helmet.js security headers
 - ✅ Environment variable protection
