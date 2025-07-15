@@ -1,0 +1,67 @@
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "@/shared": path.resolve(__dirname, "../shared/src"),
+    },
+  },
+  server: {
+    host: true, // Listen on all addresses for cloud environments
+    port: 3000,
+    strictPort: true,
+    cors: true,
+    hmr: {
+      port: 3000,
+      clientPort: 3000,
+      overlay: true, // Show errors in overlay
+    },
+    proxy: {
+      "/api": {
+        target: "http://localhost:5001",
+        changeOrigin: true,
+        secure: false,
+        timeout: 10000,
+        configure: (proxy) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('Proxy error:', err);
+          });
+        },
+      },
+    },
+    watch: {
+      usePolling: true, // Better for cloud environments
+      interval: 1000,
+    },
+  },
+  build: {
+    outDir: "dist",
+    sourcemap: true,
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Suppress certain warnings that are common in development
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
+          return;
+        }
+        warn(warning);
+      },
+    },
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+    exclude: ['@vite/client', '@vite/env'],
+  },
+  esbuild: {
+    // Handle JSX in .js files
+    loader: 'jsx',
+    include: /src\/.*\.[jt]sx?$/,
+  },
+  // Prevent HMR fetch errors in cloud environments
+  define: {
+    __DEV__: JSON.stringify(process.env.NODE_ENV !== 'production'),
+  },
+});

@@ -1,0 +1,100 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:15-alpine
+    container_name: zuasoko_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zuasoko_db
+      POSTGRES_USER: zuasoko_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_password_123}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - zuasoko_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zuasoko_user -d zuasoko_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend API Server
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: zuasoko_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_NAME: zuasoko_db
+      DB_USER: zuasoko_user
+      DB_PASSWORD: ${DB_PASSWORD:-secure_password_123}
+      JWT_SECRET: ${JWT_SECRET:-your_super_secret_jwt_key_here}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      MPESA_CONSUMER_KEY: ${MPESA_CONSUMER_KEY:-demo_key}
+      MPESA_CONSUMER_SECRET: ${MPESA_CONSUMER_SECRET:-demo_secret}
+      MPESA_BUSINESS_SHORT_CODE: ${MPESA_BUSINESS_SHORT_CODE:-174379}
+      MPESA_PASS_KEY: ${MPESA_PASS_KEY:-demo_passkey}
+      MPESA_CALLBACK_URL: ${MPESA_CALLBACK_URL:-http://localhost:5001/api/payments/callback}
+    ports:
+      - "5001:5001"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - zuasoko_network
+    volumes:
+      - ./backend/logs:/app/logs
+      - ./backend/uploads:/app/uploads
+
+  # Frontend (Optional - can be served separately)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: zuasoko_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:5001/api}
+      VITE_APP_NAME: Zuasoko
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - zuasoko_network
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: zuasoko_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - zuasoko_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  zuasoko_network:
+    driver: bridge

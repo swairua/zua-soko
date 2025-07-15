@@ -1,0 +1,25 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#16a34a" rx="64"/>
+  
+  <!-- Plant/Leaf design -->
+  <g transform="translate(256,256)">
+    <!-- Main stem -->
+    <rect x="-4" y="0" width="8" height="120" fill="#22c55e"/>
+    
+    <!-- Leaves -->
+    <ellipse cx="-40" cy="-60" rx="35" ry="20" fill="#22c55e" transform="rotate(-30)"/>
+    <ellipse cx="40" cy="-40" rx="30" ry="18" fill="#22c55e" transform="rotate(30)"/>
+    <ellipse cx="-30" cy="-20" rx="25" ry="15" fill="#22c55e" transform="rotate(-45)"/>
+    <ellipse cx="35" cy="0" rx="28" ry="16" fill="#22c55e" transform="rotate(45)"/>
+    
+    <!-- Fruits/Seeds -->
+    <circle cx="-25" cy="-80" r="8" fill="#ef4444"/>
+    <circle cx="30" cy="-70" r="6" fill="#f59e0b"/>
+    <circle cx="-15" cy="-50" r="7" fill="#ef4444"/>
+    <circle cx="25" cy="-30" r="5" fill="#f59e0b"/>
+    
+    <!-- Letter Z -->
+    <text x="0" y="-100" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white">Z</text>
+  </g>
+</svg>
