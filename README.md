@@ -94,7 +94,7 @@ Zuasoko is a complete consignment-based agricultural marketplace that facilitate
 - Role-based access control (RBAC)
 - Input validation and sanitization
 - CORS protection and security headers
-- Password hashing with bcrypt
+- Password hashing with Argon2
 
 ## 🚀 Getting Started
 
@@ -178,7 +178,7 @@ zuasoko-app/
 ├── frontend/                 # React frontend application
 │   ├── src/
 │   │   ├── components/      # Reusable UI components
-│   │   ├── contexts/        # React Context providers
+│   ���   ├── contexts/        # React Context providers
 │   │   ├── pages/          # Page components
 │   │   └── ...
 ├── backend/                 # Node.js backend API
