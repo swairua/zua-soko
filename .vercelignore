@@ -4,6 +4,8 @@ node_modules/
 *.log
 .env*
 !.env.example
+!frontend/.env.production
+!frontend/.env.development
 README*.md
 CHANGELOG.md
 CONTRIBUTING.md
@@ -17,3 +19,10 @@ test-*.js
 docker-compose.yml
 ecosystem.config.js
 nginx.conf
+app/
+components/
+contexts/
+lib/
+public/
+scripts/
+database/
