@@ -1,9 +1,8 @@
 {
   "version": 2,
-  "name": "zuasoko-app",
-  "buildCommand": "npm install --prefix frontend && cd frontend && npm run build:prod",
+  "buildCommand": "cd frontend && npm ci && npm run build:prod",
   "outputDirectory": "frontend/dist",
-  "installCommand": "npm install",
+  "installCommand": null,
   "functions": {
     "api/*.js": {
       "runtime": "nodejs18.x"
@@ -17,25 +16,6 @@
     {
       "source": "/(.*)",
       "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        }
-      ]
     }
   ]
 }
