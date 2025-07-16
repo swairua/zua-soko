@@ -18,10 +18,15 @@ function verifyPassword(password, hash) {
 let pool;
 async function getDB() {
   if (!pool) {
-    // Use environment variable or the provided Render.com database URL
+    // Use environment variable or fallback to Render.com database URL
     const databaseUrl =
       process.env.DATABASE_URL ||
       "postgresql://zuasoko_db_user:OoageAtal4KEnVnXn2axejZJxpy4nXto@dpg-d1rl7vripnbc73cj06j0-a.oregon-postgres.render.com/zuasoko_db";
+
+    console.log(
+      "🔗 Database URL configured:",
+      databaseUrl.replace(/:[^:]*@/, ":****@"),
+    );
 
     pool = new Pool({
       connectionString: databaseUrl,
@@ -151,18 +156,38 @@ export default async function handler(req, res) {
       }
 
       try {
+        console.log(`🔍 Login attempt for: ${phone}`);
+
         // Try real database first
         const result = await query(
           "SELECT * FROM users WHERE phone = $1 OR email = $1",
           [phone.trim()],
         );
+        console.log(
+          `📊 Database query result: ${result.rows.length} users found`,
+        );
+
         const user = result.rows[0];
 
         if (!user) {
+          console.log(`❌ No user found for: ${phone}`);
           return res.status(401).json({ error: "Invalid credentials" });
         }
 
+        console.log(
+          `👤 Found user: ${user.first_name} ${user.last_name} (${user.role})`,
+        );
+        console.log(
+          `🔐 Stored hash: ${user.password_hash.substring(0, 10)}...`,
+        );
+        console.log(`🔐 Input password: ${password}`);
+        console.log(
+          `🔐 Generated hash: ${hashPassword(password).substring(0, 10)}...`,
+        );
+
         const validPassword = verifyPassword(password, user.password_hash);
+        console.log(`✅ Password valid: ${validPassword}`);
+
         if (!validPassword) {
           return res.status(401).json({ error: "Invalid credentials" });
         }
@@ -189,7 +214,10 @@ export default async function handler(req, res) {
           },
         });
       } catch (error) {
-        console.warn("Database login failed, trying demo:", error.message);
+        console.error("❌ Database login failed:", error.message);
+        console.error("❌ Error code:", error.code);
+        console.error("❌ Error stack:", error.stack);
+        console.warn("🔄 Trying demo login fallback...");
         // Demo fallback - accepts specific demo credentials
         if (
           (phone === "admin@zuasoko.com" && password === "admin123") ||
@@ -392,7 +420,15 @@ export default async function handler(req, res) {
     // Default fallback
     return res.status(404).json({ error: "Endpoint not found" });
   } catch (error) {
-    console.error("API error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error("❌ API error:", error.message);
+    console.error("❌ Error stack:", error.stack);
+    console.error("❌ Error code:", error.code);
+    console.error("❌ Request URL:", url);
+    console.error("❌ Request method:", method);
+    return res.status(500).json({
+      error: "Internal server error",
+      details: error.message,
+      url: url,
+    });
   }
 }

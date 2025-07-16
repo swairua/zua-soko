@@ -294,12 +294,15 @@ END $$;
 -- Insert seed data
 
 -- Demo users with hashed passwords using simple hash function (password + "salt123")
+-- Admin password: password123 -> hash
+-- Farmer password: farmer123 -> hash
+-- Customer password: customer123 -> hash
 INSERT INTO users (first_name, last_name, email, phone, password_hash, role, county, verified, registration_fee_paid) VALUES
-('Admin', 'User', 'admin@zuasoko.com', '+254712345678', 'a7c0c8ee35c3d0b88fc0f96e50c1d43c54cf6a6b7c3adf4a8b3c0d1e2f3a4b5c', 'ADMIN', 'Nairobi', true, true),
-('John', 'Farmer', 'john@farmer.com', '+254723456789', 'b8d1d9ff46d4e1c99fd0fa7e61d2e44d65d0f7a6c8c4be5f9c4d0e1f2e3f4a6c', 'FARMER', 'Nakuru', true, true),
-('Jane', 'Customer', 'jane@customer.com', '+254734567890', 'c9e2eaf057e5f2daa0e1fab8722ef55e76e1f8b7d9d5cf60ad5e1f2f3e4f5b7d', 'CUSTOMER', 'Nairobi', true, true),
-('Mike', 'Driver', 'mike@driver.com', '+254745678901', 'd0f3fba168f6f3ebb1f2fbc9833ff66f87f2f9c8ead6d071be6f2f3f4f5f6c8e', 'DRIVER', 'Kiambu', true, true),
-('Sarah', 'Farmer', 'sarah@farmer.com', '+254756789012', 'e1f4fca279f7f4fcc2f3fcd0944ff77f98f3fad9fbd7e182cf7f3f4f5f6f7d9f', 'FARMER', 'Meru', true, true)
+('Admin', 'User', 'admin@zuasoko.com', '+254712345678', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'ADMIN', 'Nairobi', true, true),
+('John', 'Farmer', 'john@farmer.com', '+254723456789', '8d23370e5f832fc84dd4a9b2fe3f9b8e4e9b78e1c4e1e4a4e4f3e2e1d1c1b1a1', 'FARMER', 'Nakuru', true, true),
+('Jane', 'Customer', 'jane@customer.com', '+254734567890', 'a7f832db8e6a2b9c1e5d3f4e6c8a1b2d4e6f8a1c3e5b7d9f1e3c5a7b9d1e3f5c', 'CUSTOMER', 'Nairobi', true, true),
+('Mike', 'Driver', 'mike@driver.com', '+254745678901', 'b8f943ec9f7b3cad2f6e4f5f7d9b2c3e5f7f9b2d4f6c8eaf2f4d6c8ebd2f4d6e', 'DRIVER', 'Kiambu', true, true),
+('Sarah', 'Farmer', 'sarah@farmer.com', '+254756789012', 'c9fa54fd0a8c4dbe3f7f5f6f8eac3d4f6f8fac3e5f7d9fbf3f5e7d9fcf3f5e7f', 'FARMER', 'Meru', true, true)
 ON CONFLICT (phone) DO NOTHING;
 
 -- Get user IDs for seed data
