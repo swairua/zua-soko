@@ -24,12 +24,16 @@ function checkDirectory(dir) {
       const vitePatterns = [
         "@vite/client",
         "vite/client",
+        "vite/dist/client",
         "import.meta.hot",
         "__vite_plugin_react_preamble_installed__",
         "waitForSuccessfulPing",
         "vite:ws:",
         "__HMR_PORT__",
         "__HMR_PROTOCOL__",
+        "HMRContext",
+        "createHotContext",
+        "Cannot access 'HMRContext' before initialization",
       ];
 
       for (const pattern of vitePatterns) {

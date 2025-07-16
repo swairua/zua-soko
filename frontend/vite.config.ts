@@ -46,7 +46,12 @@ export default defineConfig(({ command, mode }) => {
       __DEV__: JSON.stringify(!isProduction),
       // Completely disable Vite features in production
       "import.meta.hot": isProduction ? "undefined" : "import.meta.hot",
+      "import.meta.env.DEV": JSON.stringify(!isProduction),
+      "import.meta.env.PROD": JSON.stringify(isProduction),
       __VITE_IS_MODERN_BROWSER: "true",
+      // Block HMR completely
+      HMRContext: isProduction ? "undefined" : "HMRContext",
+      createHotContext: isProduction ? "function(){}" : "createHotContext",
     },
     esbuild: {
       target: "esnext",
