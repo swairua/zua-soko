@@ -7,17 +7,80 @@
     <meta name="theme-color" content="#22c55e" />
     <title>Zuasoko - Agricultural Platform</title>
     <script>
-      // Disable Vite's error overlay in production
-      if (
-        typeof window !== "undefined" &&
-        window.location.hostname !== "localhost"
-      ) {
-        window.__vite_is_modern_browser = true;
-        // Suppress Vite client in production
-        if (!window.location.hostname.includes("localhost")) {
+      // Comprehensive Vite/HMR suppression for production
+      (function () {
+        var hostname = window.location.hostname;
+        var isProduction = hostname !== "localhost" && hostname !== "127.0.0.1";
+
+        if (isProduction) {
+          // Disable Vite client completely
+          window.__vite_is_modern_browser = true;
           window.__vite_plugin_react_preamble_installed__ = true;
+
+          // Override console methods to suppress HMR errors
+          var originalError = console.error;
+          var originalWarn = console.warn;
+
+          console.error = function () {
+            var message = Array.prototype.slice.call(arguments).join(" ");
+            if (
+              message.includes("vite") ||
+              message.includes("HMR") ||
+              message.includes("@vite/client") ||
+              message.includes("ping") ||
+              (message.includes("Failed to fetch") &&
+                message.includes("WebSocket"))
+            ) {
+              return; // Suppress HMR-related errors
+            }
+            originalError.apply(console, arguments);
+          };
+
+          console.warn = function () {
+            var message = Array.prototype.slice.call(arguments).join(" ");
+            if (
+              message.includes("vite") ||
+              message.includes("HMR") ||
+              message.includes("@vite/client")
+            ) {
+              return; // Suppress HMR-related warnings
+            }
+            originalWarn.apply(console, arguments);
+          };
+
+          // Disable error reporting for specific patterns
+          window.addEventListener(
+            "error",
+            function (e) {
+              if (
+                e.message &&
+                (e.message.includes("vite") ||
+                  (e.message.includes("Failed to fetch") &&
+                    e.filename.includes("vite")))
+              ) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+              }
+            },
+            true,
+          );
+
+          // Disable unhandled promise rejection for HMR
+          window.addEventListener("unhandledrejection", function (e) {
+            if (
+              e.reason &&
+              e.reason.message &&
+              (e.reason.message.includes("vite") ||
+                (e.reason.message.includes("Failed to fetch") &&
+                  (e.reason.stack || "").includes("ping")))
+            ) {
+              e.preventDefault();
+              return false;
+            }
+          });
         }
-      }
+      })();
     </script>
   </head>
   <body>
