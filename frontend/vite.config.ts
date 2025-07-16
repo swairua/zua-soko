@@ -2,6 +2,7 @@ import { defineConfig, UserConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { noViteClientPlugin } from "./vite-no-client.plugin";
+import { reactProdPlugin } from "./vite-react-prod.plugin";
 
 export default defineConfig(({ command, mode }) => {
   const isProduction = mode === "production" || command === "build";
@@ -88,7 +89,14 @@ export default defineConfig(({ command, mode }) => {
   };
 
   // Add plugins based on environment
-  config.plugins = isProduction ? [react(), noViteClientPlugin()] : [react()];
+  config.plugins = isProduction
+    ? [
+        // Use production-only React plugin that doesn't inject dev code
+        reactProdPlugin(),
+        // Block any remaining Vite client injection
+        noViteClientPlugin(),
+      ]
+    : [react()];
 
   // Only add server config in development
   if (!isProduction) {
