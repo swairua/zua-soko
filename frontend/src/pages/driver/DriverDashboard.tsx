@@ -384,7 +384,7 @@ export default function DriverDashboard() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan={6}
                     className="px-6 py-4 text-center text-gray-500"
                   >
                     Loading deliveries...
@@ -393,7 +393,7 @@ export default function DriverDashboard() {
               ) : formattedDeliveries.length === 0 ? (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan={6}
                     className="px-6 py-4 text-center text-gray-500"
                   >
                     No deliveries assigned
