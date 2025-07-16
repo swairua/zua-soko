@@ -149,14 +149,17 @@ export default function CheckoutPage() {
     try {
       setLoading(true);
       // Use local cart data from Zustand store
+      const deliveryFee = cart.totalAmount > 2000 ? 0 : 300;
       const cartData = {
         items: cart.items,
         totalItems: cart.totalItems,
         totalAmount: cart.totalAmount,
         isReadyForCheckout: cart.items.length > 0,
-        deliveryFee: cart.totalAmount > 2000 ? 0 : 300, // Free delivery over KES 2000
+        deliveryFee,
         subtotal: cart.totalAmount,
-        total: cart.totalAmount + (cart.totalAmount > 2000 ? 0 : 300),
+        total: cart.totalAmount + deliveryFee,
+        grandTotal: cart.totalAmount + deliveryFee,
+        unavailableItems: [],
       };
 
       setCartSummary(cartData);
@@ -217,7 +220,7 @@ export default function CheckoutPage() {
             return;
           }
 
-          toast.info("Initiating M-Pesa payment...");
+          toast("Initiating M-Pesa payment...", { icon: "ℹ️" });
 
           const stkResponse = await axios.post("/api/payments/stk-push", {
             phone: formattedPhone,
@@ -234,7 +237,7 @@ export default function CheckoutPage() {
 
             // Poll for payment status
             try {
-              toast.info("Waiting for payment confirmation...");
+              toast("Waiting for payment confirmation...", { icon: "ℹ️" });
               const paymentResult = await pollPaymentStatus(
                 stkResponse.data.transactionId,
               );
@@ -249,9 +252,9 @@ export default function CheckoutPage() {
               }
             } catch (pollError) {
               console.error("Payment polling error:", pollError);
-              toast.warning(
-                "Payment initiated. Status will be updated shortly.",
-              );
+              toast("Payment initiated. Status will be updated shortly.", {
+                icon: "⚠️",
+              });
             }
           } else {
             toast.error("Failed to initiate M-Pesa payment");

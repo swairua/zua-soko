@@ -1,4 +1,4 @@
-const bcrypt = require("bcryptjs"); // Using bcryptjs for better serverless compatibility
+const argon2 = require("argon2");
 const jwt = require("jsonwebtoken");
 const { Pool } = require("pg");
 
@@ -25,31 +25,21 @@ async function query(text, params = []) {
   return await db.query(text, params);
 }
 
-// Auth middleware
-const authenticateToken = (req, res, next) => {
+// Auth middleware helper functions
+const authenticateToken = async (req) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ error: "Access token required" });
+    throw new Error("Access token required");
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || "demo-secret", (err, user) => {
-    if (err) {
-      return res.status(401).json({ error: "Invalid token" });
-    }
-    req.user = user;
-    next();
-  });
-};
-
-const requireRole = (roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ error: "Insufficient permissions" });
-    }
-    next();
-  };
+  try {
+    const user = jwt.verify(token, process.env.JWT_SECRET || "demo-secret");
+    return user;
+  } catch (err) {
+    throw new Error("Invalid token");
+  }
 };
 
 // Main handler
@@ -67,7 +57,8 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { url, method } = req;
+  const url = req.url || "";
+  const { method } = req;
 
   try {
     // Health check
@@ -98,7 +89,7 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      const validPassword = await bcrypt.compare(password, user.password_hash);
+      const validPassword = await argon2.verify(user.password_hash, password);
       if (!validPassword) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
@@ -142,7 +133,7 @@ export default async function handler(req, res) {
         return res.status(409).json({ error: "User already exists" });
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await argon2.hash(password);
 
       const result = await query(
         `INSERT INTO users (first_name, last_name, email, phone, password_hash, role, county, verified, registration_fee_paid)
@@ -204,6 +195,30 @@ export default async function handler(req, res) {
       `);
 
       return res.json({ products: result.rows });
+    }
+
+    // Protected endpoints (require authentication)
+    if (url.startsWith("/api/wallet") || url.startsWith("/api/orders")) {
+      try {
+        const user = await authenticateToken(req);
+        req.user = user;
+      } catch (error) {
+        return res.status(401).json({ error: error.message });
+      }
+    }
+
+    // Wallet endpoints
+    if (url === "/api/wallet/balance" && method === "GET") {
+      const result = await query(
+        "SELECT balance FROM wallets WHERE user_id = $1",
+        [req.user.userId],
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: "Wallet not found" });
+      }
+
+      return res.json({ balance: parseFloat(result.rows[0].balance) });
     }
 
     // Default fallback

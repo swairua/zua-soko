@@ -21,12 +21,6 @@ class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Error caught by boundary:", error, errorInfo);
-
-    // Don't log HMR/development errors in production
-    if (import.meta.env.PROD && !error.message.includes("Failed to fetch")) {
-      // You could send to error tracking service here
-      console.error("Production error:", error);
-    }
   }
 
   public render() {

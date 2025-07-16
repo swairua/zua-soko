@@ -81,7 +81,7 @@ export default function DriverDashboard() {
         return;
       }
 
-      toast.info("Getting your location...");
+      toast("Getting your location...", { icon: "ℹ️" });
 
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -107,7 +107,9 @@ export default function DriverDashboard() {
             toast.success(
               `Location obtained: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
             );
-            toast.warning("Could not sync with server - using local GPS");
+            toast("Could not sync with server - using local GPS", {
+              icon: "⚠️",
+            });
           }
         },
         (error) => {
@@ -134,12 +136,12 @@ export default function DriverDashboard() {
   };
 
   const handleReportIssue = () => {
-    toast.info("Issue reporting form would open here");
+    toast("Issue reporting form would open here", { icon: "ℹ️" });
     // In a real app, this would open an issue reporting form
   };
 
   const handleViewEarnings = () => {
-    toast.info("Earnings details would be shown here");
+    toast("Earnings details would be shown here", { icon: "ℹ️" });
     // In a real app, this would show detailed earnings breakdown
   };
 
@@ -382,7 +384,7 @@ export default function DriverDashboard() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan={6}
                     className="px-6 py-4 text-center text-gray-500"
                   >
                     Loading deliveries...
@@ -391,7 +393,7 @@ export default function DriverDashboard() {
               ) : formattedDeliveries.length === 0 ? (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan={6}
                     className="px-6 py-4 text-center text-gray-500"
                   >
                     No deliveries assigned

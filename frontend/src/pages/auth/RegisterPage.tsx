@@ -193,10 +193,12 @@ export default function RegisterPage() {
 
       // Show next steps based on role
       if (response.data.requiresPayment) {
-        toast.info("You will need to pay the activation fee after login");
+        toast("You will need to pay the activation fee after login", {
+          icon: "ℹ️",
+        });
       }
       if (response.data.requiresApproval) {
-        toast.info("Your application will be reviewed by our team");
+        toast("Your application will be reviewed by our team", { icon: "ℹ️" });
       }
 
       navigate("/login");
