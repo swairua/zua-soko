@@ -45,7 +45,9 @@
             if (
               message.includes("vite") ||
               message.includes("HMR") ||
-              message.includes("@vite/client")
+              message.includes("@vite/client") ||
+              message.includes("HMR connection suppressed") ||
+              message.includes("eval at messageHandler")
             ) {
               return; // Suppress HMR-related warnings
             }
