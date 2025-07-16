@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { stripViteClientPlugin } from "./vite-strip-client.plugin";
+import { noViteClientPlugin } from "./vite-no-client.plugin";
 
 export default defineConfig(({ command, mode }) => {
   const isProduction = mode === "production" || command === "build";
