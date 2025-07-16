@@ -1,8 +1,5 @@
 {
-  "name": "zuasoko-static-site",
+  "name": "zuasoko",
   "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "build": "echo 'Building static site...' && node build-static.js"
-  }
+  "private": true
 }
