@@ -65,20 +65,28 @@ export const retryFetch = async (
 export const isHMRError = (error: any): boolean => {
   const errorMessage = error?.message || error?.toString() || "";
   const errorStack = error?.stack || "";
+  const errorFilename = error?.filename || "";
 
   return (
     errorMessage.includes("vite") ||
     errorMessage.includes("HMR") ||
     errorMessage.includes("@vite/client") ||
     errorMessage.includes("waitForSuccessfulPing") ||
-    errorMessage.includes("WebSocket") ||
+    errorMessage.includes("HMR connection suppressed") ||
     errorStack.includes("@vite/client") ||
     errorStack.includes("ping") ||
     errorStack.includes("edge.fullstory.com") ||
-    (errorMessage.includes("Failed to fetch") && errorStack.includes("ping")) ||
-    // Additional patterns for the specific errors we're seeing
     errorStack.includes("24f0659a90184252a93b6fc911098462") ||
-    errorStack.includes("fly.dev")
+    errorStack.includes("fly.dev") ||
+    errorFilename.includes("@vite/client") ||
+    // Check for WebSocket-related HMR errors
+    (errorMessage.includes("Failed to fetch") &&
+      (errorStack.includes("ping") ||
+        errorStack.includes("WebSocket") ||
+        errorStack.includes("messageHandler"))) ||
+    // Check for the specific error pattern we're seeing
+    (errorMessage.includes("Failed to fetch") &&
+      errorStack.includes("eval at messageHandler"))
   );
 };
 
