@@ -8,7 +8,8 @@ README*.md
 CHANGELOG.md
 CONTRIBUTING.md
 *.md
-deploy*.sh
+!VERCEL_SETUP.md
+build.sh
 setup*.sh
 health-check.sh
 migrate*.sh
@@ -23,3 +24,5 @@ lib/
 public/
 scripts/
 database/
+next.config.js
+next-env.d.ts
