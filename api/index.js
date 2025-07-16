@@ -1,6 +1,18 @@
-const argon2 = require("argon2");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const { Pool } = require("pg");
+
+// Simple hash function using built-in crypto
+function hashPassword(password) {
+  return crypto
+    .createHash("sha256")
+    .update(password + "salt123")
+    .digest("hex");
+}
+
+function verifyPassword(password, hash) {
+  return hashPassword(password) === hash;
+}
 
 // Database connection
 let pool;
@@ -89,7 +101,7 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      const validPassword = await argon2.verify(user.password_hash, password);
+      const validPassword = verifyPassword(password, user.password_hash);
       if (!validPassword) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
@@ -133,7 +145,7 @@ export default async function handler(req, res) {
         return res.status(409).json({ error: "User already exists" });
       }
 
-      const hashedPassword = await argon2.hash(password);
+      const hashedPassword = hashPassword(password);
 
       const result = await query(
         `INSERT INTO users (first_name, last_name, email, phone, password_hash, role, county, verified, registration_fee_paid)
@@ -195,6 +207,64 @@ export default async function handler(req, res) {
       `);
 
       return res.json({ products: result.rows });
+    }
+
+    // Demo endpoints for testing without database
+    if (url === "/api/demo/products" && method === "GET") {
+      const demoProducts = [
+        {
+          id: 1,
+          name: "Fresh Tomatoes",
+          description: "Organic red tomatoes",
+          price: 150,
+          unit: "kg",
+          stock_quantity: 50,
+          first_name: "John",
+          last_name: "Doe",
+        },
+        {
+          id: 2,
+          name: "Green Beans",
+          description: "Fresh green beans",
+          price: 200,
+          unit: "kg",
+          stock_quantity: 30,
+          first_name: "Jane",
+          last_name: "Smith",
+        },
+      ];
+      return res.json({ products: demoProducts });
+    }
+
+    if (url === "/api/demo/login" && method === "POST") {
+      const { phone, password } = req.body;
+
+      // Demo login - accepts any phone/password
+      if (phone && password) {
+        const token = jwt.sign(
+          { userId: 1, phone, role: "FARMER" },
+          process.env.JWT_SECRET || "demo-secret",
+          { expiresIn: "7d" },
+        );
+
+        return res.json({
+          message: "Demo login successful",
+          token,
+          user: {
+            id: 1,
+            firstName: "Demo",
+            lastName: "User",
+            email: "demo@example.com",
+            phone,
+            role: "FARMER",
+            county: "Nairobi",
+            verified: true,
+            registrationFeePaid: true,
+          },
+        });
+      }
+
+      return res.status(400).json({ error: "Phone and password required" });
     }
 
     // Protected endpoints (require authentication)
