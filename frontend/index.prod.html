@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#22c55e" />
+    <title>Zuasoko - Agricultural Platform</title>
+    <script>
+      // Completely block any Vite client or HMR code from loading
+      (function () {
+        // Block all Vite-related globals
+        window.__vite_is_modern_browser = true;
+        window.__vite_plugin_react_preamble_installed__ = true;
+        window.HMRContext = undefined;
+        window.createHotContext = () => undefined;
+
+        // Override import.meta completely
+        try {
+          Object.defineProperty(window, "import", {
+            value: {
+              meta: {
+                hot: undefined,
+                env: { DEV: false, PROD: true },
+              },
+            },
+            configurable: false,
+            writable: false,
+          });
+        } catch (e) {}
+
+        // Block all dynamic imports of Vite modules
+        var originalImport = window.eval(
+          'typeof import !== "undefined" ? import : null',
+        );
+        if (originalImport) {
+          window.import = function (spec) {
+            if (
+              typeof spec === "string" &&
+              (spec.includes("@vite") ||
+                spec.includes("vite/") ||
+                spec.includes("hmr"))
+            ) {
+              return Promise.reject(new Error("Vite modules blocked"));
+            }
+            return originalImport.apply(this, arguments);
+          };
+        }
+
+        // Block script tag creation for Vite modules
+        var origCreateElement = document.createElement;
+        document.createElement = function (tag) {
+          var element = origCreateElement.call(document, tag);
+          if (tag.toLowerCase() === "script") {
+            var origSetAttribute = element.setAttribute;
+            element.setAttribute = function (name, value) {
+              if (
+                name === "src" &&
+                value &&
+                (value.includes("@vite") ||
+                  value.includes("vite/") ||
+                  value.includes("hmr"))
+              ) {
+                console.log("Blocked Vite script:", value);
+                return;
+              }
+              return origSetAttribute.call(this, name, value);
+            };
+          }
+          return element;
+        };
+
+        // Block WebSocket connections to dev server
+        var OrigWS = window.WebSocket;
+        window.WebSocket = function (url, protocols) {
+          if (
+            url.toString().includes("vite") ||
+            url.toString().includes("hmr") ||
+            url.toString().includes("3001")
+          ) {
+            return {
+              close: function () {},
+              send: function () {},
+              addEventListener: function () {},
+              readyState: 3,
+            };
+          }
+          return new OrigWS(url, protocols);
+        };
+
+        // Block eval and Function for HMR code
+        var origEval = window.eval;
+        window.eval = function (code) {
+          if (
+            typeof code === "string" &&
+            (code.includes("HMRContext") || code.includes("@vite"))
+          ) {
+            return;
+          }
+          return origEval.call(this, code);
+        };
+
+        // Suppress all HMR-related errors
+        window.addEventListener(
+          "error",
+          function (e) {
+            if (
+              e.message &&
+              (e.message.includes("HMRContext") ||
+                e.message.includes("@vite") ||
+                e.message.includes("vite/"))
+            ) {
+              e.preventDefault();
+              e.stopPropagation();
+              return false;
+            }
+          },
+          true,
+        );
+
+        window.addEventListener(
+          "unhandledrejection",
+          function (e) {
+            if (
+              e.reason &&
+              e.reason.message &&
+              (e.reason.message.includes("HMRContext") ||
+                e.reason.message.includes("@vite"))
+            ) {
+              e.preventDefault();
+              return false;
+            }
+          },
+          true,
+        );
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
