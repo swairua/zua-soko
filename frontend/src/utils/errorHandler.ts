@@ -82,28 +82,76 @@ export const isHMRError = (error: any): boolean => {
 
 // Global error handler for unhandled promise rejections
 export const setupGlobalErrorHandling = () => {
+  // Handle unhandled promise rejections
   window.addEventListener("unhandledrejection", (event) => {
-    // Ignore HMR-related errors in development
+    // Ignore HMR-related errors in any environment
     if (isHMRError(event.reason)) {
       event.preventDefault();
-      console.warn(
-        "HMR connection issue (ignored in development):",
-        event.reason,
-      );
+      // Only log in development
+      if (!import.meta.env.PROD) {
+        console.warn(
+          "HMR connection issue (suppressed):",
+          event.reason?.message || event.reason,
+        );
+      }
       return;
     }
 
-    console.error("Unhandled promise rejection:", event.reason);
+    // Only log real errors
+    if (!import.meta.env.PROD) {
+      console.error("Unhandled promise rejection:", event.reason);
+    }
   });
 
+  // Handle global JavaScript errors
   window.addEventListener("error", (event) => {
-    // Ignore HMR-related errors in development
+    // Ignore HMR-related errors in any environment
     if (isHMRError(event.error)) {
       event.preventDefault();
-      console.warn("HMR error (ignored in development):", event.error);
+      // Only log in development
+      if (!import.meta.env.PROD) {
+        console.warn(
+          "HMR error (suppressed):",
+          event.error?.message || event.error,
+        );
+      }
       return;
     }
 
-    console.error("Global error:", event.error);
+    // Only log real errors
+    if (!import.meta.env.PROD) {
+      console.error("Global error:", event.error);
+    }
   });
+
+  // Specifically handle WebSocket errors that might be related to HMR
+  const originalWebSocket = window.WebSocket;
+  window.WebSocket = class extends originalWebSocket {
+    constructor(url: string | URL, protocols?: string | string[]) {
+      super(url, protocols);
+
+      this.addEventListener("error", (event) => {
+        const urlString = url.toString();
+        // Suppress HMR WebSocket errors
+        if (
+          urlString.includes("vite") ||
+          urlString.includes("hmr") ||
+          urlString.includes("ws")
+        ) {
+          event.preventDefault();
+          if (!import.meta.env.PROD) {
+            console.warn(
+              "WebSocket error (HMR-related, suppressed):",
+              urlString,
+            );
+          }
+        }
+      });
+    }
+  };
+
+  // Disable Vite's error overlay in production
+  if (import.meta.env.PROD && window.__vite_plugin_react_preamble_installed__) {
+    delete window.__vite_plugin_react_preamble_installed__;
+  }
 };
