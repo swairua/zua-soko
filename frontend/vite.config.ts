@@ -18,6 +18,12 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
       sourcemap: false,
       rollupOptions: {
+        // Use production HTML template
+        ...(isProduction
+          ? {
+              input: path.resolve(__dirname, "index.production.html"),
+            }
+          : {}),
         output: {
           manualChunks: {
             vendor: ["react", "react-dom"],
