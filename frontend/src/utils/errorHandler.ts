@@ -166,8 +166,14 @@ export const setupGlobalErrorHandling = () => {
   window.fetch = function (...args) {
     return originalFetch.apply(this, args).catch((error) => {
       if (isHMRError(error)) {
-        // Suppress HMR-related fetch errors
-        return Promise.reject(new Error("HMR connection suppressed"));
+        // Silently suppress HMR-related fetch errors by returning a mock successful response
+        return Promise.resolve(
+          new Response("{}", {
+            status: 200,
+            statusText: "OK",
+            headers: { "Content-Type": "application/json" },
+          }),
+        );
       }
       return Promise.reject(error);
     });
