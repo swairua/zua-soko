@@ -18,7 +18,6 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
       sourcemap: false,
       rollupOptions: {
-        // Use production HTML template
         ...(isProduction
           ? {
               input: {
@@ -44,7 +43,6 @@ export default defineConfig(({ mode }) => {
                 },
               },
             }),
-        // Completely exclude Vite client in production
         external: isProduction
           ? ["/@vite/client", "@vite/client", "vite/client", "/vite/client"]
           : [],
@@ -53,11 +51,8 @@ export default defineConfig(({ mode }) => {
       minify: isProduction ? "esbuild" : false,
     },
     define: {
-      __APP_VERSION__: JSON.stringify(
-        process.env.npm_package_version || "0.1.0",
-      ),
+      __APP_VERSION__: JSON.stringify(process.env.npm_package_version || "0.1.0"),
       "process.env.NODE_ENV": JSON.stringify(mode),
-      // Completely disable HMR in production
       ...(isProduction
         ? {
             "import.meta.hot": "undefined",
@@ -67,21 +62,17 @@ export default defineConfig(({ mode }) => {
           }
         : {}),
     },
-    // Only add server config in development
-    ...(isProduction
-      ? {}
-      : {
-          server: {
-            port: 3000,
-            host: true,
-            proxy: {
-              "/api": {
-                target: "http://localhost:5001",
-                changeOrigin: true,
-                secure: false,
-              },
-            },
-          },
-        }),
+    server: {
+      port: 3000,
+      host: true,
+      allowedHosts: ['zua-soko.onrender.com', 'localhost'],
+      proxy: {
+        "/api": {
+          target: "http://localhost:5001",
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+    },
   };
 });
