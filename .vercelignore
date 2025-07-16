@@ -4,13 +4,10 @@ node_modules/
 *.log
 .env*
 !.env.example
-!frontend/.env.production
-!frontend/.env.development
 README*.md
 CHANGELOG.md
 CONTRIBUTING.md
 *.md
-!VERCEL_DEPLOYMENT.md
 deploy*.sh
 setup*.sh
 health-check.sh
