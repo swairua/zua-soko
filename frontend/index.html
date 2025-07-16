@@ -203,6 +203,41 @@
               return originalDefine.apply(this, arguments);
             };
           }
+
+          // Block eval execution of HMR-related code
+          var originalEval = window.eval;
+          window.eval = function (code) {
+            if (
+              typeof code === "string" &&
+              (code.includes("HMRContext") ||
+                code.includes("createHotContext") ||
+                code.includes("@vite/client") ||
+                code.includes("vite/dist/client"))
+            ) {
+              console.log("Blocked eval execution of HMR code");
+              return;
+            }
+            return originalEval.call(this, code);
+          };
+
+          // Block Function constructor for HMR code
+          var OriginalFunction = window.Function;
+          window.Function = function () {
+            var code = Array.prototype.slice.call(arguments, -1)[0];
+            if (
+              typeof code === "string" &&
+              (code.includes("HMRContext") ||
+                code.includes("createHotContext") ||
+                code.includes("@vite/client"))
+            ) {
+              console.log("Blocked Function constructor with HMR code");
+              return function () {};
+            }
+            return OriginalFunction.apply(this, arguments);
+          };
+
+          // Set prototype to maintain instanceof checks
+          window.Function.prototype = OriginalFunction.prototype;
         }
       })();
     </script>
