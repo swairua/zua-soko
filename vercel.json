@@ -1,8 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm ci && npm run build:prod",
+  "buildCommand": "npm run vercel-build",
   "outputDirectory": "frontend/dist",
-  "installCommand": null,
   "functions": {
     "api/*.js": {
       "runtime": "nodejs18.x"
