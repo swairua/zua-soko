@@ -1,14 +1,43 @@
+# Exclude everything that could cause framework detection
 backend/
 node_modules/
 .git/
 *.log
+
+# Next.js detection files
+app/
+pages/
+components/
+lib/
+contexts/
+public/
+next.config.js
+next-env.d.ts
+tsconfig.json
+.next/
+
+# Other framework files  
+nuxt.config.js
+vue.config.js
+angular.json
+svelte.config.js
+remix.config.js
+
+# Config files that could cause detection
+tailwind.config.js
+postcss.config.js
+webpack.config.js
+vite.config.js
+rollup.config.js
+
+# Environment and docs
 .env*
 !.env.example
 README*.md
-CHANGELOG.md
-CONTRIBUTING.md
 *.md
 !VERCEL_SETUP.md
+
+# Scripts and tools
 build.sh
 setup*.sh
 health-check.sh
@@ -17,12 +46,8 @@ test-*.js
 docker-compose.yml
 ecosystem.config.js
 nginx.conf
-app/
-components/
-contexts/
-lib/
-public/
+
+# Misc
 scripts/
 database/
-next.config.js
-next-env.d.ts
+all-files.txt
