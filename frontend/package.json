@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "NODE_ENV=production tsc && vite build --mode production --minify esbuild",
-    "build:prod": "NODE_ENV=production tsc && vite build --mode production --minify esbuild --logLevel error",
+    "build": "NODE_ENV=production tsc && vite build --mode production --minify esbuild && node verify-production-build.js",
+    "build:prod": "NODE_ENV=production tsc && vite build --mode production --minify esbuild --logLevel error && node verify-production-build.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview --mode production",
     "type-check": "tsc --noEmit",
