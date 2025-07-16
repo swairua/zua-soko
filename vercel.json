@@ -2,11 +2,7 @@
   "version": 2,
   "name": "zuasoko-app",
   "framework": null,
-<<<<<<< HEAD
   "buildCommand": "echo 'VERCEL BUILD START' && node vercel-build.js && echo 'VERCEL BUILD END'",
-=======
-  "buildCommand": "echo 'Build started' && ls -la && echo 'Running custom build...' && node vercel-build.js",
->>>>>>> origin/main
   "outputDirectory": "frontend/dist",
   "installCommand": null,
   "functions": {
@@ -15,11 +11,8 @@
     }
   },
   "env": {
-<<<<<<< HEAD
+    "NODE_ENV": "production",
     "VERCEL_FORCE_CUSTOM": "true"
-=======
-    "NODE_ENV": "production"
->>>>>>> origin/main
   },
   "rewrites": [
     {
