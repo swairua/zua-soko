@@ -1,6 +1,5 @@
 {
-  "buildCommand": "cd frontend && npm install && npm run build:prod && cp -r dist/* ../",
-  "outputDirectory": ".",
+  "buildCommand": "cd frontend && npm install && npm run build:prod && mv dist/index.production.html dist/index.html && cp -r dist/* ../",
   "functions": {
     "api/*.js": {
       "runtime": "nodejs18.x"
