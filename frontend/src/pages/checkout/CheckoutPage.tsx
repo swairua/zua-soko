@@ -149,14 +149,17 @@ export default function CheckoutPage() {
     try {
       setLoading(true);
       // Use local cart data from Zustand store
+      const deliveryFee = cart.totalAmount > 2000 ? 0 : 300;
       const cartData = {
         items: cart.items,
         totalItems: cart.totalItems,
         totalAmount: cart.totalAmount,
         isReadyForCheckout: cart.items.length > 0,
-        deliveryFee: cart.totalAmount > 2000 ? 0 : 300, // Free delivery over KES 2000
+        deliveryFee,
         subtotal: cart.totalAmount,
-        total: cart.totalAmount + (cart.totalAmount > 2000 ? 0 : 300),
+        total: cart.totalAmount + deliveryFee,
+        grandTotal: cart.totalAmount + deliveryFee,
+        unavailableItems: [],
       };
 
       setCartSummary(cartData);
