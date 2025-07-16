@@ -1,5 +1,11 @@
 {
   "name": "zuasoko",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build:prod && mv dist/index.production.html dist/index.html && cp -r dist/* ../ && cd ../api && npm install"
+  },
+  "engines": {
+    "node": "18"
+  }
 }
