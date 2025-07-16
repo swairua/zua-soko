@@ -92,47 +92,61 @@ export const isHMRError = (error: any): boolean => {
 
 // Global error handler for unhandled promise rejections
 export const setupGlobalErrorHandling = () => {
-  // Handle unhandled promise rejections
-  window.addEventListener("unhandledrejection", (event) => {
-    // Ignore HMR-related errors in any environment
-    if (isHMRError(event.reason)) {
-      event.preventDefault();
-      // Only log in development
-      if (!import.meta.env.PROD) {
-        console.warn(
-          "HMR connection issue (suppressed):",
-          event.reason?.message || event.reason,
-        );
+  // Handle unhandled promise rejections - more aggressive suppression
+  window.addEventListener(
+    "unhandledrejection",
+    (event) => {
+      // Ignore HMR-related errors in any environment
+      if (isHMRError(event.reason)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        // Completely silent in production, minimal logging in dev
+        if (!import.meta.env.PROD) {
+          console.debug(
+            "HMR error suppressed:",
+            event.reason?.message || "Connection issue",
+          );
+        }
+        return false;
       }
-      return;
-    }
 
-    // Only log real errors
-    if (!import.meta.env.PROD) {
-      console.error("Unhandled promise rejection:", event.reason);
-    }
-  });
-
-  // Handle global JavaScript errors
-  window.addEventListener("error", (event) => {
-    // Ignore HMR-related errors in any environment
-    if (isHMRError(event.error)) {
-      event.preventDefault();
-      // Only log in development
+      // Only log real errors in development
       if (!import.meta.env.PROD) {
-        console.warn(
-          "HMR error (suppressed):",
-          event.error?.message || event.error,
-        );
+        console.error("Unhandled promise rejection:", event.reason);
       }
-      return;
-    }
+    },
+    true,
+  ); // Use capture phase
 
-    // Only log real errors
-    if (!import.meta.env.PROD) {
-      console.error("Global error:", event.error);
-    }
-  });
+  // Handle global JavaScript errors - more aggressive suppression
+  window.addEventListener(
+    "error",
+    (event) => {
+      // Ignore HMR-related errors in any environment
+      if (
+        isHMRError(event.error) ||
+        (event.message &&
+          isHMRError({ message: event.message, stack: event.error?.stack }))
+      ) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        // Completely silent in production, minimal logging in dev
+        if (!import.meta.env.PROD) {
+          console.debug(
+            "HMR error suppressed:",
+            event.message || event.error?.message || "Connection issue",
+          );
+        }
+        return false;
+      }
+
+      // Only log real errors in development
+      if (!import.meta.env.PROD) {
+        console.error("Global error:", event.error);
+      }
+    },
+    true,
+  ); // Use capture phase
 
   // Specifically handle WebSocket errors that might be related to HMR
   const originalWebSocket = window.WebSocket;
