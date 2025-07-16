@@ -164,7 +164,7 @@ export default function MobileBottomNav() {
                 <Icon
                   className={`w-5 h-5 ${active ? "text-primary-600" : "text-gray-500"}`}
                 />
-                {item.badge && item.badge > 0 && (
+                {"badge" in item && item.badge && item.badge > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center min-w-[16px]">
                     {item.badge > 99 ? "99+" : item.badge}
                   </span>
