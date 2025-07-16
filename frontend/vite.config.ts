@@ -1,12 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { productionStripPlugin } from "./vite.production.plugin";
 
 export default defineConfig(({ mode }) => {
   const isProduction = mode === "production";
 
   return {
-    plugins: [react()],
+    plugins: [react(), ...(isProduction ? [productionStripPlugin()] : [])],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
@@ -42,6 +43,7 @@ export default defineConfig(({ mode }) => {
         ? {
             "import.meta.hot": "undefined",
             "import.meta.env.DEV": "false",
+            "import.meta.env.PROD": "true",
             __vite_is_modern_browser: "true",
           }
         : {}),
