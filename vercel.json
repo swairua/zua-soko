@@ -1,9 +1,10 @@
 {
   "version": 2,
   "name": "zuasoko-app",
-  "buildCommand": "cd frontend && npm install && npm run build:prod",
+  "framework": null,
+  "buildCommand": "node vercel-build.js",
   "outputDirectory": "frontend/dist",
-  "installCommand": null,
+  "installCommand": "echo 'Using custom build process'",
   "functions": {
     "api/*.js": {
       "runtime": "nodejs18.x",
@@ -12,7 +13,13 @@
     }
   },
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "FORCE_BUILD": "true"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
   },
   "rewrites": [
     {
@@ -39,15 +46,6 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "Content-Type, Authorization"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
         }
       ]
     }
