@@ -1,11 +1,11 @@
 import axios from "axios";
 
-// Configure axios for production
+// Configure axios for both development and production
 const API_BASE_URL = import.meta.env.PROD ? "/api" : "/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -20,7 +20,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Fallback data for when API is unavailable
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.warn("API request failed:", error.message);
+    return Promise.reject(error);
+  },
+);
+
+// Fallback data for extreme cases
 const fallbackData = {
   categories: [
     "Vegetables",
@@ -32,93 +41,72 @@ const fallbackData = {
   counties: ["Kiambu", "Nakuru", "Meru", "Nairobi", "Nyeri"],
   products: [
     {
-      id: "1",
-      name: "Organic Tomatoes",
+      id: "fallback-1",
+      name: "Fresh Tomatoes",
       category: "Vegetables",
-      pricePerUnit: 130,
+      price_per_unit: 130,
       unit: "kg",
-      stockQuantity: 85,
-      images: [
-        "https://images.unsplash.com/photo-1546470427-e26264be0b07?w=300&h=200&fit=crop",
-      ],
+      stock_quantity: 85,
       description:
-        "Fresh organic tomatoes, Grade A quality. Perfect for salads and cooking.",
-      isFeatured: true,
-      isAvailable: true,
-      tags: ["organic", "fresh", "grade-a"],
-      farmer: {
-        id: "1",
-        county: "Kiambu",
-        user: { firstName: "Jane", lastName: "Wanjiku" },
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+        "Organic red tomatoes, Grade A quality. Perfect for salads and cooking.",
+      is_featured: true,
+      farmer_name: "Demo Farmer",
+      farmer_county: "Nakuru",
+      created_at: new Date().toISOString(),
     },
     {
-      id: "2",
-      name: "Fresh Spinach",
-      category: "Leafy Greens",
-      pricePerUnit: 50,
-      unit: "bunch",
-      stockQuantity: 30,
-      images: [
-        "https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=300&h=200&fit=crop",
-      ],
-      description:
-        "Freshly harvested spinach bunches, rich in iron and vitamins.",
-      isFeatured: false,
-      isAvailable: true,
-      tags: ["fresh", "leafy", "vitamins"],
-      farmer: {
-        id: "2",
-        county: "Nakuru",
-        user: { firstName: "John", lastName: "Kamau" },
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: "3",
+      id: "fallback-2",
       name: "Sweet Potatoes",
       category: "Root Vegetables",
-      pricePerUnit: 80,
+      price_per_unit: 80,
       unit: "kg",
-      stockQuantity: 45,
-      images: [
-        "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=300&h=200&fit=crop",
-      ],
+      stock_quantity: 45,
       description:
         "Fresh sweet potatoes, rich in nutrients and perfect for various dishes.",
-      isFeatured: true,
-      isAvailable: true,
-      tags: ["sweet", "nutritious", "versatile"],
-      farmer: {
-        id: "3",
-        county: "Meru",
-        user: { firstName: "Mary", lastName: "Njeri" },
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      is_featured: true,
+      farmer_name: "Demo Farmer",
+      farmer_county: "Meru",
+      created_at: new Date().toISOString(),
     },
   ],
 };
 
 // API functions
 export const apiService = {
-  // Auth endpoints
-  login: async (credentials: { phone: string; password: string }) => {
+  // Health check with database status
+  getHealth: async () => {
     try {
-      // Try demo endpoint first for Vercel deployment
-      const response = await api.post("/demo/login", credentials);
+      const response = await api.get("/health");
       return response.data;
     } catch (error) {
-      // Fallback to regular login
+      console.error("Health check failed:", error);
+      return {
+        status: "ERROR",
+        message: "API unavailable",
+        database: "disconnected",
+      };
+    }
+  },
+
+  // Auth endpoints - prioritize real database
+  login: async (credentials: { phone: string; password: string }) => {
+    try {
+      // Try real database login first
+      const response = await api.post("/auth/login", credentials);
+      return response.data;
+    } catch (error: any) {
+      // If real database fails, try demo endpoints for backwards compatibility
+      console.warn(
+        "Real database login failed, trying demo endpoints:",
+        error.response?.data?.error || error.message,
+      );
+
       try {
-        const response = await api.post("/auth/login", credentials);
+        const response = await api.post("/demo/login", credentials);
         return response.data;
       } catch (fallbackError) {
-        console.error("Login failed:", fallbackError);
-        throw fallbackError;
+        console.error("Both real and demo login failed:", fallbackError);
+        throw error; // Throw original error
       }
     }
   },
@@ -133,19 +121,31 @@ export const apiService = {
     }
   },
 
-  // Product endpoints
+  // Product endpoints - prioritize real database
   getProducts: async () => {
     try {
-      // Try demo endpoint first
-      const response = await api.get("/demo/products");
+      // Try real database first
+      const response = await api.get("/products");
+      console.log(
+        "✅ Loaded products from Render.com database:",
+        response.data.products?.length || 0,
+        "products",
+      );
       return response.data;
     } catch (error) {
+      console.warn("Real database products failed, trying demo:", error);
+
       try {
-        // Fallback to regular products endpoint
-        const response = await api.get("/products");
+        // Try demo endpoint
+        const response = await api.get("/demo/products");
+        console.log(
+          "⚠️ Using demo products:",
+          response.data.products?.length || 0,
+          "products",
+        );
         return response.data;
       } catch (fallbackError) {
-        console.warn("API unavailable, using fallback data");
+        console.warn("All endpoints failed, using fallback data");
         return { products: fallbackData.products };
       }
     }
@@ -162,17 +162,6 @@ export const apiService = {
         return { product };
       }
       throw error;
-    }
-  },
-
-  // Utility endpoints
-  getHealth: async () => {
-    try {
-      const response = await api.get("/health");
-      return response.data;
-    } catch (error) {
-      console.error("Health check failed:", error);
-      return { status: "ERROR", message: "API unavailable" };
     }
   },
 
