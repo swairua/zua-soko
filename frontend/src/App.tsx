@@ -252,6 +252,9 @@ function App() {
           {/* Mobile bottom navigation for authenticated users */}
           {isAuthenticated && user && <MobileBottomNav />}
 
+          {/* Database connection status */}
+          <DatabaseStatus />
+
           <Toaster position="top-right" />
         </div>
       </Router>
