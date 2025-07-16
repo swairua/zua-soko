@@ -77,9 +77,10 @@ export default function AdminDashboard() {
       setStats((prev) => ({
         ...prev,
         totalUsers: userData.length,
-        pendingApprovals: userData.filter((user) => user.status === "PENDING")
-          .length,
-        recentUsers: userData.slice(0, 5).map((user) => ({
+        pendingApprovals: userData.filter(
+          (user: any) => user.status === "PENDING",
+        ).length,
+        recentUsers: userData.slice(0, 5).map((user: any) => ({
           id: user.id,
           name: `${user.firstName} ${user.lastName}`,
           email: user.email,
