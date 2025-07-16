@@ -81,7 +81,7 @@ export default function DriverDashboard() {
         return;
       }
 
-      toast.info("Getting your location...");
+      toast("Getting your location...", { icon: "ℹ️" });
 
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -134,12 +134,12 @@ export default function DriverDashboard() {
   };
 
   const handleReportIssue = () => {
-    toast.info("Issue reporting form would open here");
+    toast("Issue reporting form would open here", { icon: "ℹ️" });
     // In a real app, this would open an issue reporting form
   };
 
   const handleViewEarnings = () => {
-    toast.info("Earnings details would be shown here");
+    toast("Earnings details would be shown here", { icon: "ℹ️" });
     // In a real app, this would show detailed earnings breakdown
   };
 
