@@ -53,7 +53,13 @@ app.listen(PORT, () => {
   console.log(`🚀 Development API server running on http://localhost:${PORT}`);
   console.log("Available endpoints:");
   console.log("  GET  /api/health");
-  console.log("  POST /api/auth/login");
-  console.log("  POST /api/auth/register");
-  console.log("  GET  /api/products");
+  console.log("  POST /api/demo/login      (Demo login - any credentials)");
+  console.log("  GET  /api/demo/products   (Demo products)");
+  console.log("  POST /api/auth/login      (Real login - requires database)");
+  console.log(
+    "  POST /api/auth/register   (Real register - requires database)",
+  );
+  console.log(
+    "  GET  /api/products        (Real products - requires database)",
+  );
 });
