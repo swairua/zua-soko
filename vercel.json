@@ -2,13 +2,16 @@
   "version": 2,
   "name": "zuasoko-app",
   "framework": null,
-  "buildCommand": "ls -la && pwd && node vercel-build.js",
+  "buildCommand": "echo 'Build started' && ls -la && echo 'Running custom build...' && node vercel-build.js",
   "outputDirectory": "frontend/dist",
   "installCommand": null,
   "functions": {
     "api/*.js": {
       "runtime": "nodejs18.x"
     }
+  },
+  "env": {
+    "NODE_ENV": "production"
   },
   "rewrites": [
     {
