@@ -13,6 +13,7 @@ import { setupGlobalErrorHandling } from "./utils/errorHandler";
 // Layout components
 import Navbar from "./components/layout/Navbar";
 import MobileBottomNav from "./components/layout/MobileBottomNav";
+import DatabaseStatus from "./components/DatabaseStatus";
 
 // Page components
 import HomePage from "./pages/HomePage";
@@ -250,6 +251,9 @@ function App() {
 
           {/* Mobile bottom navigation for authenticated users */}
           {isAuthenticated && user && <MobileBottomNav />}
+
+          {/* Database connection status */}
+          <DatabaseStatus />
 
           <Toaster position="top-right" />
         </div>
