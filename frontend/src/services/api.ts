@@ -1,5 +1,25 @@
 import axios from "axios";
 
+// Configure axios for production
+const API_BASE_URL = import.meta.env.PROD ? "/api" : "/api";
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Add request interceptor for auth token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("authToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Fallback data for when API is unavailable
 const fallbackData = {
   categories: [
@@ -48,100 +68,34 @@ const fallbackData = {
         "Freshly harvested spinach bunches, rich in iron and vitamins.",
       isFeatured: false,
       isAvailable: true,
-      tags: ["fresh", "leafy", "green", "iron-rich"],
+      tags: ["fresh", "leafy", "vitamins"],
       farmer: {
-        id: "1",
-        county: "Kiambu",
-        user: { firstName: "Jane", lastName: "Wanjiku" },
+        id: "2",
+        county: "Nakuru",
+        user: { firstName: "John", lastName: "Kamau" },
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
     {
       id: "3",
-      name: "Premium Maize",
-      category: "Grains",
-      pricePerUnit: 60,
-      unit: "kg",
-      stockQuantity: 150,
-      images: [
-        "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=300&h=200&fit=crop",
-      ],
-      description: "High-quality white maize, perfect for ugali and porridge.",
-      isFeatured: true,
-      isAvailable: true,
-      tags: ["white-maize", "high-quality", "staple"],
-      farmer: {
-        id: "2",
-        county: "Nakuru",
-        user: { firstName: "Peter", lastName: "Kamau" },
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: "4",
       name: "Sweet Potatoes",
       category: "Root Vegetables",
-      pricePerUnit: 90,
+      pricePerUnit: 80,
       unit: "kg",
-      stockQuantity: 65,
+      stockQuantity: 45,
       images: [
-        "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=300&h=200&fit=crop",
-      ],
-      description: "Sweet and nutritious orange-fleshed sweet potatoes.",
-      isFeatured: true,
-      isAvailable: true,
-      tags: ["sweet", "nutritious", "orange"],
-      farmer: {
-        id: "1",
-        county: "Kiambu",
-        user: { firstName: "Jane", lastName: "Wanjiku" },
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: "5",
-      name: "French Beans",
-      category: "Vegetables",
-      pricePerUnit: 150,
-      unit: "kg",
-      stockQuantity: 28,
-      images: [
-        "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=300&h=200&fit=crop",
       ],
       description:
-        "Premium French beans, perfect for export and local markets.",
-      isFeatured: false,
-      isAvailable: true,
-      tags: ["premium", "export-quality", "tender"],
-      farmer: {
-        id: "3",
-        county: "Meru",
-        user: { firstName: "Grace", lastName: "Muthoni" },
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: "6",
-      name: "Bell Peppers",
-      category: "Vegetables",
-      pricePerUnit: 200,
-      unit: "kg",
-      stockQuantity: 18,
-      images: [
-        "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=300&h=200&fit=crop",
-      ],
-      description: "Colorful bell peppers - red, yellow, and green varieties.",
+        "Fresh sweet potatoes, rich in nutrients and perfect for various dishes.",
       isFeatured: true,
       isAvailable: true,
-      tags: ["colorful", "bell", "varieties"],
+      tags: ["sweet", "nutritious", "versatile"],
       farmer: {
         id: "3",
         county: "Meru",
-        user: { firstName: "Grace", lastName: "Muthoni" },
+        user: { firstName: "Mary", lastName: "Njeri" },
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -149,192 +103,93 @@ const fallbackData = {
   ],
 };
 
-// Create axios instance with base configuration
-const getBaseURL = () => {
-  // In production/Vercel, use the current origin
-  if (import.meta.env.PROD) {
-    return typeof window !== "undefined"
-      ? "/api"
-      : "https://zuasoko-app.vercel.app/api";
-  }
-
-  // In development, use environment variable or fallback
-  return import.meta.env.VITE_API_URL || "/api";
-};
-
-const api = axios.create({
-  baseURL: getBaseURL(),
-  timeout: 30000, // Increased timeout for serverless functions
-  headers: {
-    "Content-Type": "application/json",
-  },
-  // Disable Vite's HMR in production
-  withCredentials: false,
-});
-
-// Add request interceptor for authentication
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
-
-// Add response interceptor for error handling
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Don't redirect on auth errors during fetch failures
-    if (
-      error.response?.status === 401 &&
-      !error.message?.includes("Failed to fetch")
-    ) {
-      localStorage.removeItem("token");
-      window.location.href = "/auth/login";
-    }
-
-    // Log network errors but don't spam console in production
-    if (error.message?.includes("Failed to fetch") && !import.meta.env.PROD) {
-      console.warn("Network request failed, falling back to cached data");
-    }
-
-    return Promise.reject(error);
-  },
-);
-
-// Enhanced API service with fallback support
-export const marketplaceAPI = {
-  async getProducts(params?: any) {
+// API functions
+export const apiService = {
+  // Auth endpoints
+  login: async (credentials: { phone: string; password: string }) => {
     try {
-      const response = await api.get("/products", { params });
+      // Try demo endpoint first for Vercel deployment
+      const response = await api.post("/demo/login", credentials);
       return response.data;
     } catch (error) {
-      console.warn("API unavailable, using fallback data:", error);
-
-      // Apply basic filtering to fallback data
-      let filteredProducts = [...fallbackData.products];
-
-      if (params?.category) {
-        filteredProducts = filteredProducts.filter(
-          (p) => p.category === params.category,
-        );
+      // Fallback to regular login
+      try {
+        const response = await api.post("/auth/login", credentials);
+        return response.data;
+      } catch (fallbackError) {
+        console.error("Login failed:", fallbackError);
+        throw fallbackError;
       }
-
-      if (params?.county) {
-        filteredProducts = filteredProducts.filter(
-          (p) => p.farmer.county === params.county,
-        );
-      }
-
-      if (params?.search) {
-        const searchLower = params.search.toLowerCase();
-        filteredProducts = filteredProducts.filter(
-          (p) =>
-            p.name.toLowerCase().includes(searchLower) ||
-            p.description.toLowerCase().includes(searchLower),
-        );
-      }
-
-      if (params?.featured === "true") {
-        filteredProducts = filteredProducts.filter((p) => p.isFeatured);
-      }
-
-      return {
-        products: filteredProducts,
-        pagination: {
-          page: 1,
-          limit: 12,
-          total: filteredProducts.length,
-          pages: 1,
-        },
-      };
     }
   },
 
-  async getCategories() {
+  register: async (userData: any) => {
     try {
-      const response = await api.get("/marketplace/categories");
+      const response = await api.post("/auth/register", userData);
       return response.data;
     } catch (error) {
-      console.warn("API unavailable, using fallback categories");
-      return fallbackData.categories;
-    }
-  },
-
-  async getCounties() {
-    try {
-      const response = await api.get("/marketplace/counties");
-      return response.data;
-    } catch (error) {
-      console.warn("API unavailable, using fallback counties");
-      return fallbackData.counties;
-    }
-  },
-
-  async getProduct(id: string) {
-    try {
-      const response = await api.get(`/marketplace/products/${id}`);
-      return response.data;
-    } catch (error) {
-      console.warn("API unavailable, using fallback product data");
-      return (
-        fallbackData.products.find((p) => p.id === id) ||
-        fallbackData.products[0]
-      );
-    }
-  },
-};
-
-// Auth API
-export const authAPI = {
-  async login(credentials: any) {
-    const response = await api.post("/auth/login", credentials);
-    return response.data;
-  },
-
-  async register(userData: any) {
-    const response = await api.post("/auth/register", userData);
-    return response.data;
-  },
-
-  async getMe() {
-    const response = await api.get("/auth/me");
-    return response.data;
-  },
-};
-
-// Cart API
-export const cartAPI = {
-  async getCart() {
-    try {
-      const response = await api.get("/cart");
-      return response.data;
-    } catch (error) {
-      console.warn("Cart API unavailable");
-      return {
-        id: "demo-cart",
-        totalItems: 0,
-        totalAmount: 0,
-        cartItems: [],
-      };
-    }
-  },
-
-  async addToCart(item: any) {
-    try {
-      const response = await api.post("/cart/items", item);
-      return response.data;
-    } catch (error) {
-      console.warn("Cart API unavailable");
+      console.error("Registration failed:", error);
       throw error;
     }
   },
+
+  // Product endpoints
+  getProducts: async () => {
+    try {
+      // Try demo endpoint first
+      const response = await api.get("/demo/products");
+      return response.data;
+    } catch (error) {
+      try {
+        // Fallback to regular products endpoint
+        const response = await api.get("/products");
+        return response.data;
+      } catch (fallbackError) {
+        console.warn("API unavailable, using fallback data");
+        return { products: fallbackData.products };
+      }
+    }
+  },
+
+  getProduct: async (id: string) => {
+    try {
+      const response = await api.get(`/products/${id}`);
+      return response.data;
+    } catch (error) {
+      // Return fallback product
+      const product = fallbackData.products.find((p) => p.id === id);
+      if (product) {
+        return { product };
+      }
+      throw error;
+    }
+  },
+
+  // Utility endpoints
+  getHealth: async () => {
+    try {
+      const response = await api.get("/health");
+      return response.data;
+    } catch (error) {
+      console.error("Health check failed:", error);
+      return { status: "ERROR", message: "API unavailable" };
+    }
+  },
+
+  // Wallet endpoints
+  getWalletBalance: async () => {
+    try {
+      const response = await api.get("/wallet/balance");
+      return response.data;
+    } catch (error) {
+      console.error("Wallet balance failed:", error);
+      return { balance: 0 };
+    }
+  },
+
+  // Static data
+  getCategories: () => Promise.resolve(fallbackData.categories),
+  getCounties: () => Promise.resolve(fallbackData.counties),
 };
 
 export default api;
