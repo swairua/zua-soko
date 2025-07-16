@@ -161,21 +161,14 @@ export const setupGlobalErrorHandling = () => {
     delete (window as any).__vite_plugin_react_preamble_installed__;
   }
 
-  // Additional suppression for the specific errors we're seeing
-  const originalFetch = window.fetch;
-  window.fetch = function (...args) {
-    return originalFetch.apply(this, args).catch((error) => {
-      if (isHMRError(error)) {
-        // Silently suppress HMR-related fetch errors by returning a mock successful response
-        return Promise.resolve(
-          new Response("{}", {
-            status: 200,
-            statusText: "OK",
-            headers: { "Content-Type": "application/json" },
-          }),
-        );
-      }
-      return Promise.reject(error);
-    });
+  // Additional protection for specific error patterns
+  // Override error event handling at the window level
+  const originalDispatchEvent = window.dispatchEvent;
+  window.dispatchEvent = function (event) {
+    if (event instanceof ErrorEvent && isHMRError(event.error)) {
+      // Silently suppress HMR error events
+      return true;
+    }
+    return originalDispatchEvent.call(this, event);
   };
 };
