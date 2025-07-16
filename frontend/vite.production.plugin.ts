@@ -21,6 +21,13 @@ export function productionStripPlugin(): Plugin {
               .replace(/import\.meta\.hot[^;]*;?/g, "");
           }
         }
+
+        // Rename index.production.html to index.html
+        if (fileName === "index.production.html") {
+          const asset = bundle[fileName];
+          delete bundle[fileName];
+          bundle["index.html"] = asset;
+        }
       });
     },
     transformIndexHtml: {
