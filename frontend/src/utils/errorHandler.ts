@@ -184,13 +184,30 @@ export const setupGlobalErrorHandling = () => {
   }
 
   // Additional protection for specific error patterns
-  // Override error event handling at the window level
-  const originalDispatchEvent = window.dispatchEvent;
-  window.dispatchEvent = function (event) {
-    if (event instanceof ErrorEvent && isHMRError(event.error)) {
-      // Silently suppress HMR error events
-      return true;
+  // Override console methods to suppress our own suppression messages
+  const originalConsoleError = console.error;
+  const originalConsoleWarn = console.warn;
+
+  console.error = function (...args) {
+    const message = args.join(" ");
+    if (
+      message.includes("HMR connection suppressed") ||
+      message.includes("eval at messageHandler") ||
+      isHMRError({ message, stack: new Error().stack })
+    ) {
+      return; // Completely suppress
     }
-    return originalDispatchEvent.call(this, event);
+    return originalConsoleError.apply(this, args);
+  };
+
+  console.warn = function (...args) {
+    const message = args.join(" ");
+    if (
+      message.includes("HMR connection suppressed") ||
+      isHMRError({ message, stack: new Error().stack })
+    ) {
+      return; // Completely suppress
+    }
+    return originalConsoleWarn.apply(this, args);
   };
 };
