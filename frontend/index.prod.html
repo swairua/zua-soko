@@ -6,6 +6,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#22c55e" />
     <title>Zuasoko - Agricultural Platform</title>
+    <!-- CRITICAL: Immediate Vite neutralization -->
+    <script>
+      (function () {
+        // Override WebSocket to prevent HMR connections
+        var OrigWS = window.WebSocket;
+        window.WebSocket = function (url, protocols) {
+          var urlStr = url.toString();
+          if (
+            urlStr.includes("vite") ||
+            urlStr.includes("hmr") ||
+            urlStr.includes("ws:") ||
+            urlStr.includes("3001")
+          ) {
+            console.log("🚫 Blocked HMR WebSocket:", urlStr);
+            return {
+              close: function () {},
+              send: function () {},
+              addEventListener: function () {},
+              removeEventListener: function () {},
+              readyState: 3,
+              CONNECTING: 0,
+              OPEN: 1,
+              CLOSING: 2,
+              CLOSED: 3,
+            };
+          }
+          return new OrigWS(url, protocols);
+        };
+
+        // Override fetch to prevent HMR requests
+        var origFetch = window.fetch;
+        window.fetch = function () {
+          var url = arguments[0];
+          var urlStr = typeof url === "string" ? url : url.toString();
+          if (
+            urlStr.includes("vite") ||
+            urlStr.includes("hmr") ||
+            urlStr.includes("@vite")
+          ) {
+            console.log("🚫 Blocked HMR fetch:", urlStr);
+            return Promise.resolve(
+              new Response("{}", {
+                status: 200,
+                statusText: "OK",
+                headers: { "Content-Type": "application/json" },
+              }),
+            );
+          }
+          return origFetch.apply(this, arguments);
+        };
+
+        // Neutralize HMR globals
+        window.__vite_is_modern_browser = true;
+        window.__vite_plugin_react_preamble_installed__ = true;
+        window.createHotContext = function () {
+          return null;
+        };
+        window.HMRContext = null;
+
+        // Suppress HMR errors
+        var origError = console.error;
+        console.error = function () {
+          var msg = Array.prototype.slice.call(arguments).join(" ");
+          if (
+            msg.includes("vite") ||
+            msg.includes("HMR") ||
+            msg.includes("@vite") ||
+            (msg.includes("Failed to fetch") &&
+              (msg.includes("ping") || msg.includes("WebSocket")))
+          )
+            return;
+          return origError.apply(this, arguments);
+        };
+
+        console.log("🛡️ Production Vite neutralizer active");
+      })();
+    </script>
     <script>
       // Completely block any Vite client or HMR code from loading
       (function () {
