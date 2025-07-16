@@ -13,9 +13,48 @@
         var isProduction = hostname !== "localhost" && hostname !== "127.0.0.1";
 
         if (isProduction) {
-          // Disable Vite client completely
+          // Completely block Vite client loading
           window.__vite_is_modern_browser = true;
           window.__vite_plugin_react_preamble_installed__ = true;
+
+          // Block module loading for Vite client
+          var originalCreateElement = document.createElement;
+          document.createElement = function (tagName) {
+            var element = originalCreateElement.call(document, tagName);
+            if (tagName.toLowerCase() === "script") {
+              var originalSetAttribute = element.setAttribute;
+              element.setAttribute = function (name, value) {
+                if (
+                  name === "src" &&
+                  (value.includes("/@vite/client") ||
+                    value.includes("/vite/client"))
+                ) {
+                  console.log("Blocked Vite client script:", value);
+                  return; // Block the script
+                }
+                return originalSetAttribute.call(this, name, value);
+              };
+            }
+            return element;
+          };
+
+          // Block dynamic imports of Vite client
+          var originalImport = window.eval(
+            'typeof import !== "undefined" ? import : function() { return Promise.reject(new Error("Dynamic import blocked")); }',
+          );
+          if (typeof originalImport === "function") {
+            window.import = function (specifier) {
+              if (
+                typeof specifier === "string" &&
+                (specifier.includes("@vite/client") ||
+                  specifier.includes("vite/client"))
+              ) {
+                console.log("Blocked Vite client import:", specifier);
+                return Promise.reject(new Error("Vite client blocked"));
+              }
+              return originalImport.apply(this, arguments);
+            };
+          }
 
           // Override console methods to suppress HMR errors
           var originalError = console.error;

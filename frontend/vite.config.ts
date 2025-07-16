@@ -7,7 +7,7 @@ export default defineConfig(({ command, mode }) => {
   const isProduction = mode === "production" || command === "build";
 
   const config: any = {
-    plugins: [react()],
+    plugins: isProduction ? [react(), stripViteClientPlugin()] : [react()],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
