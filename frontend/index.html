@@ -1,6 +1,65 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- EMERGENCY: Block Vite client before anything else loads -->
+    <script>
+      // Ultra-early WebSocket and fetch blocking
+      (function () {
+        if (
+          typeof window !== "undefined" &&
+          window.location &&
+          window.location.hostname !== "localhost" &&
+          window.location.hostname !== "127.0.0.1"
+        ) {
+          // Emergency WebSocket override
+          if (window.WebSocket) {
+            var OrigWS = window.WebSocket;
+            window.WebSocket = function (url, protocols) {
+              var urlStr = url ? url.toString() : "";
+              if (
+                urlStr.includes("vite") ||
+                urlStr.includes("hmr") ||
+                urlStr.includes("@vite") ||
+                urlStr.includes("24f0659a90184252a93b6fc911098462")
+              ) {
+                console.log("🚨 Emergency blocked WebSocket:", urlStr);
+                return {
+                  close: function () {},
+                  send: function () {},
+                  addEventListener: function () {},
+                  readyState: 3,
+                  CLOSED: 3,
+                };
+              }
+              return new OrigWS(url, protocols);
+            };
+          }
+
+          // Emergency fetch override
+          if (window.fetch) {
+            var origFetch = window.fetch;
+            window.fetch = function () {
+              var url = arguments[0];
+              var urlStr = url ? url.toString() : "";
+              if (
+                urlStr.includes("vite") ||
+                urlStr.includes("hmr") ||
+                urlStr.includes("@vite") ||
+                urlStr.includes("24f0659a90184252a93b6fc911098462")
+              ) {
+                console.log("🚨 Emergency blocked fetch:", urlStr);
+                return Promise.resolve(
+                  new Response("{}", { status: 200, statusText: "OK" }),
+                );
+              }
+              return origFetch.apply(this, arguments);
+            };
+          }
+
+          console.log("🚨 Emergency Vite blocker active");
+        }
+      })();
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
