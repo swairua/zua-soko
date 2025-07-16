@@ -36,8 +36,11 @@ rollup.config.js
 README*.md
 *.md
 !VERCEL_SETUP.md
+<<<<<<< HEAD
 
 # Scripts and tools
+=======
+>>>>>>> origin/main
 build.sh
 setup*.sh
 health-check.sh
@@ -46,8 +49,20 @@ test-*.js
 docker-compose.yml
 ecosystem.config.js
 nginx.conf
+<<<<<<< HEAD
 
 # Misc
 scripts/
 database/
 all-files.txt
+=======
+app/
+components/
+contexts/
+lib/
+public/
+scripts/
+database/
+next.config.js
+next-env.d.ts
+>>>>>>> origin/main
