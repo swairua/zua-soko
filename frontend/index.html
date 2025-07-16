@@ -4,32 +4,18 @@
     <!-- EMERGENCY: Block Vite client before anything else loads -->
     <script>
       // Ultra-early WebSocket and fetch blocking
-      (function () {
-        if (
-          typeof window !== "undefined" &&
-          window.location &&
-          window.location.hostname !== "localhost" &&
-          window.location.hostname !== "127.0.0.1"
-        ) {
+      (function() {
+        if (typeof window !== 'undefined' && window.location &&
+            window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+
           // Emergency WebSocket override
           if (window.WebSocket) {
             var OrigWS = window.WebSocket;
-            window.WebSocket = function (url, protocols) {
-              var urlStr = url ? url.toString() : "";
-              if (
-                urlStr.includes("vite") ||
-                urlStr.includes("hmr") ||
-                urlStr.includes("@vite") ||
-                urlStr.includes("24f0659a90184252a93b6fc911098462")
-              ) {
-                console.log("🚨 Emergency blocked WebSocket:", urlStr);
-                return {
-                  close: function () {},
-                  send: function () {},
-                  addEventListener: function () {},
-                  readyState: 3,
-                  CLOSED: 3,
-                };
+            window.WebSocket = function(url, protocols) {
+              var urlStr = url ? url.toString() : '';
+              if (urlStr.includes('vite') || urlStr.includes('hmr') || urlStr.includes('@vite') || urlStr.includes('24f0659a90184252a93b6fc911098462')) {
+                console.log('🚨 Emergency blocked WebSocket:', urlStr);
+                return { close: function(){}, send: function(){}, addEventListener: function(){}, readyState: 3, CLOSED: 3 };
               }
               return new OrigWS(url, protocols);
             };
@@ -38,25 +24,34 @@
           // Emergency fetch override
           if (window.fetch) {
             var origFetch = window.fetch;
-            window.fetch = function () {
+            window.fetch = function() {
               var url = arguments[0];
-              var urlStr = url ? url.toString() : "";
-              if (
-                urlStr.includes("vite") ||
-                urlStr.includes("hmr") ||
-                urlStr.includes("@vite") ||
-                urlStr.includes("24f0659a90184252a93b6fc911098462")
-              ) {
-                console.log("🚨 Emergency blocked fetch:", urlStr);
-                return Promise.resolve(
-                  new Response("{}", { status: 200, statusText: "OK" }),
-                );
+              var urlStr = url ? url.toString() : '';
+              if (urlStr.includes('vite') || urlStr.includes('hmr') || urlStr.includes('@vite') || urlStr.includes('24f0659a90184252a93b6fc911098462')) {
+                console.log('🚨 Emergency blocked fetch:', urlStr);
+                return Promise.resolve(new Response('{}', { status: 200, statusText: 'OK' }));
               }
               return origFetch.apply(this, arguments);
             };
           }
 
-          console.log("🚨 Emergency Vite blocker active");
+                    // Emergency module import blocking
+          if (window.import || (typeof import !== 'undefined')) {
+            try {
+              var origImport = window.eval('typeof import !== "undefined" ? import : null');
+              if (origImport) {
+                window.import = function(spec) {
+                  if (typeof spec === 'string' && (spec.includes('@vite') || spec.includes('vite/') || spec.includes('hmr'))) {
+                    console.log('🚨 Emergency blocked import:', spec);
+                    return Promise.resolve({});
+                  }
+                  return origImport.apply(this, arguments);
+                };
+              }
+            } catch(e) {}
+          }
+
+          console.log('🚨 Emergency Vite blocker active');
         }
       })();
     </script>
