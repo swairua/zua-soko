@@ -217,7 +217,7 @@ export default function CheckoutPage() {
             return;
           }
 
-          toast.info("Initiating M-Pesa payment...");
+          toast("Initiating M-Pesa payment...", { icon: "ℹ️" });
 
           const stkResponse = await axios.post("/api/payments/stk-push", {
             phone: formattedPhone,
@@ -234,7 +234,7 @@ export default function CheckoutPage() {
 
             // Poll for payment status
             try {
-              toast.info("Waiting for payment confirmation...");
+              toast("Waiting for payment confirmation...", { icon: "ℹ️" });
               const paymentResult = await pollPaymentStatus(
                 stkResponse.data.transactionId,
               );
@@ -249,9 +249,9 @@ export default function CheckoutPage() {
               }
             } catch (pollError) {
               console.error("Payment polling error:", pollError);
-              toast.warning(
-                "Payment initiated. Status will be updated shortly.",
-              );
+              toast("Payment initiated. Status will be updated shortly.", {
+                icon: "⚠️",
+              });
             }
           } else {
             toast.error("Failed to initiate M-Pesa payment");
