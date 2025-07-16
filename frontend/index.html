@@ -28,8 +28,12 @@
               message.includes("HMR") ||
               message.includes("@vite/client") ||
               message.includes("ping") ||
+              message.includes("HMR connection suppressed") ||
+              message.includes("eval at messageHandler") ||
+              message.includes("24f0659a90184252a93b6fc911098462") ||
+              message.includes("fly.dev") ||
               (message.includes("Failed to fetch") &&
-                message.includes("WebSocket"))
+                (message.includes("WebSocket") || message.includes("ping")))
             ) {
               return; // Suppress HMR-related errors
             }
