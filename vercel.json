@@ -1,45 +1,26 @@
 {
   "version": 2,
   "name": "zuasoko-app",
-  "buildCommand": "cd frontend && npm install && npm run build:prod",
+  "buildCommand": "cd frontend && npm ci && npm run build:prod",
   "outputDirectory": "frontend/dist",
-  "installCommand": "npm install --no-fund --no-audit --silent",
+  "installCommand": null,
   "framework": null,
   "functions": {
     "api/*.js": {
-      "runtime": "nodejs18.x",
-      "memory": 512,
-      "maxDuration": 10
+      "runtime": "nodejs18.x"
     }
   },
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/index"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "origin-when-cross-origin"
-        }
-      ]
-    },
     {
       "source": "/api/(.*)",
       "headers": [
@@ -57,8 +38,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
