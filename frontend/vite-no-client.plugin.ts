@@ -45,6 +45,28 @@ export function noViteClientPlugin(): Plugin {
         resolvedConfig.env = resolvedConfig.env || {};
         resolvedConfig.env.DEV = false;
         resolvedConfig.env.PROD = true;
+
+        // Force disable any dev-related plugins that might inject client code
+        if (resolvedConfig.plugins) {
+          resolvedConfig.plugins = resolvedConfig.plugins.filter(
+            (plugin: any) => {
+              if (plugin && plugin.name) {
+                // Filter out any Vite internal plugins that handle client injection
+                if (
+                  plugin.name.includes("vite:client") ||
+                  plugin.name.includes("vite:hmr") ||
+                  plugin.name.includes("vite:ws")
+                ) {
+                  console.log(
+                    `🚫 Filtered out Vite dev plugin: ${plugin.name}`,
+                  );
+                  return false;
+                }
+              }
+              return true;
+            },
+          );
+        }
       }
     },
     buildStart() {
