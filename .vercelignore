@@ -4,11 +4,8 @@ node_modules/
 *.log
 .env*
 !.env.example
-<<<<<<< HEAD
 !frontend/.env.production
 !frontend/.env.development
-=======
->>>>>>> origin/main
 README*.md
 CHANGELOG.md
 CONTRIBUTING.md
@@ -22,7 +19,6 @@ test-*.js
 docker-compose.yml
 ecosystem.config.js
 nginx.conf
-<<<<<<< HEAD
 app/
 components/
 contexts/
@@ -30,5 +26,3 @@ lib/
 public/
 scripts/
 database/
-=======
->>>>>>> origin/main
