@@ -107,7 +107,9 @@ export default function DriverDashboard() {
             toast.success(
               `Location obtained: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
             );
-            toast.warning("Could not sync with server - using local GPS");
+            toast("Could not sync with server - using local GPS", {
+              icon: "⚠️",
+            });
           }
         },
         (error) => {
