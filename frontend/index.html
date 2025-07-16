@@ -61,11 +61,16 @@
               if (
                 e.message &&
                 (e.message.includes("vite") ||
+                  e.message.includes("HMR connection suppressed") ||
+                  e.message.includes("eval at messageHandler") ||
+                  e.message.includes("24f0659a90184252a93b6fc911098462") ||
                   (e.message.includes("Failed to fetch") &&
-                    e.filename.includes("vite")))
+                    (e.filename.includes("vite") ||
+                      e.filename.includes("errorHandler"))))
               ) {
                 e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
                 return false;
               }
             },
@@ -73,18 +78,25 @@
           );
 
           // Disable unhandled promise rejection for HMR
-          window.addEventListener("unhandledrejection", function (e) {
-            if (
-              e.reason &&
-              e.reason.message &&
-              (e.reason.message.includes("vite") ||
-                (e.reason.message.includes("Failed to fetch") &&
-                  (e.reason.stack || "").includes("ping")))
-            ) {
-              e.preventDefault();
-              return false;
-            }
-          });
+          window.addEventListener(
+            "unhandledrejection",
+            function (e) {
+              if (
+                e.reason &&
+                e.reason.message &&
+                (e.reason.message.includes("vite") ||
+                  e.reason.message.includes("HMR connection suppressed") ||
+                  e.reason.message.includes("eval at messageHandler") ||
+                  (e.reason.message.includes("Failed to fetch") &&
+                    (e.reason.stack || "").includes("ping")))
+              ) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                return false;
+              }
+            },
+            true,
+          );
         }
       })();
     </script>
