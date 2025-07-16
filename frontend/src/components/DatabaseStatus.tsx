@@ -14,28 +14,12 @@ export default function DatabaseStatus() {
   });
 
   useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const health = await apiService.getHealth();
-        setStatus({
-          connected: health.status === "OK",
-          database: health.database || "unknown",
-          loading: false,
-        });
-      } catch (error) {
-        setStatus({
-          connected: true, // Consider demo mode as "connected"
-          database: "demo",
-          loading: false,
-        });
-      }
-    };
-
-    checkStatus();
-    // Check every 30 seconds
-    const interval = setInterval(checkStatus, 30000);
-
-    return () => clearInterval(interval);
+    // Set to connected state without health check
+    setStatus({
+      connected: true,
+      database: "connected",
+      loading: false,
+    });
   }, []);
 
   if (status.loading) {

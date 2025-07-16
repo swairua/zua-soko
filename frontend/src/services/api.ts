@@ -73,30 +73,7 @@ const fallbackData = {
 
 // API functions
 export const apiService = {
-  // Health check with database status
-  getHealth: async () => {
-    try {
-      const response = await api.get("/health");
-      return response.data;
-    } catch (error: any) {
-      console.warn("Health check failed:", error.message);
-
-      // Handle different types of errors
-      if (error.code === "ERR_NETWORK" || error.code === "ECONNREFUSED") {
-        return {
-          status: "OK",
-          message: "Demo mode - API server not available",
-          database: "demo",
-        };
-      }
-
-      return {
-        status: "ERROR",
-        message: "API server unavailable",
-        database: "demo",
-      };
-    }
-  },
+  // Health check removed as requested
 
   // Auth endpoints - prioritize real database
   login: async (credentials: { phone: string; password: string }) => {

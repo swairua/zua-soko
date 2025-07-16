@@ -51,7 +51,9 @@ export default defineConfig(({ mode }) => {
       minify: isProduction ? "esbuild" : false,
     },
     define: {
-      __APP_VERSION__: JSON.stringify(process.env.npm_package_version || "0.1.0"),
+      __APP_VERSION__: JSON.stringify(
+        process.env.npm_package_version || "0.1.0",
+      ),
       "process.env.NODE_ENV": JSON.stringify(mode),
       ...(isProduction
         ? {
@@ -65,14 +67,18 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       host: true,
-      allowedHosts: ['zua-soko.onrender.com', 'localhost'],
-      proxy: {
-        "/api": {
-          target: "http://localhost:5001",
-          changeOrigin: true,
-          secure: false,
-        },
-      },
+      allowedHosts: ["zua-soko.onrender.com", "localhost"],
+      ...(mode === "development"
+        ? {
+            proxy: {
+              "/api": {
+                target: "http://localhost:5001",
+                changeOrigin: true,
+                secure: false,
+              },
+            },
+          }
+        : {}),
     },
   };
 });

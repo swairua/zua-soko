@@ -230,7 +230,43 @@ export default async function handler(req, res) {
     const url = req.url || "";
     const { method } = req;
 
-    // Health check endpoint removed as requested
+    // Health check
+    if (url === "/api/health" && method === "GET") {
+      console.log("🔍 Health check requested");
+      let dbStatus = "disconnected";
+      let dbDetails = {};
+
+      try {
+        const startTime = Date.now();
+        const result = await query("SELECT NOW() as current_time");
+        const endTime = Date.now();
+        const responseTime = endTime - startTime;
+
+        dbStatus = "connected";
+        dbDetails = {
+          response_time_ms: responseTime,
+          current_time: result.rows[0].current_time,
+          host: process.env.DB_HOST || "unknown",
+        };
+
+        console.log(
+          "✅ Health check - Database connected in",
+          responseTime + "ms",
+        );
+      } catch (error) {
+        dbStatus = "error";
+        dbDetails = { error_message: error.message };
+        console.error("❌ Health check - Database error:", error.message);
+      }
+
+      return res.json({
+        status: "OK",
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || "development",
+        database: dbStatus,
+        database_details: dbDetails,
+      });
+    }
 
     // Login endpoint with comprehensive error handling
     if (url === "/api/auth/login" && method === "POST") {
