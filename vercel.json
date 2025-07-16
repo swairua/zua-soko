@@ -1,10 +1,6 @@
 {
   "version": 2,
   "name": "zuasoko-app",
-  "buildCommand": "npm install && cd frontend && npm install && npm run build:prod",
-  "outputDirectory": "frontend/dist",
-  "installCommand": null,
-  "framework": null,
   "functions": {
     "api/*.js": {
       "runtime": "nodejs18.x"
