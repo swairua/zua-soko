@@ -19,6 +19,21 @@ try {
   console.log("🔨 Building frontend...");
   execSync("cd frontend && npm run build:prod", { stdio: "inherit" });
 
+  // Fix HTML filename for Vercel
+  const prodHtmlPath = path.join(
+    __dirname,
+    "frontend",
+    "dist",
+    "index.production.html",
+  );
+  const indexHtmlPath = path.join(__dirname, "frontend", "dist", "index.html");
+
+  if (fs.existsSync(prodHtmlPath)) {
+    console.log("🔧 Renaming production HTML file...");
+    fs.copyFileSync(prodHtmlPath, indexHtmlPath);
+    fs.unlinkSync(prodHtmlPath);
+  }
+
   console.log("✅ Build completed successfully!");
 } catch (error) {
   console.error("❌ Build failed:", error.message);
