@@ -18,15 +18,34 @@ function verifyPassword(password, hash) {
 let pool;
 async function getDB() {
   if (!pool) {
-    // Use environment variable or fallback to Render.com database URL
-    const databaseUrl =
-      process.env.DATABASE_URL ||
-      "postgresql://zuasoko_db_user:OoageAtal4KEnVnXn2axejZJxpy4nXto@dpg-d1rl7vripnbc73cj06j0-a.oregon-postgres.render.com/zuasoko_db";
+    // Use internal URL for Render service communication, external for others
+    const isRenderEnvironment =
+      process.env.RENDER || process.env.RENDER_SERVICE_ID;
+    const databaseUrl = isRenderEnvironment
+      ? process.env.INTERNAL_DATABASE_URL || process.env.DATABASE_URL
+      : process.env.DATABASE_URL ||
+        "postgresql://zuasoko_db_user:OoageAtal4KEnVnXn2axejZJxpy4nXto@dpg-d1rl7vripnbc73cj06j0-a.oregon-postgres.render.com/zuasoko_db";
 
+    console.log("🚀 ZUASOKO DATABASE CONNECTION INITIALIZATION");
+    console.log("================================================");
+    console.log("🌍 Environment:", process.env.NODE_ENV || "development");
+    console.log("🏗️ Render Environment:", isRenderEnvironment ? "YES" : "NO");
     console.log(
-      "🔗 Database URL configured:",
-      databaseUrl.replace(/:[^:]*@/, ":****@"),
+      "🔗 Database URL Type:",
+      isRenderEnvironment ? "INTERNAL" : "EXTERNAL",
     );
+    console.log("🔗 Database URL:", databaseUrl.replace(/:[^:]*@/, ":****@"));
+    console.log("📊 Database Name:", process.env.DB_NAME || "zuasoko_db");
+    console.log("👤 Database User:", process.env.DB_USER || "zuasoko_db_user");
+    console.log(
+      "🏠 Database Host:",
+      isRenderEnvironment
+        ? "dpg-d1rl7vripnbc73cj06j0-a"
+        : "dpg-d1rl7vripnbc73cj06j0-a.oregon-postgres.render.com",
+    );
+    console.log("🔌 Database Port:", process.env.DB_PORT || "5432");
+    console.log("🔒 SSL Enabled:", "true");
+    console.log("================================================");
 
     pool = new Pool({
       connectionString: databaseUrl,
@@ -36,15 +55,64 @@ async function getDB() {
       connectionTimeoutMillis: 10000,
     });
 
-    // Test connection
+    // Test connection with detailed logging
     try {
-      await pool.query("SELECT NOW()");
-      console.log("✅ Connected to Render.com PostgreSQL database");
-    } catch (error) {
-      console.warn(
-        "⚠️ Database connection failed, will use fallback data:",
-        error.message,
+      console.log("🔄 Testing database connection...");
+      const startTime = Date.now();
+      const result = await pool.query(
+        "SELECT NOW() as current_time, version() as db_version",
       );
+      const endTime = Date.now();
+      const connectionTime = endTime - startTime;
+
+      console.log("✅ DATABASE CONNECTION SUCCESS!");
+      console.log("================================================");
+      console.log("⏱️ Connection Time:", connectionTime + "ms");
+      console.log("📅 Database Time:", result.rows[0].current_time);
+      console.log(
+        "🗄️ Database Version:",
+        result.rows[0].db_version.split(",")[0],
+      );
+      console.log("🔢 Pool Max Connections:", 3);
+      console.log("⏰ Idle Timeout:", "5000ms");
+      console.log("⏰ Connection Timeout:", "10000ms");
+      console.log("================================================");
+
+      // Test if tables exist
+      try {
+        const tableCheck = await pool.query(`
+          SELECT COUNT(*) as table_count
+          FROM information_schema.tables
+          WHERE table_schema = 'public'
+        `);
+        console.log(
+          "📋 Database Tables Found:",
+          tableCheck.rows[0].table_count,
+        );
+
+        const userCheck = await pool.query(
+          "SELECT COUNT(*) as user_count FROM users",
+        );
+        console.log("👥 Users in Database:", userCheck.rows[0].user_count);
+
+        const productCheck = await pool.query(
+          "SELECT COUNT(*) as product_count FROM products",
+        );
+        console.log(
+          "🛒 Products in Database:",
+          productCheck.rows[0].product_count,
+        );
+      } catch (tableError) {
+        console.warn("⚠️ Tables may not exist yet:", tableError.message);
+      }
+    } catch (error) {
+      console.error("❌ DATABASE CONNECTION FAILED!");
+      console.error("================================================");
+      console.error("❌ Error Code:", error.code);
+      console.error("❌ Error Message:", error.message);
+      console.error("❌ Error Stack:", error.stack);
+      console.error("❌ Will use fallback/demo data");
+      console.error("================================================");
     }
   }
   return pool;
@@ -129,20 +197,62 @@ export default async function handler(req, res) {
   try {
     // Health check with database status
     if (url === "/api/health" && method === "GET") {
+      console.log("🔍 Health check requested");
       let dbStatus = "disconnected";
+      let dbDetails = {};
+
       try {
-        await query("SELECT NOW()");
+        const startTime = Date.now();
+        const result = await query(
+          "SELECT NOW() as current_time, version() as db_version",
+        );
+        const endTime = Date.now();
+        const responseTime = endTime - startTime;
+
         dbStatus = "connected";
+        dbDetails = {
+          response_time_ms: responseTime,
+          current_time: result.rows[0].current_time,
+          version: result.rows[0].db_version.split(",")[0],
+          host: process.env.DB_HOST || "unknown",
+          database: process.env.DB_NAME || "zuasoko_db",
+          user: process.env.DB_USER || "zuasoko_db_user",
+          ssl_enabled: true,
+        };
+
+        console.log(
+          "✅ Health check - Database connected in",
+          responseTime + "ms",
+        );
       } catch (error) {
-        dbStatus = "error: " + error.message;
+        dbStatus = "error";
+        dbDetails = {
+          error_message: error.message,
+          error_code: error.code,
+          host: process.env.DB_HOST || "unknown",
+        };
+
+        console.error("❌ Health check - Database error:", error.message);
       }
 
-      return res.json({
+      const healthResponse = {
         status: "OK",
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || "development",
         database: dbStatus,
+        database_details: dbDetails,
+        render_environment: !!(
+          process.env.RENDER || process.env.RENDER_SERVICE_ID
+        ),
+        api_version: "1.0.0",
+      };
+
+      console.log("📊 Health check response:", {
+        database: dbStatus,
+        response_time: dbDetails.response_time_ms || "N/A",
       });
+
+      return res.json(healthResponse);
     }
 
     // Auth endpoints - prioritize real database

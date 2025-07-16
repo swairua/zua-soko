@@ -2,11 +2,16 @@ const { Pool } = require("pg");
 const fs = require("fs");
 const path = require("path");
 
+// Determine the correct database URL based on environment
+const isRenderEnvironment = process.env.RENDER || process.env.RENDER_SERVICE_ID;
+const databaseUrl = isRenderEnvironment
+  ? process.env.INTERNAL_DATABASE_URL || process.env.DATABASE_URL
+  : process.env.DATABASE_URL ||
+    "postgresql://zuasoko_db_user:OoageAtal4KEnVnXn2axejZJxpy4nXto@dpg-d1rl7vripnbc73cj06j0-a.oregon-postgres.render.com/zuasoko_db";
+
 // Database connection using environment variables
 const pool = new Pool({
-  connectionString:
-    process.env.DATABASE_URL ||
-    "postgresql://zuasoko_db_user:OoageAtal4KEnVnXn2axejZJxpy4nXto@dpg-d1rl7vripnbc73cj06j0-a.oregon-postgres.render.com/zuasoko_db",
+  connectionString: databaseUrl,
   ssl: { rejectUnauthorized: false },
   max: 3,
   idleTimeoutMillis: 5000,
@@ -15,18 +20,46 @@ const pool = new Pool({
 
 async function deployDatabase() {
   try {
-    console.log("🔄 Starting database deployment...");
+    console.log("🚀 ZUASOKO DATABASE DEPLOYMENT STARTING");
+    console.log("================================================");
+    console.log("🌍 Environment:", process.env.NODE_ENV || "development");
+    console.log("🏗️ Render Environment:", isRenderEnvironment ? "YES" : "NO");
+    console.log(
+      "🔗 Database URL Type:",
+      isRenderEnvironment ? "INTERNAL" : "EXTERNAL",
+    );
+    console.log("🔗 Database URL:", databaseUrl.replace(/:[^:]*@/, ":****@"));
+    console.log("📊 Database Name:", process.env.DB_NAME || "zuasoko_db");
+    console.log("👤 Database User:", process.env.DB_USER || "zuasoko_db_user");
+    console.log(
+      "🏠 Database Host:",
+      isRenderEnvironment
+        ? "dpg-d1rl7vripnbc73cj06j0-a"
+        : "dpg-d1rl7vripnbc73cj06j0-a.oregon-postgres.render.com",
+    );
+    console.log("🔌 Database Port:", process.env.DB_PORT || "5432");
+    console.log("🔒 SSL Enabled:", "true");
+    console.log("================================================");
+
+    console.log("🔄 Testing database connection...");
+    const startTime = Date.now();
 
     // Test connection
     const testResult = await pool.query(
       "SELECT NOW() as current_time, version() as db_version",
     );
-    console.log("✅ Database connection successful!");
-    console.log("📅 Current time:", testResult.rows[0].current_time);
+    const endTime = Date.now();
+    const connectionTime = endTime - startTime;
+
+    console.log("✅ DATABASE CONNECTION SUCCESS!");
+    console.log("================================================");
+    console.log("⏱️ Connection Time:", connectionTime + "ms");
+    console.log("📅 Database Time:", testResult.rows[0].current_time);
     console.log(
-      "🗄️ Database version:",
+      "🗄️ Database Version:",
       testResult.rows[0].db_version.split(",")[0],
     );
+    console.log("================================================");
 
     // Check if backend/database.sql exists, otherwise use setup-render-db.sql
     let sqlFile = "backend/database.sql";
