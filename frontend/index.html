@@ -171,6 +171,38 @@
           window.WebSocket.OPEN = OriginalWebSocket.OPEN;
           window.WebSocket.CLOSING = OriginalWebSocket.CLOSING;
           window.WebSocket.CLOSED = OriginalWebSocket.CLOSED;
+
+          // Block HMRContext and related functions completely
+          window.HMRContext = undefined;
+          window.createHotContext = function () {
+            return {};
+          };
+
+          // Override any attempts to access these in modules
+          Object.defineProperty(window, "HMRContext", {
+            get: function () {
+              return undefined;
+            },
+            set: function () {
+              /* do nothing */
+            },
+            configurable: false,
+          });
+
+          // Block module loading that might contain HMR code
+          var originalDefine = window.define;
+          if (typeof originalDefine === "function") {
+            window.define = function (id, deps, factory) {
+              if (
+                typeof id === "string" &&
+                (id.includes("vite") || id.includes("hmr"))
+              ) {
+                console.log("Blocked AMD module with Vite/HMR:", id);
+                return;
+              }
+              return originalDefine.apply(this, arguments);
+            };
+          }
         }
       })();
     </script>
