@@ -24,8 +24,8 @@ export function productionStripPlugin(): Plugin {
       });
     },
     transformIndexHtml: {
-      enforce: "post",
-      transform(html) {
+      order: "post",
+      handler(html) {
         // Remove any vite client script tags
         return html
           .replace(/<script[^>]*@vite\/client[^>]*><\/script>/g, "")
