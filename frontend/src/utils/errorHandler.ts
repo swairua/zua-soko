@@ -61,153 +61,19 @@ export const retryFetch = async (
   }
 };
 
-// Check if we're in a Vite development environment with HMR issues
-export const isHMRError = (error: any): boolean => {
-  const errorMessage = error?.message || error?.toString() || "";
-  const errorStack = error?.stack || "";
-  const errorFilename = error?.filename || "";
-
-  return (
-    errorMessage.includes("vite") ||
-    errorMessage.includes("HMR") ||
-    errorMessage.includes("@vite/client") ||
-    errorMessage.includes("waitForSuccessfulPing") ||
-    errorMessage.includes("HMR connection suppressed") ||
-    errorStack.includes("@vite/client") ||
-    errorStack.includes("ping") ||
-    errorStack.includes("edge.fullstory.com") ||
-    errorStack.includes("24f0659a90184252a93b6fc911098462") ||
-    errorStack.includes("fly.dev") ||
-    errorFilename.includes("@vite/client") ||
-    // Check for WebSocket-related HMR errors
-    (errorMessage.includes("Failed to fetch") &&
-      (errorStack.includes("ping") ||
-        errorStack.includes("WebSocket") ||
-        errorStack.includes("messageHandler"))) ||
-    // Check for the specific error pattern we're seeing
-    (errorMessage.includes("Failed to fetch") &&
-      errorStack.includes("eval at messageHandler"))
-  );
-};
-
-// Global error handler for unhandled promise rejections
+// Simple global error handler
 export const setupGlobalErrorHandling = () => {
-  // Handle unhandled promise rejections - more aggressive suppression
-  window.addEventListener(
-    "unhandledrejection",
-    (event) => {
-      // Ignore HMR-related errors in any environment
-      if (isHMRError(event.reason)) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        // Completely silent in production, minimal logging in dev
-        if (!import.meta.env.PROD) {
-          console.debug(
-            "HMR error suppressed:",
-            event.reason?.message || "Connection issue",
-          );
-        }
-        return false;
-      }
-
-      // Only log real errors in development
-      if (!import.meta.env.PROD) {
-        console.error("Unhandled promise rejection:", event.reason);
-      }
-    },
-    true,
-  ); // Use capture phase
-
-  // Handle global JavaScript errors - more aggressive suppression
-  window.addEventListener(
-    "error",
-    (event) => {
-      // Ignore HMR-related errors in any environment
-      if (
-        isHMRError(event.error) ||
-        (event.message &&
-          isHMRError({ message: event.message, stack: event.error?.stack }))
-      ) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        // Completely silent in production, minimal logging in dev
-        if (!import.meta.env.PROD) {
-          console.debug(
-            "HMR error suppressed:",
-            event.message || event.error?.message || "Connection issue",
-          );
-        }
-        return false;
-      }
-
-      // Only log real errors in development
-      if (!import.meta.env.PROD) {
-        console.error("Global error:", event.error);
-      }
-    },
-    true,
-  ); // Use capture phase
-
-  // Specifically handle WebSocket errors that might be related to HMR
-  const originalWebSocket = window.WebSocket;
-  window.WebSocket = class extends originalWebSocket {
-    constructor(url: string | URL, protocols?: string | string[]) {
-      super(url, protocols);
-
-      this.addEventListener("error", (event) => {
-        const urlString = url.toString();
-        // Suppress HMR WebSocket errors
-        if (
-          urlString.includes("vite") ||
-          urlString.includes("hmr") ||
-          urlString.includes("ws") ||
-          urlString.includes("fly.dev")
-        ) {
-          event.preventDefault();
-          if (!import.meta.env.PROD) {
-            console.warn(
-              "WebSocket error (HMR-related, suppressed):",
-              urlString,
-            );
-          }
-        }
-      });
+  // Handle unhandled promise rejections
+  window.addEventListener("unhandledrejection", (event) => {
+    if (!import.meta.env.PROD) {
+      console.error("Unhandled promise rejection:", event.reason);
     }
-  };
+  });
 
-  // Disable Vite's error overlay in production
-  if (
-    import.meta.env.PROD &&
-    (window as any).__vite_plugin_react_preamble_installed__
-  ) {
-    delete (window as any).__vite_plugin_react_preamble_installed__;
-  }
-
-  // Additional protection for specific error patterns
-  // Override console methods to suppress our own suppression messages
-  const originalConsoleError = console.error;
-  const originalConsoleWarn = console.warn;
-
-  console.error = function (...args) {
-    const message = args.join(" ");
-    if (
-      message.includes("HMR connection suppressed") ||
-      message.includes("eval at messageHandler") ||
-      isHMRError({ message, stack: new Error().stack })
-    ) {
-      return; // Completely suppress
+  // Handle global JavaScript errors
+  window.addEventListener("error", (event) => {
+    if (!import.meta.env.PROD) {
+      console.error("Global error:", event.error);
     }
-    return originalConsoleError.apply(this, args);
-  };
-
-  console.warn = function (...args) {
-    const message = args.join(" ");
-    if (
-      message.includes("HMR connection suppressed") ||
-      isHMRError({ message, stack: new Error().stack })
-    ) {
-      return; // Completely suppress
-    }
-    return originalConsoleWarn.apply(this, args);
-  };
+  });
 };
