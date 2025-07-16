@@ -63,11 +63,20 @@ export const retryFetch = async (
 
 // Check if we're in a Vite development environment with HMR issues
 export const isHMRError = (error: any): boolean => {
+  const errorMessage = error?.message || error?.toString() || "";
+  const errorStack = error?.stack || "";
+
   return (
-    !import.meta.env.PROD &&
-    (error?.message?.includes("vite") ||
-      error?.message?.includes("HMR") ||
-      error?.message?.includes("@vite/client"))
+    errorMessage.includes("vite") ||
+    errorMessage.includes("HMR") ||
+    errorMessage.includes("@vite/client") ||
+    errorMessage.includes("waitForSuccessfulPing") ||
+    errorMessage.includes("WebSocket") ||
+    errorStack.includes("@vite/client") ||
+    errorStack.includes("ping") ||
+    // Check for the specific error patterns from the logs
+    errorStack.includes("edge.fullstory.com") ||
+    (errorMessage.includes("Failed to fetch") && errorStack.includes("ping"))
   );
 };
 
