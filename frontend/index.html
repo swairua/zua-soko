@@ -136,6 +136,41 @@
             },
             true,
           );
+
+          // Block WebSocket connections to Vite HMR
+          var OriginalWebSocket = window.WebSocket;
+          window.WebSocket = function (url, protocols) {
+            var urlString = url.toString();
+            if (
+              urlString.includes("vite") ||
+              urlString.includes("hmr") ||
+              urlString.includes("3001") ||
+              urlString.match(/ws.*localhost/)
+            ) {
+              console.log("Blocked Vite WebSocket connection:", urlString);
+              // Return a fake WebSocket that does nothing
+              return {
+                close: function () {},
+                send: function () {},
+                addEventListener: function () {},
+                removeEventListener: function () {},
+                readyState: 3, // CLOSED
+                CONNECTING: 0,
+                OPEN: 1,
+                CLOSING: 2,
+                CLOSED: 3,
+              };
+            }
+            return new OriginalWebSocket(url, protocols);
+          };
+
+          // Copy static properties
+          Object.setPrototypeOf(window.WebSocket, OriginalWebSocket);
+          window.WebSocket.prototype = OriginalWebSocket.prototype;
+          window.WebSocket.CONNECTING = OriginalWebSocket.CONNECTING;
+          window.WebSocket.OPEN = OriginalWebSocket.OPEN;
+          window.WebSocket.CLOSING = OriginalWebSocket.CLOSING;
+          window.WebSocket.CLOSED = OriginalWebSocket.CLOSED;
         }
       })();
     </script>
