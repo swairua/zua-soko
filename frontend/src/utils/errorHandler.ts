@@ -63,7 +63,6 @@ export const retryFetch = async (
 
 // Check if we're in a Vite development environment with HMR issues
 export const isHMRError = (error: any): boolean => {
-<<<<<<< HEAD
   const errorMessage = error?.message || error?.toString() || "";
   const errorStack = error?.stack || "";
 
@@ -75,22 +74,16 @@ export const isHMRError = (error: any): boolean => {
     errorMessage.includes("WebSocket") ||
     errorStack.includes("@vite/client") ||
     errorStack.includes("ping") ||
-    // Check for the specific error patterns from the logs
     errorStack.includes("edge.fullstory.com") ||
-    (errorMessage.includes("Failed to fetch") && errorStack.includes("ping"))
-=======
-  return (
-    !import.meta.env.PROD &&
-    (error?.message?.includes("vite") ||
-      error?.message?.includes("HMR") ||
-      error?.message?.includes("@vite/client"))
->>>>>>> origin/main
+    (errorMessage.includes("Failed to fetch") && errorStack.includes("ping")) ||
+    // Additional patterns for the specific errors we're seeing
+    errorStack.includes("24f0659a90184252a93b6fc911098462") ||
+    errorStack.includes("fly.dev")
   );
 };
 
 // Global error handler for unhandled promise rejections
 export const setupGlobalErrorHandling = () => {
-<<<<<<< HEAD
   // Handle unhandled promise rejections
   window.addEventListener("unhandledrejection", (event) => {
     // Ignore HMR-related errors in any environment
@@ -145,7 +138,8 @@ export const setupGlobalErrorHandling = () => {
         if (
           urlString.includes("vite") ||
           urlString.includes("hmr") ||
-          urlString.includes("ws")
+          urlString.includes("ws") ||
+          urlString.includes("fly.dev")
         ) {
           event.preventDefault();
           if (!import.meta.env.PROD) {
@@ -160,33 +154,22 @@ export const setupGlobalErrorHandling = () => {
   };
 
   // Disable Vite's error overlay in production
-  if (import.meta.env.PROD && window.__vite_plugin_react_preamble_installed__) {
-    delete window.__vite_plugin_react_preamble_installed__;
+  if (
+    import.meta.env.PROD &&
+    (window as any).__vite_plugin_react_preamble_installed__
+  ) {
+    delete (window as any).__vite_plugin_react_preamble_installed__;
   }
-=======
-  window.addEventListener("unhandledrejection", (event) => {
-    // Ignore HMR-related errors in development
-    if (isHMRError(event.reason)) {
-      event.preventDefault();
-      console.warn(
-        "HMR connection issue (ignored in development):",
-        event.reason,
-      );
-      return;
-    }
 
-    console.error("Unhandled promise rejection:", event.reason);
-  });
-
-  window.addEventListener("error", (event) => {
-    // Ignore HMR-related errors in development
-    if (isHMRError(event.error)) {
-      event.preventDefault();
-      console.warn("HMR error (ignored in development):", event.error);
-      return;
-    }
-
-    console.error("Global error:", event.error);
-  });
->>>>>>> origin/main
+  // Additional suppression for the specific errors we're seeing
+  const originalFetch = window.fetch;
+  window.fetch = function (...args) {
+    return originalFetch.apply(this, args).catch((error) => {
+      if (isHMRError(error)) {
+        // Suppress HMR-related fetch errors
+        return Promise.reject(new Error("HMR connection suppressed"));
+      }
+      return Promise.reject(error);
+    });
+  };
 };
