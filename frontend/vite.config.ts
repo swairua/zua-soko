@@ -5,7 +5,7 @@ import path from "path";
 export default defineConfig(({ command, mode }) => {
   const isProduction = mode === "production" || command === "build";
 
-  return {
+  const config: any = {
     plugins: [react()],
     resolve: {
       alias: {
@@ -13,32 +13,9 @@ export default defineConfig(({ command, mode }) => {
         "@/shared": path.resolve(__dirname, "../shared/src"),
       },
     },
-    server: {
-      port: 3000,
-      host: true,
-      hmr: !isProduction
-        ? {
-            port: 3001,
-            clientPort: 3001,
-          }
-        : false,
-      proxy: {
-        "/api": {
-          target: "http://localhost:5001",
-          changeOrigin: true,
-          secure: false,
-        },
-      },
-    },
-    preview: {
-      port: 3000,
-      host: true,
-      // Disable HMR in preview mode as well
-      hmr: false,
-    },
     build: {
       outDir: "dist",
-      sourcemap: !isProduction,
+      sourcemap: false, // Completely disable sourcemaps in production
       rollupOptions: {
         output: {
           manualChunks: {
@@ -47,22 +24,66 @@ export default defineConfig(({ command, mode }) => {
             ui: ["lucide-react", "react-hot-toast"],
           },
         },
+        external: isProduction ? ["/@vite/client"] : [], // Exclude Vite client in production
       },
       target: "esnext",
       minify: isProduction ? "esbuild" : false,
-      // Completely disable dev features in production
       cssMinify: isProduction,
+      // Aggressive production optimizations
+      terserOptions: isProduction
+        ? {
+            compress: {
+              drop_console: true,
+              drop_debugger: true,
+            },
+          }
+        : undefined,
     },
     define: {
       __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
       "process.env.NODE_ENV": JSON.stringify(mode),
       __DEV__: JSON.stringify(!isProduction),
+      // Completely disable Vite features in production
+      "import.meta.hot": isProduction ? "undefined" : "import.meta.hot",
+      __VITE_IS_MODERN_BROWSER: "true",
     },
     esbuild: {
       target: "esnext",
       platform: "browser",
-      // Remove console logs and debugger in production
       drop: isProduction ? ["console", "debugger"] : [],
+      pure: isProduction
+        ? ["console.log", "console.warn", "console.error"]
+        : [],
     },
   };
+
+  // Only add server config in development
+  if (!isProduction) {
+    config.server = {
+      port: 3000,
+      host: true,
+      hmr: {
+        port: 3001,
+        clientPort: 3001,
+      },
+      proxy: {
+        "/api": {
+          target: "http://localhost:5001",
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+    };
+  }
+
+  // Production-specific settings
+  if (isProduction) {
+    // Completely disable any development features
+    config.clearScreen = false;
+    config.logLevel = "error";
+    config.build.reportCompressedSize = false;
+    config.build.chunkSizeWarningLimit = 1000;
+  }
+
+  return config;
 });
