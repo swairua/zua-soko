@@ -324,7 +324,9 @@ export default function ProfilePage() {
                       Member Since
                     </label>
                     <p className="text-gray-900 py-2">
-                      {new Date(user?.createdAt || "").toLocaleDateString()}
+                      {new Date(
+                        (user as any)?.createdAt || new Date(),
+                      ).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
