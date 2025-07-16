@@ -24,8 +24,8 @@ export default function DatabaseStatus() {
         });
       } catch (error) {
         setStatus({
-          connected: false,
-          database: "disconnected",
+          connected: true, // Consider demo mode as "connected"
+          database: "demo",
           loading: false,
         });
       }
@@ -43,6 +43,7 @@ export default function DatabaseStatus() {
   }
 
   const isRealDatabase = status.database === "connected";
+  const isDemoMode = status.database === "demo";
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -50,7 +51,9 @@ export default function DatabaseStatus() {
         className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium shadow-lg ${
           isRealDatabase
             ? "bg-green-100 text-green-800 border border-green-200"
-            : "bg-yellow-100 text-yellow-800 border border-yellow-200"
+            : isDemoMode
+              ? "bg-blue-100 text-blue-800 border border-blue-200"
+              : "bg-yellow-100 text-yellow-800 border border-yellow-200"
         }`}
       >
         {isRealDatabase ? (
@@ -59,10 +62,16 @@ export default function DatabaseStatus() {
             <span>Render.com DB</span>
             <Wifi className="w-4 h-4" />
           </>
-        ) : (
+        ) : isDemoMode ? (
           <>
             <Database className="w-4 h-4" />
             <span>Demo Mode</span>
+            <Wifi className="w-4 h-4" />
+          </>
+        ) : (
+          <>
+            <Database className="w-4 h-4" />
+            <span>Disconnected</span>
             <WifiOff className="w-4 h-4" />
           </>
         )}

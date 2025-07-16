@@ -18,7 +18,7 @@ function verifyPassword(password, hash) {
 let pool;
 async function getDB() {
   if (!pool) {
-    // Use Render.com database URL if available, fallback to env var
+    // Use environment variable or the provided Render.com database URL
     const databaseUrl =
       process.env.DATABASE_URL ||
       "postgresql://zuasoko_db_user:OoageAtal4KEnVnXn2axejZJxpy4nXto@dpg-d1rl7vripnbc73cj06j0-a.oregon-postgres.render.com/zuasoko_db";
