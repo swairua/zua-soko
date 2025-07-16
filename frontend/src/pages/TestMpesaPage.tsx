@@ -98,7 +98,9 @@ export default function TestMpesaPage() {
     const formatted = formatMpesaPhone(phoneNumber);
     const isValid = validateKenyanPhone(phoneNumber);
 
-    toast.info(`Phone: ${phoneNumber} → ${formatted} (Valid: ${isValid})`);
+    toast(`Phone: ${phoneNumber} → ${formatted} (Valid: ${isValid})`, {
+      icon: "ℹ️",
+    });
     console.log("Phone validation:", {
       original: phoneNumber,
       formatted,
