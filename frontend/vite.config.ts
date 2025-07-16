@@ -1,45 +1,22 @@
-import { defineConfig, UserConfig } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { noViteClientPlugin } from "./vite-no-client.plugin";
-import { reactProdPlugin } from "./vite-react-prod.plugin";
 
-export default defineConfig(({ command, mode }) => {
-  const isProduction = mode === "production" || command === "build";
+export default defineConfig(({ mode }) => {
+  const isProduction = mode === "production";
 
-  // Base configuration
-  const config: UserConfig = {
-    // Forcefully disable client injection by overriding internals
-    optimizeDeps: {
-      exclude: isProduction ? ["@vite/client", "vite/client"] : [],
-    },
+  return {
+    plugins: [react()],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
         "@/shared": path.resolve(__dirname, "../shared/src"),
-        // Redirect Vite client to empty module in production
-        ...(isProduction
-          ? {
-              "@vite/client": path.resolve(__dirname, "src/empty-module.js"),
-              "vite/client": path.resolve(__dirname, "src/empty-module.js"),
-              "vite/dist/client/env.mjs": path.resolve(
-                __dirname,
-                "src/empty-module.js",
-              ),
-            }
-          : {}),
       },
     },
     build: {
       outDir: "dist",
       sourcemap: false,
       rollupOptions: {
-        // Use production HTML template
-        ...(isProduction
-          ? {
-              input: path.resolve(__dirname, "index.prod.html"),
-            }
-          : {}),
         output: {
           manualChunks: {
             vendor: ["react", "react-dom"],
@@ -47,72 +24,19 @@ export default defineConfig(({ command, mode }) => {
             ui: ["lucide-react", "react-hot-toast"],
           },
         },
-        // Completely exclude all Vite client modules
-        external: isProduction
-          ? [
-              "/@vite/client",
-              "@vite/client",
-              "vite/client",
-              "/vite/client",
-              "vite/dist/client/env.mjs",
-              "/vite/dist/client/env.mjs",
-            ]
-          : [],
       },
       target: "esnext",
       minify: isProduction ? "esbuild" : false,
-      cssMinify: isProduction,
-      terserOptions: isProduction
-        ? {
-            compress: {
-              drop_console: true,
-              drop_debugger: true,
-            },
-          }
-        : undefined,
     },
     define: {
-      __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+      __APP_VERSION__: JSON.stringify(
+        process.env.npm_package_version || "0.1.0",
+      ),
       "process.env.NODE_ENV": JSON.stringify(mode),
-      __DEV__: JSON.stringify(!isProduction),
-      // Completely neutralize all Vite/HMR features
-      "import.meta.hot": "undefined",
-      "import.meta.env.DEV": JSON.stringify(!isProduction),
-      "import.meta.env.PROD": JSON.stringify(isProduction),
-      __VITE_IS_MODERN_BROWSER: "true",
-      // Neutralize HMR context completely
-      HMRContext: "undefined",
-      createHotContext: "(() => undefined)",
     },
-    esbuild: {
-      target: "esnext",
-      platform: "browser",
-      drop: isProduction ? ["console", "debugger"] : [],
-      pure: isProduction
-        ? ["console.log", "console.warn", "console.error"]
-        : [],
-    },
-  };
-
-  // Add plugins based on environment
-  config.plugins = isProduction
-    ? [
-        // Use production-only React plugin that doesn't inject dev code
-        reactProdPlugin(),
-        // Block any remaining Vite client injection
-        noViteClientPlugin(),
-      ]
-    : [react()];
-
-  // Only add server config in development
-  if (!isProduction) {
-    config.server = {
+    server: {
       port: 3000,
       host: true,
-      hmr: {
-        port: 3001,
-        clientPort: 3001,
-      },
       proxy: {
         "/api": {
           target: "http://localhost:5001",
@@ -120,19 +44,6 @@ export default defineConfig(({ command, mode }) => {
           secure: false,
         },
       },
-    };
-  } else {
-    // Production-specific settings that completely disable dev features
-    config.clearScreen = false;
-    config.logLevel = "error";
-    if (config.build) {
-      config.build.reportCompressedSize = false;
-      config.build.chunkSizeWarningLimit = 1000;
-    }
-
-    // Override any potential server config in production
-    delete config.server;
-  }
-
-  return config;
+    },
+  };
 });
