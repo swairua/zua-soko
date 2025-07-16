@@ -72,6 +72,17 @@ export function noViteClientPlugin(): Plugin {
     buildStart() {
       // Log that we're blocking client injection
       console.log("🚫 Vite client injection blocked for production build");
+
+      // Override any global Vite client injection mechanisms
+      if (typeof global !== "undefined") {
+        global.__vite_plugin_react_preamble_installed__ = true;
+        global.__vite_is_modern_browser = true;
+      }
+
+      if (typeof globalThis !== "undefined") {
+        globalThis.__vite_plugin_react_preamble_installed__ = true;
+        globalThis.__vite_is_modern_browser = true;
+      }
     },
     resolveId(id) {
       // Block any attempt to import Vite client modules
