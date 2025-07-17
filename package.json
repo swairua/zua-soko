@@ -6,7 +6,7 @@
     "start": "node server.js",
     "start:minimal": "node minimal-server.js",
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm install && npm run build:prod && mv dist/index.production.html dist/index.html && cp -r dist/* ../",
+    "build": "cd frontend && npm install && npm run build:prod && cp -r dist/* ../",
     "deploy-db": "node deploy-database.js",
     "setup": "npm install && cd frontend && npm install",
     "dev:frontend": "cd frontend && npm run dev",
