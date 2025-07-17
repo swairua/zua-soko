@@ -6,58 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#22c55e" />
     <title>Zuasoko - Agricultural Platform</title>
-
-    <!-- Production build - no HMR client -->
-    <script>
-      // Block any HMR attempts in production
-      if (
-        window.location.hostname !== "localhost" &&
-        window.location.hostname !== "127.0.0.1"
-      ) {
-        window.__vite_is_modern_browser = true;
-        window.import =
-          window.import ||
-          function () {
-            return Promise.resolve({});
-          };
-
-        // Override WebSocket to prevent HMR connections
-        const OriginalWebSocket = window.WebSocket;
-        window.WebSocket = function (url, protocols) {
-          if (
-            typeof url === "string" &&
-            (url.includes("vite") || url.includes("hmr"))
-          ) {
-            return {
-              close: () => {},
-              send: () => {},
-              addEventListener: () => {},
-              removeEventListener: () => {},
-              readyState: 3,
-              CLOSED: 3,
-            };
-          }
-          return new OriginalWebSocket(url, protocols);
-        };
-
-        // Override fetch to prevent HMR requests
-        const originalFetch = window.fetch;
-        window.fetch = function (url, options) {
-          if (
-            typeof url === "string" &&
-            (url.includes("@vite") || url.includes("hmr"))
-          ) {
-            return Promise.resolve(new Response("{}", { status: 200 }));
-          }
-          return originalFetch.call(this, url, options);
-        };
-      }
-    </script>
-    <script type="module" crossorigin src="/assets/main-4mNHTS5w.js"></script>
+    <script type="module" crossorigin src="/assets/main-D8RZodZA.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/vendor-9bZoipD1.js">
     <link rel="modulepreload" crossorigin href="/assets/router-BAAhKjlc.js">
-    <link rel="modulepreload" crossorigin href="/assets/ui-zJ8UOy7f.js">
-    <link rel="stylesheet" crossorigin href="/assets/main-DNuYLWd5.css">
+    <link rel="modulepreload" crossorigin href="/assets/ui-B3BJiFNf.js">
+    <link rel="stylesheet" crossorigin href="/assets/main-DIOjj6QE.css">
   </head>
   <body>
     <div id="root"></div>

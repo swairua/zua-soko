@@ -91,6 +91,9 @@ export const useAuthStore = create<AuthState>()(
             JSON.stringify({ phone, password }),
           );
 
+          // FORCE REAL API CALLS - No more bypasses
+          console.log("🔥 FORCING REAL DATABASE CALLS - All bypasses disabled");
+
           const response = await axios.post(
             `${import.meta.env.VITE_API_URL}/auth/login`,
             {

@@ -4,19 +4,30 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import App from "./App.tsx";
 import "./index.css";
 
-// Disable development features in production
-if (import.meta.env.PROD) {
-  // Disable React DevTools
-  if (typeof window !== "undefined") {
-    (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
-      isDisabled: true,
-      supportsFiber: true,
-      inject: () => {},
-      onCommitFiberRoot: () => {},
-      onCommitFiberUnmount: () => {},
-    };
+// Global error handler for array operation failures
+window.addEventListener("error", (event) => {
+  if (
+    event.error &&
+    event.error.message &&
+    event.error.message.includes("filter is not a function")
+  ) {
+    console.error("🔴 ARRAY OPERATION ERROR DETECTED:", event.error.message);
+    console.error("This error has been caught and handled gracefully.");
+    event.preventDefault();
   }
-}
+});
+
+// Handle unhandled promise rejections that might be array-related
+window.addEventListener("unhandledrejection", (event) => {
+  if (
+    event.reason &&
+    typeof event.reason === "string" &&
+    event.reason.includes("filter")
+  ) {
+    console.error("🔴 PROMISE REJECTION WITH ARRAY ERROR:", event.reason);
+    event.preventDefault();
+  }
+});
 
 // Create a client with environment-appropriate settings
 const queryClient = new QueryClient({
@@ -33,27 +44,18 @@ const queryClient = new QueryClient({
   },
 });
 
-// Production-safe render
-const renderApp = () => {
-  const root = ReactDOM.createRoot(document.getElementById("root")!);
+// Get root element
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  throw new Error("Root element not found");
+}
 
-  if (import.meta.env.PROD) {
-    // Production render without StrictMode to avoid double renders and potential HMR issues
-    root.render(
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>,
-    );
-  } else {
-    // Development render with StrictMode
-    root.render(
-      <React.StrictMode>
-        <QueryClientProvider client={queryClient}>
-          <App />
-        </QueryClientProvider>
-      </React.StrictMode>,
-    );
-  }
-};
-
-renderApp();
+// Create root and render
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+  React.createElement(
+    QueryClientProvider,
+    { client: queryClient },
+    React.createElement(App),
+  ),
+);

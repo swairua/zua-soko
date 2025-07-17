@@ -1,13 +1,24 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { productionStripPlugin } from "./vite.production.plugin";
 
 export default defineConfig(({ mode }) => {
   const isProduction = mode === "production";
 
   return {
-    plugins: [react(), ...(isProduction ? [productionStripPlugin()] : [])],
+    plugins: [
+      react({
+        ...(isProduction
+          ? {
+              jsxRuntime: "classic",
+              jsxFactory: "React.createElement",
+              jsxFragment: "React.Fragment",
+            }
+          : {
+              jsxRuntime: "automatic",
+            }),
+      }),
+    ],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
@@ -21,7 +32,7 @@ export default defineConfig(({ mode }) => {
         ...(isProduction
           ? {
               input: {
-                main: path.resolve(__dirname, "index.production.html"),
+                main: path.resolve(__dirname, "index.html"),
               },
               output: {
                 entryFileNames: "assets/[name]-[hash].js",
@@ -55,14 +66,6 @@ export default defineConfig(({ mode }) => {
         process.env.npm_package_version || "0.1.0",
       ),
       "process.env.NODE_ENV": JSON.stringify(mode),
-      ...(isProduction
-        ? {
-            "import.meta.hot": "undefined",
-            "import.meta.env.DEV": "false",
-            "import.meta.env.PROD": "true",
-            __vite_is_modern_browser: "true",
-          }
-        : {}),
     },
     server: {
       port: 3000,
@@ -72,7 +75,7 @@ export default defineConfig(({ mode }) => {
         ? {
             proxy: {
               "/api": {
-                target: "http://localhost:5001",
+                target: "http://localhost:5003",
                 changeOrigin: true,
                 secure: false,
               },

@@ -116,16 +116,28 @@ export default function ConsignmentManagementPage() {
 
   const fetchConsignments = async () => {
     try {
+      console.log("📦 Fetching consignments from live database");
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/consignments`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      setConsignments(response.data);
+
+      console.log("📦 Consignments response:", response.data);
+
+      // Handle both formats: direct array or object with consignments property
+      const consignmentsData = Array.isArray(response.data)
+        ? response.data
+        : response.data.consignments || [];
+
+      console.log("📦 Setting consignments array:", consignmentsData);
+      setConsignments(Array.isArray(consignmentsData) ? consignmentsData : []);
     } catch (error) {
-      console.error("Error fetching consignments:", error);
-      toast.error("Failed to fetch consignments");
+      console.error("❌ Error fetching consignments:", error);
+      toast.error("Failed to fetch consignments from database");
+      // Always set to empty array on error to prevent filter issues
+      setConsignments([]);
     } finally {
       setLoading(false);
     }
@@ -133,31 +145,28 @@ export default function ConsignmentManagementPage() {
 
   const fetchDrivers = async () => {
     try {
-      // Mock drivers data - in real app, fetch from API
-      setDrivers([
+      console.log("🚛 Fetching drivers from live database");
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/drivers`,
         {
-          id: "1",
-          userId: "driver1",
-          name: "Michael Kiprotich",
-          licenseNumber: "DL123456789",
-          vehicleType: "Pickup Truck",
-          vehicleRegNo: "KCA123X",
-          isAvailable: true,
-          rating: 4.7,
+          headers: { Authorization: `Bearer ${token}` },
         },
-        {
-          id: "2",
-          userId: "driver2",
-          name: "David Mwangi",
-          licenseNumber: "DL987654321",
-          vehicleType: "Van",
-          vehicleRegNo: "KCB456Y",
-          isAvailable: true,
-          rating: 4.5,
-        },
-      ]);
+      );
+
+      console.log("🚛 Drivers response:", response.data);
+
+      // Handle both formats: direct array or object with drivers property
+      const driversData = Array.isArray(response.data)
+        ? response.data
+        : response.data.drivers || [];
+
+      console.log("🚛 Setting drivers array:", driversData);
+      setDrivers(Array.isArray(driversData) ? driversData : []);
     } catch (error) {
-      console.error("Error fetching drivers:", error);
+      console.error("❌ Error fetching drivers:", error);
+      toast.error("Failed to fetch drivers from database");
+      // Set empty array on error
+      setDrivers([]);
     }
   };
 
@@ -224,10 +233,13 @@ export default function ConsignmentManagementPage() {
     }
   };
 
+  // Ensure consignments is always an array to prevent filter errors
+  const safeConsignments = Array.isArray(consignments) ? consignments : [];
+
   const filteredConsignments =
     filter === "ALL"
-      ? consignments
-      : consignments.filter((c) => c.status === filter);
+      ? safeConsignments
+      : safeConsignments.filter((c) => c.status === filter);
 
   const getActionButtons = (consignment: Consignment) => {
     switch (consignment.status) {
@@ -307,7 +319,10 @@ export default function ConsignmentManagementPage() {
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {consignments.filter((c) => c.status === "PENDING").length}
+                  {
+                    safeConsignments.filter((c) => c.status === "PENDING")
+                      .length
+                  }
                 </h3>
                 <p className="text-gray-600 text-sm">Pending Review</p>
               </div>
@@ -321,7 +336,10 @@ export default function ConsignmentManagementPage() {
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {consignments.filter((c) => c.status === "APPROVED").length}
+                  {
+                    safeConsignments.filter((c) => c.status === "APPROVED")
+                      .length
+                  }
                 </h3>
                 <p className="text-gray-600 text-sm">Approved</p>
               </div>
@@ -336,7 +354,7 @@ export default function ConsignmentManagementPage() {
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-gray-900">
                   {
-                    consignments.filter(
+                    safeConsignments.filter(
                       (c) =>
                         c.status === "DRIVER_ASSIGNED" ||
                         c.status === "IN_TRANSIT",
@@ -356,7 +374,7 @@ export default function ConsignmentManagementPage() {
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-gray-900">
                   {
-                    consignments.filter(
+                    safeConsignments.filter(
                       (c) =>
                         c.status === "DELIVERED" || c.status === "COMPLETED",
                     ).length
@@ -582,14 +600,17 @@ export default function ConsignmentManagementPage() {
                         required
                       >
                         <option value="">Choose a driver</option>
-                        {drivers
-                          .filter((d) => d.isAvailable)
-                          .map((driver) => (
-                            <option key={driver.id} value={driver.userId}>
-                              {driver.name} - {driver.vehicleType} (
-                              {driver.vehicleRegNo}) - Rating: {driver.rating}⭐
-                            </option>
-                          ))}
+                        {Array.isArray(drivers)
+                          ? drivers
+                              .filter((d) => d.isAvailable)
+                              .map((driver) => (
+                                <option key={driver.id} value={driver.userId}>
+                                  {driver.name} - {driver.vehicleType} (
+                                  {driver.vehicleRegNo}) - Rating:{" "}
+                                  {driver.rating}⭐
+                                </option>
+                              ))
+                          : []}
                       </select>
                     </div>
                   </div>

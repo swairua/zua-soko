@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
-import axios from "axios";
+import { apiService } from "../../services/api";
 
 interface DashboardStats {
   totalUsers: number;
@@ -66,27 +66,41 @@ export default function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/admin/users`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+      console.log("👥 Fetching users from real database");
+      const response = await fetch("/api/admin/users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+      });
 
-      const userData = response.data;
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      const userData = data.users || data;
+      console.log("👥 Users data received:", userData);
+
+      // Ensure userData is always an array to prevent filter errors
+      const safeUserData = Array.isArray(userData) ? userData : [];
+
       setStats((prev) => ({
         ...prev,
-        totalUsers: userData.length,
-        pendingApprovals: userData.filter(
+        totalUsers: safeUserData.length,
+        pendingApprovals: safeUserData.filter(
           (user: any) => user.status === "PENDING",
         ).length,
-        recentUsers: userData.slice(0, 5).map((user: any) => ({
+        recentUsers: safeUserData.slice(0, 5).map((user: any) => ({
           id: user.id,
-          name: `${user.firstName} ${user.lastName}`,
+          name: `${user.first_name || user.firstName} ${user.last_name || user.lastName}`,
           email: user.email,
           role: user.role,
           status: user.verified ? "ACTIVE" : "PENDING",
-          joinedAt: new Date(user.createdAt).toLocaleDateString(),
+          joinedAt: new Date(
+            user.created_at || user.createdAt,
+          ).toLocaleDateString(),
         })),
       }));
     } catch (error) {
