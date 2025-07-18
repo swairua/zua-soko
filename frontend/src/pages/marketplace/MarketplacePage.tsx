@@ -385,142 +385,145 @@ export default function MarketplacePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
-            >
-              {/* Product Image */}
-              <div className="relative h-48 bg-gray-200">
-                {product.images && product.images.length > 0 ? (
-                  <img
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src =
-                        "/api/placeholder/300/200?text=" +
-                        encodeURIComponent(product.name);
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <div className="text-center">
-                      <Eye className="w-8 h-8 mx-auto mb-2" />
-                      <span className="text-sm">{product.name}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Featured Badge */}
-                {(product.isFeatured || product.is_featured) && (
-                  <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
-                    ⭐ Featured
-                  </div>
-                )}
-
-                {/* Stock Badge */}
-                {(product.stockQuantity || product.stock_quantity) < 10 &&
-                  (product.stockQuantity || product.stock_quantity) > 0 && (
-                    <div className="absolute top-2 right-2 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
-                      Low Stock
+          {Array.isArray(products) &&
+            products.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
+              >
+                {/* Product Image */}
+                <div className="relative h-48 bg-gray-200">
+                  {product.images && product.images.length > 0 ? (
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "/api/placeholder/300/200?text=" +
+                          encodeURIComponent(product.name);
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <div className="text-center">
+                        <Eye className="w-8 h-8 mx-auto mb-2" />
+                        <span className="text-sm">{product.name}</span>
+                      </div>
                     </div>
                   )}
 
-                {(product.stockQuantity || product.stock_quantity) === 0 && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <span className="text-white font-medium">Out of Stock</span>
-                  </div>
-                )}
-              </div>
+                  {/* Featured Badge */}
+                  {(product.isFeatured || product.is_featured) && (
+                    <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                      ⭐ Featured
+                    </div>
+                  )}
 
-              {/* Product Info */}
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
-                    {product.name}
-                  </h3>
-                  <button className="text-gray-400 hover:text-red-500 transition-colors ml-2">
-                    <Heart className="w-4 h-4" />
-                  </button>
-                </div>
+                  {/* Stock Badge */}
+                  {(product.stockQuantity || product.stock_quantity) < 10 &&
+                    (product.stockQuantity || product.stock_quantity) > 0 && (
+                      <div className="absolute top-2 right-2 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                        Low Stock
+                      </div>
+                    )}
 
-                <p className="text-gray-600 text-xs mb-2 line-clamp-2">
-                  {product.description}
-                </p>
-
-                <div className="flex items-center text-xs text-gray-500 mb-3">
-                  <MapPin className="w-3 h-3 mr-1" />
-                  <span>
-                    {product.farmer?.county ||
-                      product.farmer_county ||
-                      "Unknown"}
-                  </span>
-                  <span className="mx-2">•</span>
-                  <span>
-                    {product.farmer?.user?.firstName ||
-                      product.farmer_name ||
-                      "Farmer"}{" "}
-                    {product.farmer?.user?.lastName || ""}
-                  </span>
-                </div>
-
-                {/* Tags */}
-                {product.tags && product.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {product.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs"
-                      >
-                        {tag}
+                  {(product.stockQuantity || product.stock_quantity) === 0 && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                      <span className="text-white font-medium">
+                        Out of Stock
                       </span>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-lg font-bold text-gray-900">
-                      {formatPrice(
-                        product.pricePerUnit || product.price_per_unit,
+                {/* Product Info */}
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
+                      {product.name}
+                    </h3>
+                    <button className="text-gray-400 hover:text-red-500 transition-colors ml-2">
+                      <Heart className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <p className="text-gray-600 text-xs mb-2 line-clamp-2">
+                    {product.description}
+                  </p>
+
+                  <div className="flex items-center text-xs text-gray-500 mb-3">
+                    <MapPin className="w-3 h-3 mr-1" />
+                    <span>
+                      {product.farmer?.county ||
+                        product.farmer_county ||
+                        "Unknown"}
+                    </span>
+                    <span className="mx-2">•</span>
+                    <span>
+                      {product.farmer?.user?.firstName ||
+                        product.farmer_name ||
+                        "Farmer"}{" "}
+                      {product.farmer?.user?.lastName || ""}
+                    </span>
+                  </div>
+
+                  {/* Tags */}
+                  {product.tags && product.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {product.tags.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-lg font-bold text-gray-900">
+                        {formatPrice(
+                          product.pricePerUnit || product.price_per_unit,
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        per {product.unit}
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <Link
+                        to={`/marketplace/product/${product.id}`}
+                        className="bg-gray-100 text-gray-700 px-2 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium flex items-center"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Link>
+
+                      {(product.stockQuantity || product.stock_quantity) > 0 ? (
+                        <button
+                          onClick={() => handleAddToCart(product)}
+                          disabled={cartLoading}
+                          className="bg-primary-600 text-white px-3 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors text-sm font-medium flex items-center space-x-1"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                          <span>Add to Cart</span>
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          className="bg-gray-300 text-gray-500 px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-1 cursor-not-allowed"
+                        >
+                          <span>Out of Stock</span>
+                        </button>
                       )}
                     </div>
-                    <div className="text-xs text-gray-500">
-                      per {product.unit}
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <Link
-                      to={`/marketplace/product/${product.id}`}
-                      className="bg-gray-100 text-gray-700 px-2 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium flex items-center"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Link>
-
-                    {(product.stockQuantity || product.stock_quantity) > 0 ? (
-                      <button
-                        onClick={() => handleAddToCart(product)}
-                        disabled={cartLoading}
-                        className="bg-primary-600 text-white px-3 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors text-sm font-medium flex items-center space-x-1"
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                        <span>Add to Cart</span>
-                      </button>
-                    ) : (
-                      <button
-                        disabled
-                        className="bg-gray-300 text-gray-500 px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-1 cursor-not-allowed"
-                      >
-                        <span>Out of Stock</span>
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
 
