@@ -5,14 +5,26 @@ const API_BASE_URL = import.meta.env.PROD ? "/api" : "/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+<<<<<<< HEAD
   timeout: 10000, // Reduced timeout to 10 seconds
+=======
+  timeout: 30000, // Increased timeout for better real database connection
+>>>>>>> origin/main
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Add request interceptor for auth token
+// Add request interceptor for auth token and enhanced logging
 api.interceptors.request.use((config) => {
+  console.log(
+    "🚀 API REQUEST:",
+    config.method?.toUpperCase(),
+    config.url,
+    "Data:",
+    config.data,
+  );
+
   const token = localStorage.getItem("authToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -20,6 +32,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+<<<<<<< HEAD
 // Add response interceptor for better error handling
 api.interceptors.response.use(
   (response) => response,
@@ -73,9 +86,41 @@ const fallbackData = {
     },
   ],
 };
+=======
+// Add response interceptor for enhanced logging - NO BYPASS SYSTEM
+api.interceptors.response.use(
+  (response) => {
+    console.log(
+      "✅ API SUCCESS:",
+      response.config.url,
+      "Status:",
+      response.status,
+      "Data sample:",
+      response.data,
+    );
+    return response;
+  },
+  (error) => {
+    console.error("❌ API ERROR:", {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message,
+      hostname: window.location.hostname,
+      timestamp: new Date().toISOString(),
+    });
+>>>>>>> origin/main
 
-// API functions
+    // NO BYPASS - Let all errors bubble up to force real database debugging
+    return Promise.reject(error);
+  },
+);
+
+// API functions - All targeting real database
 export const apiService = {
+<<<<<<< HEAD
   // Health check with improved error handling
   getHealth: async () => {
     try {
@@ -113,18 +158,24 @@ export const apiService = {
         throw error; // Throw original error
       }
     }
+=======
+  // Auth endpoints - Real database only
+  login: async (credentials: { phone: string; password: string }) => {
+    console.log("🔐 ATTEMPTING LOGIN with real database:", credentials.phone);
+    const response = await api.post("/auth/login", credentials);
+    console.log("🔐 LOGIN SUCCESS:", response.data);
+    return response.data;
+>>>>>>> origin/main
   },
 
   register: async (userData: any) => {
-    try {
-      const response = await api.post("/auth/register", userData);
-      return response.data;
-    } catch (error) {
-      console.error("Registration failed:", error);
-      throw error;
-    }
+    console.log("📝 ATTEMPTING REGISTRATION with real database");
+    const response = await api.post("/auth/register", userData);
+    console.log("📝 REGISTRATION SUCCESS:", response.data);
+    return response.data;
   },
 
+<<<<<<< HEAD
   // Product endpoints - prioritize real database
   getProducts: async () => {
     try {
@@ -153,36 +204,94 @@ export const apiService = {
         return { products: fallbackData.products };
       }
     }
+=======
+  // Product endpoints - Real database only
+  getProducts: async (params?: URLSearchParams) => {
+    const url = params
+      ? `/marketplace/products?${params}`
+      : "/marketplace/products";
+    console.log("🛍️ FETCHING PRODUCTS from real database:", url);
+    const response = await api.get(url);
+    console.log(
+      "🛍️ PRODUCTS SUCCESS:",
+      response.data.products?.length || response.data.length,
+      "products",
+    );
+    return response.data;
+>>>>>>> origin/main
   },
 
   getProduct: async (id: string) => {
-    try {
-      const response = await api.get(`/products/${id}`);
-      return response.data;
-    } catch (error) {
-      // Return fallback product
-      const product = fallbackData.products.find((p) => p.id === id);
-      if (product) {
-        return { product };
-      }
-      throw error;
-    }
+    console.log("🛍️ FETCHING SINGLE PRODUCT from real database:", id);
+    const response = await api.get(`/marketplace/products/${id}`);
+    console.log("🛍️ SINGLE PRODUCT SUCCESS:", response.data);
+    return response.data;
   },
 
+<<<<<<< HEAD
   // Wallet endpoints
-  getWalletBalance: async () => {
-    try {
-      const response = await api.get("/wallet/balance");
-      return response.data;
-    } catch (error) {
-      console.error("Wallet balance failed:", error);
-      return { balance: 0 };
-    }
+=======
+  // Marketplace metadata - Real database only
+  getCategories: async () => {
+    console.log("📁 FETCHING CATEGORIES from real database");
+    const response = await api.get("/marketplace/categories");
+    console.log("📁 CATEGORIES SUCCESS:", response.data);
+    return response.data;
   },
 
-  // Static data
-  getCategories: () => Promise.resolve(fallbackData.categories),
-  getCounties: () => Promise.resolve(fallbackData.counties),
+  getCounties: async () => {
+    console.log("🗺️ FETCHING COUNTIES from real database");
+    const response = await api.get("/marketplace/counties");
+    console.log("🗺️ COUNTIES SUCCESS:", response.data);
+    return response.data;
+  },
+
+  // Wallet endpoints - Real database only
+>>>>>>> origin/main
+  getWalletBalance: async () => {
+    console.log("💰 FETCHING WALLET BALANCE from real database");
+    const response = await api.get("/wallet/balance");
+    console.log("💰 WALLET SUCCESS:", response.data);
+    return response.data;
+  },
+
+  // Order endpoints - Real database only
+  createOrder: async (orderData: any) => {
+    console.log("📦 CREATING ORDER in real database");
+    const response = await api.post("/orders", orderData);
+    console.log("📦 ORDER SUCCESS:", response.data);
+    return response.data;
+  },
+
+  getOrders: async () => {
+    console.log("📦 FETCHING ORDERS from real database");
+    const response = await api.get("/orders");
+    console.log("📦 ORDERS SUCCESS:", response.data);
+    return response.data;
+  },
+
+  // Admin endpoints - Real database only
+  getUsers: async () => {
+    console.log("👥 FETCHING USERS from real database");
+    const response = await api.get("/admin/users");
+    console.log("👥 USERS SUCCESS:", response.data);
+    return response.data;
+  },
+
+  approveUser: async (userId: string) => {
+    console.log("✅ APPROVING USER in real database:", userId);
+    const response = await api.post(`/admin/users/${userId}/approve`);
+    console.log("✅ USER APPROVAL SUCCESS:", response.data);
+    return response.data;
+  },
+
+  // Generic GET method for any endpoint
+  get: async (url: string) => {
+    console.log("🔄 GENERIC GET REQUEST to real database:", url);
+    const response = await api.get(url);
+    console.log("🔄 GENERIC GET SUCCESS:", response.data);
+    return response;
+  },
 };
 
 export default api;

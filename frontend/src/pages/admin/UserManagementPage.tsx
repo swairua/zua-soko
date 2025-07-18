@@ -188,7 +188,10 @@ export default function UserManagementPage() {
     }
   };
 
-  const filteredUsers = users.filter((user) => {
+  // Ensure users is always an array to prevent filter errors
+  const safeUsers = Array.isArray(users) ? users : [];
+
+  const filteredUsers = safeUsers.filter((user) => {
     const matchesSearch =
       user.firstName.toLowerCase().includes(search.toLowerCase()) ||
       user.lastName.toLowerCase().includes(search.toLowerCase()) ||
@@ -203,10 +206,10 @@ export default function UserManagementPage() {
   });
 
   const getUserStats = () => {
-    const total = users.length;
-    const active = users.filter((u) => u.status === "ACTIVE").length;
-    const pending = users.filter((u) => u.status === "PENDING").length;
-    const blocked = users.filter(
+    const total = safeUsers.length;
+    const active = safeUsers.filter((u) => u.status === "ACTIVE").length;
+    const pending = safeUsers.filter((u) => u.status === "PENDING").length;
+    const blocked = safeUsers.filter(
       (u) => u.status === "BLOCKED" || u.status === "SUSPENDED",
     ).length;
 

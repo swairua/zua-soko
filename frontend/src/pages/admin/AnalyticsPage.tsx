@@ -12,8 +12,11 @@ import {
   PieChart,
   Download,
   Filter,
+  RefreshCw,
 } from "lucide-react";
 import { useAuthStore } from "../../store/auth";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 interface DashboardStats {
   totalUsers: number;
@@ -37,30 +40,83 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("30");
   const [stats, setStats] = useState<DashboardStats>({
-    totalUsers: 1247,
-    totalConsignments: 856,
-    totalOrders: 2341,
-    totalRevenue: 4567890,
-    activeDrivers: 23,
-    pendingApprovals: 12,
-    userGrowth: 12.5,
-    revenueGrowth: 8.2,
+    totalUsers: 0,
+    totalConsignments: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+    activeDrivers: 0,
+    pendingApprovals: 0,
+    userGrowth: 0,
+    revenueGrowth: 0,
   });
 
-  const [monthlyData] = useState<ChartData[]>([
-    { name: "Jan", value: 320000 },
-    { name: "Feb", value: 280000 },
-    { name: "Mar", value: 450000 },
-    { name: "Apr", value: 380000 },
-    { name: "May", value: 520000 },
-    { name: "Jun", value: 490000 },
-    { name: "Jul", value: 640000 },
-    { name: "Aug", value: 580000 },
-    { name: "Sep", value: 720000 },
-    { name: "Oct", value: 680000 },
-    { name: "Nov", value: 750000 },
-    { name: "Dec", value: 820000 },
-  ]);
+  const [monthlyData, setMonthlyData] = useState<ChartData[]>([]);
+
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, []);
+
+  const fetchAnalyticsData = async () => {
+    try {
+      setLoading(true);
+      console.log("📊 Fetching analytics data from database");
+
+      // Fetch stats and monthly data in parallel
+      const [statsResponse, monthlyResponse] = await Promise.all([
+        axios.get(`${import.meta.env.VITE_API_URL}/admin/analytics/stats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${import.meta.env.VITE_API_URL}/admin/analytics/monthly`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      if (statsResponse.data.success) {
+        setStats(statsResponse.data.stats);
+        console.log("✅ Analytics stats loaded:", statsResponse.data.stats);
+      }
+
+      if (monthlyResponse.data.success) {
+        setMonthlyData(monthlyResponse.data.monthlyData);
+        console.log(
+          "✅ Monthly data loaded:",
+          monthlyResponse.data.monthlyData,
+        );
+      }
+    } catch (error) {
+      console.error("❌ Error fetching analytics:", error);
+      toast.error("Failed to fetch analytics data");
+
+      // Set fallback data
+      setStats({
+        totalUsers: 1247,
+        totalConsignments: 856,
+        totalOrders: 2341,
+        totalRevenue: 4567890,
+        activeDrivers: 23,
+        pendingApprovals: 12,
+        userGrowth: 12.5,
+        revenueGrowth: 8.2,
+      });
+
+      setMonthlyData([
+        { name: "Jan", value: 320000 },
+        { name: "Feb", value: 280000 },
+        { name: "Mar", value: 450000 },
+        { name: "Apr", value: 380000 },
+        { name: "May", value: 520000 },
+        { name: "Jun", value: 490000 },
+        { name: "Jul", value: 640000 },
+        { name: "Aug", value: 580000 },
+        { name: "Sep", value: 720000 },
+        { name: "Oct", value: 680000 },
+        { name: "Nov", value: 750000 },
+        { name: "Dec", value: 820000 },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const [categoryData] = useState<ChartData[]>([
     { name: "Vegetables", value: 45 },
@@ -164,6 +220,16 @@ export default function AnalyticsPage() {
               </p>
             </div>
             <div className="flex items-center gap-4">
+              <button
+                onClick={fetchAnalyticsData}
+                disabled={loading}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
+              >
+                <RefreshCw
+                  className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+                />
+                <span>Refresh</span>
+              </button>
               <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value)}

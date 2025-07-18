@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import { apiService } from "../../services/api";
 import {
   Search,
   Filter,
@@ -15,18 +15,21 @@ import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
 
 interface Product {
-  id: string;
+  id: string | number;
   name: string;
   category: string;
-  pricePerUnit: number;
+  price_per_unit?: number;
+  pricePerUnit?: number;
   unit: string;
-  stockQuantity: number;
-  images: string[];
+  stock_quantity?: number;
+  stockQuantity?: number;
+  images?: string[];
   description: string;
-  isFeatured: boolean;
-  isAvailable: boolean;
-  tags: string[];
-  farmer: {
+  is_featured?: boolean;
+  isFeatured?: boolean;
+  isAvailable?: boolean;
+  tags?: string[];
+  farmer?: {
     id: string;
     county: string;
     user: {
@@ -34,8 +37,11 @@ interface Product {
       lastName: string;
     };
   };
-  createdAt: string;
-  updatedAt: string;
+  farmer_name?: string;
+  farmer_county?: string;
+  created_at?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Filters {
@@ -71,10 +77,12 @@ export default function MarketplacePage() {
   const { addToCart, isLoading: cartLoading } = useCart();
   const { user, isAuthenticated } = useAuthStore();
 
-  // Fetch products
+  // Fetch products from real database
   const fetchProducts = async (page = 1) => {
     try {
       setLoading(true);
+      console.log("🔍 FETCHING PRODUCTS - Page:", page, "Filters:", filters);
+
       const params = new URLSearchParams({
         page: page.toString(),
         limit: pagination.limit.toString(),
@@ -86,36 +94,54 @@ export default function MarketplacePage() {
         ...(filters.featured && { featured: "true" }),
       });
 
-      const response = await axios.get(`/api/marketplace/products?${params}`);
-      setProducts(response.data.products || response.data);
+      const data = await apiService.getProducts(params);
+      console.log("🔍 PRODUCTS RESPONSE:", data);
 
-      if (response.data.pagination) {
+      setProducts(data.products || data);
+
+      if (data.pagination) {
         setPagination((prev) => ({
           ...prev,
-          ...response.data.pagination,
+          ...data.pagination,
           page,
+        }));
+      } else {
+        // Set default pagination if not provided
+        setPagination((prev) => ({
+          ...prev,
+          page,
+          total: data.products?.length || data.length || 0,
+          totalPages: 1,
         }));
       }
     } catch (error) {
-      console.error("Failed to fetch products:", error);
-      toast.error("Failed to load products");
+      console.error("❌ FAILED TO FETCH PRODUCTS:", error);
+      toast.error("Failed to load products from database");
+      // Don't set any fallback data - let it fail to show real issues
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch categories and counties
+  // Fetch categories and counties from real database
   const fetchMetadata = async () => {
     try {
-      const [categoriesRes, countiesRes] = await Promise.all([
-        axios.get("/api/marketplace/categories"),
-        axios.get("/api/marketplace/counties"),
+      console.log("🔍 FETCHING METADATA from real database");
+
+      const [categoriesData, countiesData] = await Promise.all([
+        apiService.getCategories(),
+        apiService.getCounties(),
       ]);
 
-      setCategories(categoriesRes.data || []);
-      setCounties(countiesRes.data || []);
+      console.log("🔍 CATEGORIES RESPONSE:", categoriesData);
+      console.log("🔍 COUNTIES RESPONSE:", countiesData);
+
+      setCategories(categoriesData.categories || categoriesData || []);
+      setCounties(countiesData.counties || countiesData || []);
     } catch (error) {
-      console.error("Failed to fetch metadata:", error);
+      console.error("❌ FAILED TO FETCH METADATA:", error);
+      toast.error("Failed to load categories and counties from database");
+      // Don't set any fallback data - let it fail to show real issues
     }
   };
 
@@ -385,20 +411,21 @@ export default function MarketplacePage() {
                 )}
 
                 {/* Featured Badge */}
-                {product.isFeatured && (
+                {(product.isFeatured || product.is_featured) && (
                   <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
                     ⭐ Featured
                   </div>
                 )}
 
                 {/* Stock Badge */}
-                {product.stockQuantity < 10 && product.stockQuantity > 0 && (
-                  <div className="absolute top-2 right-2 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
-                    Low Stock
-                  </div>
-                )}
+                {(product.stockQuantity || product.stock_quantity) < 10 &&
+                  (product.stockQuantity || product.stock_quantity) > 0 && (
+                    <div className="absolute top-2 right-2 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                      Low Stock
+                    </div>
+                  )}
 
-                {product.stockQuantity === 0 && (
+                {(product.stockQuantity || product.stock_quantity) === 0 && (
                   <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                     <span className="text-white font-medium">Out of Stock</span>
                   </div>
@@ -422,11 +449,17 @@ export default function MarketplacePage() {
 
                 <div className="flex items-center text-xs text-gray-500 mb-3">
                   <MapPin className="w-3 h-3 mr-1" />
-                  <span>{product.farmer.county}</span>
+                  <span>
+                    {product.farmer?.county ||
+                      product.farmer_county ||
+                      "Unknown"}
+                  </span>
                   <span className="mx-2">•</span>
                   <span>
-                    {product.farmer.user.firstName}{" "}
-                    {product.farmer.user.lastName}
+                    {product.farmer?.user?.firstName ||
+                      product.farmer_name ||
+                      "Farmer"}{" "}
+                    {product.farmer?.user?.lastName || ""}
                   </span>
                 </div>
 
@@ -447,7 +480,9 @@ export default function MarketplacePage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-lg font-bold text-gray-900">
-                      {formatPrice(product.pricePerUnit)}
+                      {formatPrice(
+                        product.pricePerUnit || product.price_per_unit,
+                      )}
                     </div>
                     <div className="text-xs text-gray-500">
                       per {product.unit}
@@ -462,7 +497,7 @@ export default function MarketplacePage() {
                       <Eye className="w-4 h-4" />
                     </Link>
 
-                    {product.stockQuantity > 0 ? (
+                    {(product.stockQuantity || product.stock_quantity) > 0 ? (
                       <button
                         onClick={() => handleAddToCart(product)}
                         disabled={cartLoading}

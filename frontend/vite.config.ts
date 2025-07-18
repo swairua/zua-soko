@@ -1,13 +1,24 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { productionStripPlugin } from "./vite.production.plugin";
 
 export default defineConfig(({ mode }) => {
   const isProduction = mode === "production";
 
   return {
-    plugins: [react(), ...(isProduction ? [productionStripPlugin()] : [])],
+    plugins: [
+      react({
+        ...(isProduction
+          ? {
+              jsxRuntime: "classic",
+              jsxFactory: "React.createElement",
+              jsxFragment: "React.Fragment",
+            }
+          : {
+              jsxRuntime: "automatic",
+            }),
+      }),
+    ],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
@@ -18,11 +29,10 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
       sourcemap: false,
       rollupOptions: {
-        // Use production HTML template
         ...(isProduction
           ? {
               input: {
-                main: path.resolve(__dirname, "index.production.html"),
+                main: path.resolve(__dirname, "index.html"),
               },
               output: {
                 entryFileNames: "assets/[name]-[hash].js",
@@ -44,7 +54,6 @@ export default defineConfig(({ mode }) => {
                 },
               },
             }),
-        // Completely exclude Vite client in production
         external: isProduction
           ? ["/@vite/client", "@vite/client", "vite/client", "/vite/client"]
           : [],
@@ -57,31 +66,22 @@ export default defineConfig(({ mode }) => {
         process.env.npm_package_version || "0.1.0",
       ),
       "process.env.NODE_ENV": JSON.stringify(mode),
-      // Completely disable HMR in production
-      ...(isProduction
-        ? {
-            "import.meta.hot": "undefined",
-            "import.meta.env.DEV": "false",
-            "import.meta.env.PROD": "true",
-            __vite_is_modern_browser: "true",
-          }
-        : {}),
     },
-    // Only add server config in development
-    ...(isProduction
-      ? {}
-      : {
-          server: {
-            port: 3000,
-            host: true,
+    server: {
+      port: 3000,
+      host: true,
+      allowedHosts: ["zua-soko.onrender.com", "localhost"],
+      ...(mode === "development"
+        ? {
             proxy: {
               "/api": {
-                target: "http://localhost:5001",
+                target: "http://localhost:5003",
                 changeOrigin: true,
                 secure: false,
               },
             },
-          },
-        }),
+          }
+        : {}),
+    },
   };
 });
