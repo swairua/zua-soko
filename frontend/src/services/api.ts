@@ -149,6 +149,14 @@ export const apiService = {
     console.log("✅ USER APPROVAL SUCCESS:", response.data);
     return response.data;
   },
+
+  // Generic GET method for any endpoint
+  get: async (url: string) => {
+    console.log("🔄 GENERIC GET REQUEST to real database:", url);
+    const response = await api.get(url);
+    console.log("🔄 GENERIC GET SUCCESS:", response.data);
+    return response;
+  },
 };
 
 export default api;
