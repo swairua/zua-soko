@@ -5,7 +5,7 @@ const API_BASE_URL = import.meta.env.PROD ? "/api" : "/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000,
+  timeout: 10000, // Reduced timeout to 10 seconds
   headers: {
     "Content-Type": "application/json",
   },
@@ -20,11 +20,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Add response interceptor for error handling
+// Add response interceptor for better error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.warn("API request failed:", error.message);
+    // Don't log health check errors to avoid console spam
+    if (!error.config?.url?.includes("/health")) {
+      console.warn("API request failed:", error.message);
+    }
     return Promise.reject(error);
   },
 );
@@ -73,17 +76,18 @@ const fallbackData = {
 
 // API functions
 export const apiService = {
-  // Health check with database status
+  // Health check with improved error handling
   getHealth: async () => {
     try {
       const response = await api.get("/health");
       return response.data;
-    } catch (error) {
-      console.error("Health check failed:", error);
+    } catch (error: any) {
+      // Return a structured error response instead of throwing
       return {
         status: "ERROR",
         message: "API unavailable",
-        database: "disconnected",
+        database: "error: " + (error.response?.data?.message || error.message),
+        timestamp: new Date().toISOString(),
       };
     }
   },
@@ -127,13 +131,13 @@ export const apiService = {
       // Try real database first
       const response = await api.get("/products");
       console.log(
-        "✅ Loaded products from Render.com database:",
+        "✅ Loaded products from database:",
         response.data.products?.length || 0,
         "products",
       );
       return response.data;
     } catch (error) {
-      console.warn("Real database products failed, trying demo:", error);
+      console.warn("Database products failed, trying demo:", error);
 
       try {
         // Try demo endpoint
