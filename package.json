@@ -3,22 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-<<<<<<< HEAD
     "start": "cd frontend && npm run dev",
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm install && npm run build:prod && mv dist/index.production.html dist/index.html && cp -r dist/* ../ && cd ../api && npm install"
-  },
-  "engines": {
-    "node": "18"
-=======
-    "start": "node server.js",
-    "start:minimal": "node minimal-server.js",
-    "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm install && npm run build:prod && cp -r dist/* ../",
-    "deploy-db": "node deploy-database.js",
-    "setup": "npm install && cd frontend && npm install",
+    "build": "cd frontend && npm install && npm run build:prod && mv dist/index.production.html dist/index.html && cp -r dist/* ../ && cd ../api && npm install",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev:server": "node server.js"
+    "dev:server": "node server.js",
+    "setup": "npm install && cd frontend && npm install"
   },
   "engines": {
     "node": ">=18"
@@ -28,6 +18,5 @@
     "cors": "^2.8.5",
     "pg": "^8.11.3",
     "jsonwebtoken": "^9.0.2"
->>>>>>> origin/main
   }
 }
