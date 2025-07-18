@@ -71,14 +71,14 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       host: true,
       allowedHosts: ["zua-soko.onrender.com", "localhost"],
-      ...(mode === "development"
+      // Disable proxy in development, use fallback API endpoints
+      ...(false
         ? {
             proxy: {
               "/api": {
-                target: "https://zua-soko.fly.dev",
+                target: "http://localhost:5002",
                 changeOrigin: true,
-                secure: true,
-                rewrite: (path) => path,
+                secure: false,
               },
             },
           }
