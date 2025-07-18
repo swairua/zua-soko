@@ -69,18 +69,17 @@ export default function ProfilePage() {
         },
       );
 
-      const orders = response.data.orders || response.data;
-      setOrders(orders);
+      setOrders(response.data);
 
       // Calculate stats
-      const totalOrders = orders.length;
-      const completedOrders = orders.filter(
+      const totalOrders = response.data.length;
+      const completedOrders = response.data.filter(
         (o: Order) => o.status === "DELIVERED",
       ).length;
-      const totalSpent = orders
+      const totalSpent = response.data
         .filter((o: Order) => o.paymentStatus === "COMPLETED")
         .reduce((sum: number, o: Order) => sum + o.totalAmount, 0);
-      const pendingOrders = orders.filter(
+      const pendingOrders = response.data.filter(
         (o: Order) => o.status === "PENDING",
       ).length;
 
@@ -90,39 +89,8 @@ export default function ProfilePage() {
         totalSpent,
         pendingOrders,
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to fetch orders:", error);
-
-      // If 404, provide fallback demo data until backend is deployed
-      if (error.response?.status === 404) {
-        console.log("🛒 Using fallback demo orders (endpoint not found)");
-        const demoOrders = [
-          {
-            id: "order_1",
-            orderNumber: "ORD-2024-001",
-            totalAmount: 2500,
-            paymentStatus: "COMPLETED",
-            status: "DELIVERED",
-            deliveryAddress: "123 Main Street, Nairobi",
-            createdAt: new Date(Date.now() - 86400000).toISOString(),
-            items: [
-              {
-                productName: "Organic Tomatoes",
-                quantity: 5,
-                totalPrice: 600,
-              },
-            ],
-          },
-        ];
-
-        setOrders(demoOrders);
-        setStats({
-          totalOrders: 1,
-          completedOrders: 1,
-          totalSpent: 2500,
-          pendingOrders: 0,
-        });
-      }
     }
   };
 

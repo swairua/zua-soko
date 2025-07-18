@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/auth";
-import { useAppDownload } from "../hooks/useAppDownload";
-import { ApkInfoModal } from "../components/ApkInfoModal";
 import {
   Leaf,
   Users,
@@ -12,27 +10,11 @@ import {
   ChevronDown,
   ChevronUp,
   Key,
-  Smartphone,
-  Download,
-  Bell,
-  MapPin,
-  Clock,
-  CreditCard,
-  QrCode,
-  Play,
-  Apple,
 } from "lucide-react";
 
 export default function HomePage() {
   const { isAuthenticated, user } = useAuthStore();
   const [showDemoCredentials, setShowDemoCredentials] = useState(false);
-  const [showApkInfoModal, setShowApkInfoModal] = useState(false);
-  const {
-    isAvailable: apkAvailable,
-    appInfo,
-    loading: apkLoading,
-    downloadApp,
-  } = useAppDownload();
 
   const features = [
     {
@@ -58,31 +40,6 @@ export default function HomePage() {
       title: "Quality Assured",
       description:
         "All produce is quality-checked before delivery to ensure satisfaction.",
-    },
-  ];
-
-  const mobileAppFeatures = [
-    {
-      icon: <Bell className="w-6 h-6 text-primary-600" />,
-      title: "Push Notifications",
-      description:
-        "Stay updated on orders, deliveries, and fresh produce availability",
-    },
-    {
-      icon: <MapPin className="w-6 h-6 text-primary-600" />,
-      title: "Live Tracking",
-      description:
-        "Track your deliveries in real-time from farm to your doorstep",
-    },
-    {
-      icon: <Clock className="w-6 h-6 text-primary-600" />,
-      title: "Quick Orders",
-      description: "Reorder your favorites with just one tap",
-    },
-    {
-      icon: <CreditCard className="w-6 h-6 text-primary-600" />,
-      title: "Mobile Payments",
-      description: "Secure M-Pesa integration for seamless transactions",
     },
   ];
 
@@ -267,262 +224,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Mobile App Download Section */}
-      <section className="bg-gradient-to-br from-gray-50 to-gray-100 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Side - Content */}
-            <div className="space-y-8">
-              <div className="text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-                  <Smartphone className="w-4 h-4" />
-                  Now Available on Mobile
-                </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                  Take Zuasoko{" "}
-                  <span className="text-primary-600">Anywhere</span>
-                </h2>
-                <p className="text-xl text-gray-600 mb-8">
-                  Access fresh produce, manage your farm, or track deliveries on
-                  the go. Our mobile app brings the complete Zuasoko experience
-                  to your smartphone.
-                </p>
-              </div>
-
-              {/* Download Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <button
-                  onClick={() => {
-                    if (apkAvailable) {
-                      downloadApp();
-                    } else {
-                      alert(
-                        "Android app coming soon! 🚀\n\nWe're putting the finishing touches on our mobile app. Stay tuned for the official release!",
-                      );
-                    }
-                  }}
-                  disabled={apkLoading}
-                  className={`group px-6 py-3 rounded-xl flex items-center gap-3 transition-all duration-300 transform hover:scale-105 shadow-lg ${
-                    apkAvailable
-                      ? "bg-green-600 hover:bg-green-700 text-white"
-                      : "bg-gray-900 hover:bg-gray-800 text-white"
-                  } ${apkLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  <div className="bg-white p-1 rounded">
-                    {apkLoading ? (
-                      <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
-                    ) : (
-                      <Play className="w-6 h-6 text-gray-900" />
-                    )}
-                  </div>
-                  <div className="text-left">
-                    <div className="text-xs text-gray-300">
-                      {apkAvailable ? "DOWNLOAD" : "GET IT ON"}
-                    </div>
-                    <div className="text-lg font-semibold">
-                      {apkAvailable ? "Direct APK" : "Google Play"}
-                    </div>
-                    {apkAvailable && appInfo && (
-                      <div className="text-xs text-gray-300">
-                        v{appInfo.version} • {appInfo.size}
-                      </div>
-                    )}
-                  </div>
-                  <Download className="w-4 h-4 ml-2 group-hover:animate-bounce" />
-                  {apkAvailable && (
-                    <div className="bg-green-400 text-green-900 px-2 py-1 rounded text-xs font-bold ml-2">
-                      READY
-                    </div>
-                  )}
-                </button>
-
-                <a
-                  href="#"
-                  className="group bg-gray-900 text-white px-6 py-3 rounded-xl flex items-center gap-3 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 shadow-lg opacity-60 cursor-not-allowed"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert(
-                      "iOS app coming soon! 🍎\n\nWe're working hard to bring Zuasoko to the App Store. Keep an eye out for updates!",
-                    );
-                  }}
-                >
-                  <div className="bg-white p-1 rounded">
-                    <Apple className="w-6 h-6 text-gray-900" />
-                  </div>
-                  <div className="text-left">
-                    <div className="text-xs text-gray-300">Download on the</div>
-                    <div className="text-lg font-semibold">App Store</div>
-                  </div>
-                  <div className="bg-yellow-500 text-yellow-900 px-2 py-1 rounded text-xs font-bold ml-2">
-                    SOON
-                  </div>
-                </a>
-              </div>
-
-              {/* App Info Button */}
-              {apkAvailable && appInfo && (
-                <div className="text-center mt-6">
-                  <button
-                    onClick={() => setShowApkInfoModal(true)}
-                    className="text-primary-600 hover:text-primary-700 font-medium text-sm border border-primary-300 hover:border-primary-500 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    View App Details & Permissions
-                  </button>
-                </div>
-              )}
-
-              {/* App Features */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {mobileAppFeatures.map((feature, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-200"
-                  >
-                    <div className="flex-shrink-0 p-2 bg-primary-50 rounded-lg">
-                      {feature.icon}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-1">
-                        {feature.title}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right Side - Phone Mockup and QR Code */}
-            <div className="relative">
-              {/* Phone Mockup */}
-              <div className="relative mx-auto w-64 h-96 lg:w-80 lg:h-[480px]">
-                {/* Phone Frame */}
-                <div className="absolute inset-0 bg-gray-900 rounded-[2.5rem] shadow-2xl">
-                  <div className="absolute inset-2 bg-white rounded-[2rem] overflow-hidden">
-                    {/* Status Bar */}
-                    <div className="bg-primary-600 h-8 flex items-center justify-between px-4">
-                      <div className="text-white text-xs font-medium">9:41</div>
-                      <div className="flex items-center gap-1">
-                        <div className="w-1 h-1 bg-white rounded-full"></div>
-                        <div className="w-1 h-1 bg-white rounded-full"></div>
-                        <div className="w-1 h-1 bg-white rounded-full"></div>
-                      </div>
-                    </div>
-
-                    {/* App Screenshot */}
-                    <div className="p-4 space-y-4">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center">
-                          <Leaf className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-gray-900">Zuasoko</div>
-                          <div className="text-xs text-gray-500">
-                            Fresh from farm
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Sample Product Cards */}
-                      <div className="space-y-3">
-                        <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-3">
-                          <div className="w-12 h-12 bg-green-200 rounded-lg flex items-center justify-center">
-                            <Leaf className="w-6 h-6 text-green-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium text-sm">
-                              Organic Tomatoes
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              Fresh from Nakuru
-                            </div>
-                            <div className="text-primary-600 font-bold text-sm">
-                              KES 120/kg
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-3">
-                          <div className="w-12 h-12 bg-orange-200 rounded-lg flex items-center justify-center">
-                            <Leaf className="w-6 h-6 text-orange-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium text-sm">
-                              Fresh Carrots
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              Direct from farm
-                            </div>
-                            <div className="text-primary-600 font-bold text-sm">
-                              KES 80/kg
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-3">
-                          <div className="w-12 h-12 bg-purple-200 rounded-lg flex items-center justify-center">
-                            <Leaf className="w-6 h-6 text-purple-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium text-sm">
-                              Spinach Bunch
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              Locally grown
-                            </div>
-                            <div className="text-primary-600 font-bold text-sm">
-                              KES 50/bunch
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Bottom Navigation */}
-                      <div className="absolute bottom-4 left-4 right-4 bg-white border border-gray-200 rounded-lg p-2">
-                        <div className="flex justify-around">
-                          <div className="p-2 bg-primary-600 rounded-lg">
-                            <Leaf className="w-4 h-4 text-white" />
-                          </div>
-                          <div className="p-2">
-                            <MapPin className="w-4 h-4 text-gray-400" />
-                          </div>
-                          <div className="p-2">
-                            <Bell className="w-4 h-4 text-gray-400" />
-                          </div>
-                          <div className="p-2">
-                            <Users className="w-4 h-4 text-gray-400" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* QR Code Section */}
-              <div className="mt-8 text-center">
-                <div className="inline-block p-4 bg-white rounded-xl shadow-lg border border-gray-200">
-                  <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center mb-3">
-                    <QrCode className="w-12 h-12 text-gray-600" />
-                  </div>
-                  <div className="text-sm font-medium text-gray-900 mb-1">
-                    Scan to Download
-                  </div>
-                  <div className="text-xs text-gray-500">Coming Soon</div>
-                </div>
-              </div>
-
-              {/* Floating Elements */}
-              <div className="absolute -top-4 -left-4 w-8 h-8 bg-primary-200 rounded-full animate-pulse"></div>
-              <div className="absolute -bottom-8 -right-8 w-12 h-12 bg-green-200 rounded-full animate-pulse delay-300"></div>
-              <div className="absolute top-1/2 -right-6 w-6 h-6 bg-yellow-200 rounded-full animate-pulse delay-700"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Admin Quick Access (Only for logged-in admins) */}
       {isAuthenticated && user?.role === "ADMIN" && (
         <section className="bg-red-50 py-12">
@@ -591,16 +292,6 @@ export default function HomePage() {
           )}
         </div>
       </section>
-
-      {/* APK Info Modal */}
-      {showApkInfoModal && appInfo && (
-        <ApkInfoModal
-          isOpen={showApkInfoModal}
-          onClose={() => setShowApkInfoModal(false)}
-          appInfo={appInfo}
-          onDownload={downloadApp}
-        />
-      )}
     </div>
   );
 }
