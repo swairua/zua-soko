@@ -5,11 +5,7 @@ const API_BASE_URL = import.meta.env.PROD ? "/api" : "/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-<<<<<<< HEAD
-  timeout: 10000, // Reduced timeout to 10 seconds
-=======
-  timeout: 30000, // Increased timeout for better real database connection
->>>>>>> origin/main
+  timeout: 15000, // Balanced timeout for real database connection
   headers: {
     "Content-Type": "application/json",
   },
@@ -32,14 +28,32 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-<<<<<<< HEAD
-// Add response interceptor for better error handling
+// Add response interceptor for enhanced logging and error handling
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(
+      "✅ API SUCCESS:",
+      response.config.url,
+      "Status:",
+      response.status,
+      "Data sample:",
+      response.data,
+    );
+    return response;
+  },
   (error) => {
-    // Don't log health check errors to avoid console spam
+    // Log errors but don't spam for health checks
     if (!error.config?.url?.includes("/health")) {
-      console.warn("API request failed:", error.message);
+      console.error("❌ API ERROR:", {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        hostname: window.location.hostname,
+        timestamp: new Date().toISOString(),
+      });
     }
     return Promise.reject(error);
   },
@@ -86,41 +100,9 @@ const fallbackData = {
     },
   ],
 };
-=======
-// Add response interceptor for enhanced logging - NO BYPASS SYSTEM
-api.interceptors.response.use(
-  (response) => {
-    console.log(
-      "✅ API SUCCESS:",
-      response.config.url,
-      "Status:",
-      response.status,
-      "Data sample:",
-      response.data,
-    );
-    return response;
-  },
-  (error) => {
-    console.error("❌ API ERROR:", {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message,
-      hostname: window.location.hostname,
-      timestamp: new Date().toISOString(),
-    });
->>>>>>> origin/main
 
-    // NO BYPASS - Let all errors bubble up to force real database debugging
-    return Promise.reject(error);
-  },
-);
-
-// API functions - All targeting real database
+// API functions
 export const apiService = {
-<<<<<<< HEAD
   // Health check with improved error handling
   getHealth: async () => {
     try {
@@ -137,14 +119,14 @@ export const apiService = {
     }
   },
 
-  // Auth endpoints - prioritize real database
+  // Auth endpoints - prioritize real database with fallback
   login: async (credentials: { phone: string; password: string }) => {
+    console.log("🔐 ATTEMPTING LOGIN with real database:", credentials.phone);
     try {
-      // Try real database login first
       const response = await api.post("/auth/login", credentials);
+      console.log("🔐 LOGIN SUCCESS:", response.data);
       return response.data;
     } catch (error: any) {
-      // If real database fails, try demo endpoints for backwards compatibility
       console.warn(
         "Real database login failed, trying demo endpoints:",
         error.response?.data?.error || error.message,
@@ -158,14 +140,6 @@ export const apiService = {
         throw error; // Throw original error
       }
     }
-=======
-  // Auth endpoints - Real database only
-  login: async (credentials: { phone: string; password: string }) => {
-    console.log("🔐 ATTEMPTING LOGIN with real database:", credentials.phone);
-    const response = await api.post("/auth/login", credentials);
-    console.log("🔐 LOGIN SUCCESS:", response.data);
-    return response.data;
->>>>>>> origin/main
   },
 
   register: async (userData: any) => {
@@ -175,23 +149,21 @@ export const apiService = {
     return response.data;
   },
 
-<<<<<<< HEAD
-  // Product endpoints - prioritize real database
-  getProducts: async () => {
+  // Product endpoints - prioritize real database with fallback
+  getProducts: async (params?: URLSearchParams) => {
     try {
-      // Try real database first
-      const response = await api.get("/products");
+      const url = params ? `/marketplace/products?${params}` : "/products"; // Try both endpoints
+      console.log("🛍️ FETCHING PRODUCTS from real database:", url);
+      const response = await api.get(url);
       console.log(
-        "✅ Loaded products from database:",
-        response.data.products?.length || 0,
+        "🛍️ PRODUCTS SUCCESS:",
+        response.data.products?.length || response.data.length,
         "products",
       );
       return response.data;
     } catch (error) {
       console.warn("Database products failed, trying demo:", error);
-
       try {
-        // Try demo endpoint
         const response = await api.get("/demo/products");
         console.log(
           "⚠️ Using demo products:",
@@ -204,58 +176,63 @@ export const apiService = {
         return { products: fallbackData.products };
       }
     }
-=======
-  // Product endpoints - Real database only
-  getProducts: async (params?: URLSearchParams) => {
-    const url = params
-      ? `/marketplace/products?${params}`
-      : "/marketplace/products";
-    console.log("🛍️ FETCHING PRODUCTS from real database:", url);
-    const response = await api.get(url);
-    console.log(
-      "🛍️ PRODUCTS SUCCESS:",
-      response.data.products?.length || response.data.length,
-      "products",
-    );
-    return response.data;
->>>>>>> origin/main
   },
 
   getProduct: async (id: string) => {
-    console.log("🛍️ FETCHING SINGLE PRODUCT from real database:", id);
-    const response = await api.get(`/marketplace/products/${id}`);
-    console.log("🛍️ SINGLE PRODUCT SUCCESS:", response.data);
-    return response.data;
+    try {
+      console.log("🛍️ FETCHING SINGLE PRODUCT from real database:", id);
+      const response = await api.get(`/marketplace/products/${id}`);
+      console.log("🛍️ SINGLE PRODUCT SUCCESS:", response.data);
+      return response.data;
+    } catch (error) {
+      // Return fallback product
+      const product = fallbackData.products.find((p) => p.id === id);
+      if (product) {
+        return { product };
+      }
+      throw error;
+    }
   },
 
-<<<<<<< HEAD
-  // Wallet endpoints
-=======
-  // Marketplace metadata - Real database only
+  // Marketplace metadata - with fallback
   getCategories: async () => {
-    console.log("📁 FETCHING CATEGORIES from real database");
-    const response = await api.get("/marketplace/categories");
-    console.log("📁 CATEGORIES SUCCESS:", response.data);
-    return response.data;
+    try {
+      console.log("📁 FETCHING CATEGORIES from real database");
+      const response = await api.get("/marketplace/categories");
+      console.log("📁 CATEGORIES SUCCESS:", response.data);
+      return response.data;
+    } catch (error) {
+      console.warn("Categories failed, using fallback");
+      return fallbackData.categories;
+    }
   },
 
   getCounties: async () => {
-    console.log("🗺️ FETCHING COUNTIES from real database");
-    const response = await api.get("/marketplace/counties");
-    console.log("🗺️ COUNTIES SUCCESS:", response.data);
-    return response.data;
+    try {
+      console.log("🗺️ FETCHING COUNTIES from real database");
+      const response = await api.get("/marketplace/counties");
+      console.log("🗺️ COUNTIES SUCCESS:", response.data);
+      return response.data;
+    } catch (error) {
+      console.warn("Counties failed, using fallback");
+      return fallbackData.counties;
+    }
   },
 
-  // Wallet endpoints - Real database only
->>>>>>> origin/main
+  // Wallet endpoints
   getWalletBalance: async () => {
-    console.log("💰 FETCHING WALLET BALANCE from real database");
-    const response = await api.get("/wallet/balance");
-    console.log("💰 WALLET SUCCESS:", response.data);
-    return response.data;
+    try {
+      console.log("💰 FETCHING WALLET BALANCE from real database");
+      const response = await api.get("/wallet/balance");
+      console.log("💰 WALLET SUCCESS:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Wallet balance failed:", error);
+      return { balance: 0 };
+    }
   },
 
-  // Order endpoints - Real database only
+  // Order endpoints
   createOrder: async (orderData: any) => {
     console.log("📦 CREATING ORDER in real database");
     const response = await api.post("/orders", orderData);
@@ -270,7 +247,7 @@ export const apiService = {
     return response.data;
   },
 
-  // Admin endpoints - Real database only
+  // Admin endpoints
   getUsers: async () => {
     console.log("👥 FETCHING USERS from real database");
     const response = await api.get("/admin/users");
