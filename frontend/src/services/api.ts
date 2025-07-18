@@ -1,7 +1,8 @@
 import axios from "axios";
 
 // Configure axios for both development and production
-const API_BASE_URL = import.meta.env.PROD ? "/api" : "/api";
+// In development, try proxy first, fallback to demo endpoints
+const API_BASE_URL = "/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
