@@ -44,7 +44,7 @@ api.interceptors.response.use(
   (error) => {
     // Log errors but don't spam for health checks
     if (!error.config?.url?.includes("/health")) {
-      console.error("❌ API ERROR:", {
+      const errorDetails = {
         url: error.config?.url,
         method: error.config?.method,
         status: error.response?.status,
@@ -53,7 +53,8 @@ api.interceptors.response.use(
         message: error.message,
         hostname: window.location.hostname,
         timestamp: new Date().toISOString(),
-      });
+      };
+      console.error("❌ API ERROR:", JSON.stringify(errorDetails, null, 2));
     }
     return Promise.reject(error);
   },
