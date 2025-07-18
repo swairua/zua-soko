@@ -18,6 +18,8 @@ import {
   CheckCircle,
   Clock,
   Truck,
+  Phone,
+  CreditCard,
 } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -75,6 +77,9 @@ export default function FarmerDashboard() {
     completedConsignments: 0,
     totalEarnings: 0,
   });
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentPhoneNumber, setPaymentPhoneNumber] = useState("");
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -97,23 +102,36 @@ export default function FarmerDashboard() {
         }),
       ]);
 
-      setConsignments(consignmentsRes.data);
-      setWallet(walletRes.data);
-      setNotifications(notificationsRes.data);
+      // Safely extract data from API responses
+      const consignmentsData = Array.isArray(consignmentsRes.data.consignments)
+        ? consignmentsRes.data.consignments
+        : [];
+      const walletData = walletRes.data.wallet || walletRes.data;
+      const notificationsData = Array.isArray(
+        notificationsRes.data.notifications,
+      )
+        ? notificationsRes.data.notifications
+        : [];
+
+      setConsignments(consignmentsData);
+      setWallet(walletData);
+      setNotifications(notificationsData);
 
       // Calculate stats
-      const totalConsignments = consignmentsRes.data.length;
-      const pendingConsignments = consignmentsRes.data.filter(
+      const totalConsignments = consignmentsData.length;
+      const pendingConsignments = consignmentsData.filter(
         (c: Consignment) => c.status === "PENDING",
       ).length;
-      const completedConsignments = consignmentsRes.data.filter(
+      const completedConsignments = consignmentsData.filter(
         (c: Consignment) => c.status === "COMPLETED",
       ).length;
       const totalEarnings =
-        walletRes.data.balance +
-        walletRes.data.transactions
-          .filter((t: any) => t.type === "DEBIT")
-          .reduce((sum: number, t: any) => sum + t.amount, 0);
+        (walletData.balance || 0) +
+        (Array.isArray(walletData.transactions)
+          ? walletData.transactions
+              .filter((t: any) => t.type === "DEBIT")
+              .reduce((sum: number, t: any) => sum + t.amount, 0)
+          : 0);
 
       setStats({
         totalConsignments,
@@ -147,20 +165,49 @@ export default function FarmerDashboard() {
     }
   };
 
-  const handlePayRegistrationFee = async (phoneNumber: string) => {
+  const handlePayRegistrationFee = async () => {
+    if (!paymentPhoneNumber.trim()) {
+      toast.error("Please enter your phone number");
+      return;
+    }
+
+    // Basic phone number validation
+    const phoneRegex = /^(\+254|254|0)[17]\d{8}$/;
+    if (!phoneRegex.test(paymentPhoneNumber.replace(/\s/g, ""))) {
+      toast.error("Please enter a valid Kenyan phone number");
+      return;
+    }
+
+    setPaymentLoading(true);
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/payments/registration-fee`,
-        { phoneNumber },
+        `${import.meta.env.VITE_API_URL}/admin/registration-fees/stk-push`,
+        {
+          farmer_id: user?.id,
+          phone_number: paymentPhoneNumber,
+          amount: 300,
+        },
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      toast.success(
-        "Registration fee payment initiated! Check your phone for M-Pesa prompt.",
-      );
+      if (response.data.success) {
+        toast.success(
+          "Registration fee payment initiated! Check your phone for M-Pesa prompt.",
+        );
+        setShowPaymentModal(false);
+        setPaymentPhoneNumber("");
+      } else {
+        toast.error(response.data.message || "Failed to initiate payment");
+      }
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Payment failed");
+      console.error("Payment error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to initiate payment. Please try again.",
+      );
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -292,10 +339,7 @@ export default function FarmerDashboard() {
                     Registration fee required
                   </span>
                   <button
-                    onClick={() => {
-                      const phone = prompt("Enter your M-Pesa phone number:");
-                      if (phone) handlePayRegistrationFee(phone);
-                    }}
+                    onClick={() => setShowPaymentModal(true)}
                     className="ml-3 bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
                   >
                     Pay KES 300
@@ -410,44 +454,57 @@ export default function FarmerDashboard() {
                   </h3>
                 </div>
                 <div className="p-6">
-                  {consignments.slice(0, 5).map((consignment) => (
-                    <div
-                      key={consignment.id}
-                      className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0"
-                    >
-                      <div className="flex items-center">
-                        <img
-                          src={consignment.images[0] || "/placeholder.jpg"}
-                          alt={consignment.title}
-                          className="w-12 h-12 rounded-lg object-cover"
-                        />
-                        <div className="ml-4">
-                          <p className="font-medium text-gray-900">
-                            {consignment.title}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {consignment.quantity} {consignment.unit}
-                          </p>
+                  {(Array.isArray(consignments) ? consignments : [])
+                    .slice(0, 5)
+                    .map((consignment) => (
+                      <div
+                        key={consignment.id}
+                        className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0"
+                      >
+                        <div className="flex items-center">
+                          <img
+                            src={
+                              Array.isArray(consignment.images) &&
+                              consignment.images.length > 0 &&
+                              consignment.images[0] &&
+                              consignment.images[0].trim() !== ""
+                                ? consignment.images[0]
+                                : `https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop`
+                            }
+                            alt={consignment.title}
+                            className="w-12 h-12 rounded-lg object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = `https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop`;
+                            }}
+                          />
+                          <div className="ml-4">
+                            <p className="font-medium text-gray-900">
+                              {consignment.title}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {consignment.quantity} {consignment.unit}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(consignment.status)}`}
+                          >
+                            {getStatusIcon(consignment.status)}
+                            <span className="ml-1">
+                              {consignment.status.replace("_", " ")}
+                            </span>
+                          </span>
+                          <span className="text-sm font-medium text-gray-900">
+                            KES{" "}
+                            {consignment.finalPricePerUnit ||
+                              consignment.bidPricePerUnit}
+                            /kg
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-3">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(consignment.status)}`}
-                        >
-                          {getStatusIcon(consignment.status)}
-                          <span className="ml-1">
-                            {consignment.status.replace("_", " ")}
-                          </span>
-                        </span>
-                        <span className="text-sm font-medium text-gray-900">
-                          KES{" "}
-                          {consignment.finalPricePerUnit ||
-                            consignment.bidPricePerUnit}
-                          /kg
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             </div>
@@ -458,6 +515,8 @@ export default function FarmerDashboard() {
               consignments={consignments}
               onRefresh={fetchDashboardData}
               canSubmit={user?.registrationFeePaid || false}
+              showPaymentModal={showPaymentModal}
+              setShowPaymentModal={setShowPaymentModal}
             />
           )}
 
@@ -479,12 +538,147 @@ export default function FarmerDashboard() {
           {activeSection === "profile" && <ProfileSection user={user} />}
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-sm w-full max-h-[80vh] flex flex-col">
+            <div className="px-4 py-3 border-b border-gray-200 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <CreditCard className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      Pay Registration Fee
+                    </h2>
+                    <p className="text-xs text-gray-600">KES 300.00</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setPaymentPhoneNumber("");
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-4 py-4">
+              <div className="space-y-3">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-start space-x-2">
+                    <Phone className="w-4 h-4 text-blue-600 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-blue-800">
+                        M-Pesa Payment
+                      </h4>
+                      <p className="text-xs text-blue-700 mt-1">
+                        Enter your M-Pesa phone number for STK push.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone Number *
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <input
+                      type="tel"
+                      value={paymentPhoneNumber}
+                      onChange={(e) => setPaymentPhoneNumber(e.target.value)}
+                      placeholder="+254712345678"
+                      className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      disabled={paymentLoading}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1">
+                    M-Pesa registered number
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <h5 className="text-sm font-medium text-gray-900 mb-2">
+                    Payment Summary
+                  </h5>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Registration Fee:</span>
+                      <span className="font-medium">KES 300.00</span>
+                    </div>
+                    <div className="flex justify-between border-t border-gray-200 pt-1">
+                      <span className="font-medium text-gray-900">Total:</span>
+                      <span className="font-semibold text-green-600">
+                        KES 300.00
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <p className="text-xs text-yellow-800">
+                    <strong>Note:</strong> After payment, you can submit
+                    consignments. STK push appears within 30 seconds.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-4 py-3 border-t border-gray-200 flex-shrink-0">
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setPaymentPhoneNumber("");
+                  }}
+                  disabled={paymentLoading}
+                  className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePayRegistrationFee}
+                  disabled={paymentLoading || !paymentPhoneNumber.trim()}
+                  className="flex-1 bg-green-600 text-white px-3 py-2 text-sm rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1"
+                >
+                  {paymentLoading ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-3 h-3" />
+                      <span>Pay KES 300</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // Consignments Section Component
-function ConsignmentsSection({ consignments, onRefresh, canSubmit }: any) {
+function ConsignmentsSection({
+  consignments,
+  onRefresh,
+  canSubmit,
+  showPaymentModal,
+  setShowPaymentModal,
+}: any) {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -540,6 +734,35 @@ function ConsignmentsSection({ consignments, onRefresh, canSubmit }: any) {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    const colors = {
+      PENDING: "bg-yellow-100 text-yellow-800",
+      APPROVED: "bg-green-100 text-green-800",
+      REJECTED: "bg-red-100 text-red-800",
+      PRICE_SUGGESTED: "bg-blue-100 text-blue-800",
+      DRIVER_ASSIGNED: "bg-indigo-100 text-indigo-800",
+      IN_TRANSIT: "bg-purple-100 text-purple-800",
+      DELIVERED: "bg-cyan-100 text-cyan-800",
+      COMPLETED: "bg-green-100 text-green-800",
+    };
+    return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
+  };
+
+  const getStatusIcon = (status: string) => {
+    const icons = {
+      PENDING: Clock,
+      APPROVED: CheckCircle,
+      REJECTED: X,
+      PRICE_SUGGESTED: DollarSign,
+      DRIVER_ASSIGNED: Truck,
+      IN_TRANSIT: Truck,
+      DELIVERED: CheckCircle,
+      COMPLETED: CheckCircle,
+    };
+    const Icon = icons[status as keyof typeof icons] || AlertCircle;
+    return <Icon className="w-4 h-4" />;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -556,12 +779,20 @@ function ConsignmentsSection({ consignments, onRefresh, canSubmit }: any) {
 
       {!canSubmit && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <AlertCircle className="w-5 h-5 text-yellow-600 mr-2" />
-            <span className="text-yellow-800">
-              You must pay the KES 300 registration fee before submitting
-              consignments.
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <AlertCircle className="w-5 h-5 text-yellow-600 mr-2" />
+              <span className="text-yellow-800">
+                You must pay the KES 300 registration fee before submitting
+                consignments.
+              </span>
+            </div>
+            <button
+              onClick={() => setShowPaymentModal(true)}
+              className="ml-3 bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+            >
+              Pay Now
+            </button>
           </div>
         </div>
       )}
@@ -762,7 +993,11 @@ function ConsignmentsSection({ consignments, onRefresh, canSubmit }: any) {
                 </label>
                 <input
                   type="url"
-                  value={formData.images[0]}
+                  value={
+                    Array.isArray(formData.images) && formData.images.length > 0
+                      ? formData.images[0]
+                      : ""
+                  }
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -798,62 +1033,76 @@ function ConsignmentsSection({ consignments, onRefresh, canSubmit }: any) {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">
-            All Consignments ({consignments.length})
+            All Consignments (
+            {(Array.isArray(consignments) ? consignments : []).length})
           </h3>
         </div>
         <div className="divide-y divide-gray-200">
-          {consignments.map((consignment: Consignment) => (
-            <div key={consignment.id} className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <img
-                    src={consignment.images[0] || "/placeholder.jpg"}
-                    alt={consignment.title}
-                    className="w-16 h-16 rounded-lg object-cover"
-                  />
-                  <div className="ml-4">
-                    <h4 className="text-lg font-medium text-gray-900">
-                      {consignment.title}
-                    </h4>
-                    <p className="text-sm text-gray-500">
-                      {consignment.description}
-                    </p>
-                    <div className="flex items-center space-x-4 mt-2">
-                      <span className="text-sm text-gray-600">
-                        {consignment.quantity} {consignment.unit}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        KES {consignment.bidPricePerUnit}/{consignment.unit}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {consignment.location}
-                      </span>
+          {(Array.isArray(consignments) ? consignments : []).map(
+            (consignment: Consignment) => (
+              <div key={consignment.id} className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <img
+                      src={
+                        Array.isArray(consignment.images) &&
+                        consignment.images.length > 0 &&
+                        consignment.images[0] &&
+                        consignment.images[0].trim() !== ""
+                          ? consignment.images[0]
+                          : `https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop`
+                      }
+                      alt={consignment.title}
+                      className="w-16 h-16 rounded-lg object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = `https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop`;
+                      }}
+                    />
+                    <div className="ml-4">
+                      <h4 className="text-lg font-medium text-gray-900">
+                        {consignment.title}
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        {consignment.description}
+                      </p>
+                      <div className="flex items-center space-x-4 mt-2">
+                        <span className="text-sm text-gray-600">
+                          {consignment.quantity} {consignment.unit}
+                        </span>
+                        <span className="text-sm text-gray-600">
+                          KES {consignment.bidPricePerUnit}/{consignment.unit}
+                        </span>
+                        <span className="text-sm text-gray-600">
+                          {consignment.location}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(consignment.status)}`}
-                  >
-                    {getStatusIcon(consignment.status)}
-                    <span className="ml-1">
-                      {consignment.status.replace("_", " ")}
+                  <div className="text-right">
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(consignment.status)}`}
+                    >
+                      {getStatusIcon(consignment.status)}
+                      <span className="ml-1">
+                        {consignment.status.replace("_", " ")}
+                      </span>
                     </span>
-                  </span>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {new Date(consignment.createdAt).toLocaleDateString()}
-                  </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {new Date(consignment.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
+                {consignment.adminNotes && (
+                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-700">
+                      <strong>Admin Notes:</strong> {consignment.adminNotes}
+                    </p>
+                  </div>
+                )}
               </div>
-              {consignment.adminNotes && (
-                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-700">
-                    <strong>Admin Notes:</strong> {consignment.adminNotes}
-                  </p>
-                </div>
-              )}
-            </div>
-          ))}
+            ),
+          )}
         </div>
       </div>
     </div>
@@ -988,51 +1237,58 @@ function WalletSection({ wallet, onWithdraw, onRefresh }: any) {
           </h3>
         </div>
         <div className="divide-y divide-gray-200">
-          {wallet?.transactions?.map((transaction: any) => (
-            <div
-              key={transaction.id}
-              className="p-6 flex items-center justify-between"
-            >
-              <div className="flex items-center">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    transaction.type === "CREDIT"
-                      ? "bg-green-100"
-                      : "bg-red-100"
-                  }`}
-                >
-                  {transaction.type === "CREDIT" ? (
-                    <TrendingUp className={`w-5 h-5 text-green-600`} />
-                  ) : (
-                    <TrendingUp
-                      className={`w-5 h-5 text-red-600 transform rotate-180`}
-                    />
-                  )}
+          {(Array.isArray(wallet?.transactions) ? wallet.transactions : []).map(
+            (transaction: any) => (
+              <div
+                key={transaction.id}
+                className="p-6 flex items-center justify-between"
+              >
+                <div className="flex items-center">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      transaction.type === "CREDIT"
+                        ? "bg-green-100"
+                        : "bg-red-100"
+                    }`}
+                  >
+                    {transaction.type === "CREDIT" ? (
+                      <TrendingUp className={`w-5 h-5 text-green-600`} />
+                    ) : (
+                      <TrendingUp
+                        className={`w-5 h-5 text-red-600 transform rotate-180`}
+                      />
+                    )}
+                  </div>
+                  <div className="ml-4">
+                    <p className="font-medium text-gray-900">
+                      {transaction.description}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(transaction.createdAt).toLocaleDateString()} at{" "}
+                      {new Date(transaction.createdAt).toLocaleTimeString()}
+                    </p>
+                  </div>
                 </div>
-                <div className="ml-4">
-                  <p className="font-medium text-gray-900">
-                    {transaction.description}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(transaction.createdAt).toLocaleDateString()} at{" "}
-                    {new Date(transaction.createdAt).toLocaleTimeString()}
+                <div className="text-right">
+                  <p
+                    className={`font-semibold ${
+                      transaction.type === "CREDIT"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {transaction.type === "CREDIT" ? "+" : "-"}KES{" "}
+                    {transaction.amount.toLocaleString()}
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p
-                  className={`font-semibold ${
-                    transaction.type === "CREDIT"
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {transaction.type === "CREDIT" ? "+" : "-"}KES{" "}
-                  {transaction.amount.toLocaleString()}
-                </p>
-              </div>
+            ),
+          )}
+          {(!wallet?.transactions || wallet.transactions.length === 0) && (
+            <div className="p-6 text-center text-gray-500">
+              No transactions yet
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>
@@ -1052,6 +1308,7 @@ function NotificationsSection({ notifications, onRefresh }: any) {
       onRefresh();
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
+      toast.error("Failed to mark notification as read");
     }
   };
 
@@ -1061,39 +1318,41 @@ function NotificationsSection({ notifications, onRefresh }: any) {
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="divide-y divide-gray-200">
-          {notifications.map((notification: Notification) => (
-            <div
-              key={notification.id}
-              className={`p-6 ${notification.isRead ? "bg-white" : "bg-blue-50"}`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center">
-                    <h4 className="text-lg font-medium text-gray-900">
-                      {notification.title}
-                    </h4>
-                    {!notification.isRead && (
-                      <span className="ml-2 w-2 h-2 bg-blue-600 rounded-full"></span>
-                    )}
+          {(Array.isArray(notifications) ? notifications : []).map(
+            (notification: Notification) => (
+              <div
+                key={notification.id}
+                className={`p-6 ${notification.isRead ? "bg-white" : "bg-blue-50"}`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center">
+                      <h4 className="text-lg font-medium text-gray-900">
+                        {notification.title}
+                      </h4>
+                      {!notification.isRead && (
+                        <span className="ml-2 w-2 h-2 bg-blue-600 rounded-full"></span>
+                      )}
+                    </div>
+                    <p className="text-gray-700 mt-1">{notification.message}</p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      {new Date(notification.createdAt).toLocaleDateString()} at{" "}
+                      {new Date(notification.createdAt).toLocaleTimeString()}
+                    </p>
                   </div>
-                  <p className="text-gray-700 mt-1">{notification.message}</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    {new Date(notification.createdAt).toLocaleDateString()} at{" "}
-                    {new Date(notification.createdAt).toLocaleTimeString()}
-                  </p>
+                  {!notification.isRead && (
+                    <button
+                      onClick={() => markAsRead(notification.id)}
+                      className="ml-4 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    >
+                      Mark as read
+                    </button>
+                  )}
                 </div>
-                {!notification.isRead && (
-                  <button
-                    onClick={() => markAsRead(notification.id)}
-                    className="ml-4 text-blue-600 hover:text-blue-800 text-sm font-medium"
-                  >
-                    Mark as read
-                  </button>
-                )}
               </div>
-            </div>
-          ))}
-          {notifications.length === 0 && (
+            ),
+          )}
+          {(Array.isArray(notifications) ? notifications : []).length === 0 && (
             <div className="p-6 text-center text-gray-500">
               No notifications yet
             </div>
@@ -1178,34 +1437,4 @@ function ProfileSection({ user }: any) {
       </div>
     </div>
   );
-}
-
-// Helper functions (already defined above)
-function getStatusColor(status: string) {
-  const colors = {
-    PENDING: "bg-yellow-100 text-yellow-800",
-    APPROVED: "bg-green-100 text-green-800",
-    REJECTED: "bg-red-100 text-red-800",
-    PRICE_SUGGESTED: "bg-blue-100 text-blue-800",
-    DRIVER_ASSIGNED: "bg-indigo-100 text-indigo-800",
-    IN_TRANSIT: "bg-purple-100 text-purple-800",
-    DELIVERED: "bg-cyan-100 text-cyan-800",
-    COMPLETED: "bg-green-100 text-green-800",
-  };
-  return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
-}
-
-function getStatusIcon(status: string) {
-  const icons = {
-    PENDING: Clock,
-    APPROVED: CheckCircle,
-    REJECTED: X,
-    PRICE_SUGGESTED: DollarSign,
-    DRIVER_ASSIGNED: Truck,
-    IN_TRANSIT: Truck,
-    DELIVERED: CheckCircle,
-    COMPLETED: CheckCircle,
-  };
-  const Icon = icons[status as keyof typeof icons] || AlertCircle;
-  return <Icon className="w-4 h-4" />;
 }

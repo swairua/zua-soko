@@ -37,6 +37,9 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserManagementPage from "./pages/admin/UserManagementPage";
 import ConsignmentManagementPage from "./pages/admin/ConsignmentManagementPage";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
+import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
+import MarketplaceManagementPage from "./pages/admin/MarketplaceManagementPage";
+import RegistrationFeesPage from "./pages/admin/RegistrationFeesPage";
 
 // Driver pages
 import DriverDashboard from "./pages/driver/DriverDashboard";
@@ -190,17 +193,23 @@ function App() {
                 path="/admin/settings"
                 element={
                   <ProtectedRoute allowedRoles={["ADMIN"]}>
-                    <ComingSoonPage
-                      title="System Settings"
-                      description="Platform configuration and settings management will be available soon."
-                      features={[
-                        "Platform configuration",
-                        "User role management",
-                        "Payment settings",
-                        "Notification preferences",
-                        "System monitoring",
-                      ]}
-                    />
+                    <AdminSettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/marketplace"
+                element={
+                  <ProtectedRoute allowedRoles={["ADMIN"]}>
+                    <MarketplaceManagementPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/registration-fees"
+                element={
+                  <ProtectedRoute allowedRoles={["ADMIN"]}>
+                    <RegistrationFeesPage />
                   </ProtectedRoute>
                 }
               />

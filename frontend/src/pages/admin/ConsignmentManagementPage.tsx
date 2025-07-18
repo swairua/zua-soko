@@ -176,7 +176,7 @@ export default function ConsignmentManagementPage() {
     setShowActionModal(true);
 
     if (action === "suggest_price") {
-      setSuggestedPrice(consignment.proposedPricePerUnit.toString());
+      setSuggestedPrice(consignment.proposedPricePerUnit?.toString() || "0");
     }
   };
 
@@ -440,7 +440,8 @@ export default function ConsignmentManagementPage() {
                 const StatusIcon = statusInfo?.icon || Package;
                 const totalValue =
                   (consignment.finalPricePerUnit ||
-                    consignment.proposedPricePerUnit) * consignment.quantity;
+                    consignment.proposedPricePerUnit ||
+                    0) * (consignment.quantity || 0);
 
                 return (
                   <div key={consignment.id} className="p-6 hover:bg-gray-50">

@@ -18,6 +18,7 @@ import {
   Activity,
   ArrowRight,
   Plus,
+  CreditCard,
 } from "lucide-react";
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
@@ -108,6 +109,54 @@ export default function AdminDashboard() {
       toast.error("Failed to fetch users data");
     }
   };
+
+  const fetchRecentActivity = async () => {
+    try {
+      console.log("🔄 Fetching recent activity from database");
+      const response = await apiService.get("/admin/activity");
+
+      if (response.data.success) {
+        const activities = response.data.activities.map((activity: any) => ({
+          id: activity.id,
+          type: activity.type,
+          message: activity.description,
+          time: new Date(activity.timestamp).toLocaleString(),
+          status: "completed", // Default status
+        }));
+
+        setStats((prev) => ({
+          ...prev,
+          recentActivities: activities,
+        }));
+
+        console.log("✅ Recent activity loaded:", activities);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching recent activity:", error);
+
+      // Set fallback activity data
+      setStats((prev) => ({
+        ...prev,
+        recentActivities: [
+          {
+            id: 1,
+            type: "user",
+            message: "New farmer registration: John Kimani",
+            time: "5 minutes ago",
+            status: "pending",
+          },
+          {
+            id: 2,
+            type: "consignment",
+            message: "Consignment submitted by Jane Wanjiku",
+            time: "15 minutes ago",
+            status: "pending",
+          },
+        ],
+      }));
+    }
+  };
+
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 1247,
     pendingApprovals: 12,
@@ -223,6 +272,22 @@ export default function AdminDashboard() {
       color: "bg-green-500",
       link: "/admin/consignments",
       count: stats.pendingApprovals,
+    },
+    {
+      title: "Marketplace Management",
+      description: "Manage products and orders",
+      icon: DollarSign,
+      color: "bg-orange-500",
+      link: "/admin/marketplace",
+      count: null,
+    },
+    {
+      title: "Registration Fees",
+      description: "Manage farmer registration fees",
+      icon: CreditCard,
+      color: "bg-red-500",
+      link: "/admin/registration-fees",
+      count: null,
     },
     {
       title: "View Analytics",
