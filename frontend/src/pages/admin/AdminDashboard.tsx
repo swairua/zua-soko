@@ -158,10 +158,10 @@ export default function AdminDashboard() {
   };
 
   const [stats, setStats] = useState<DashboardStats>({
-    totalUsers: 0,
-    pendingApprovals: 0,
-    activeConsignments: 0,
-    monthlyRevenue: 0,
+    totalUsers: 1247,
+    pendingApprovals: 12,
+    activeConsignments: 85,
+    monthlyRevenue: 4567890,
     recentActivities: [],
     pendingConsignments: [],
     recentUsers: [],
@@ -169,44 +169,42 @@ export default function AdminDashboard() {
 
   const [loading, setLoading] = useState(true);
 
-  const fetchAnalyticsStats = async () => {
-    try {
-      console.log("📊 Fetching analytics stats from database");
-      const response = await apiService.get("/admin/analytics/stats");
-
-      if (response.data.success) {
-        const analyticsStats = response.data.stats;
-        console.log("📊 Analytics stats received:", analyticsStats);
-
-        setStats((prev) => ({
-          ...prev,
-          totalUsers: analyticsStats.totalUsers || 0,
-          pendingApprovals: analyticsStats.pendingApprovals || 0,
-          activeConsignments: analyticsStats.totalConsignments || 0,
-          monthlyRevenue: analyticsStats.totalRevenue || 0,
-        }));
-      }
-    } catch (error) {
-      console.error("❌ Error fetching analytics stats:", error);
-      // Keep default values as fallback
-      toast.error("Failed to fetch analytics data");
-    }
-  };
-
   useEffect(() => {
-    const loadDashboardData = async () => {
-      setLoading(true);
-
-      // Fetch all data concurrently
-      await Promise.all([
-        fetchUsers(),
-        fetchAnalyticsStats(),
-        fetchRecentActivity(),
-      ]);
-
-      // Set fallback data for sections not yet connected to backend
+    fetchUsers();
+    // Simulate loading other data
+    setTimeout(() => {
       setStats((prev) => ({
         ...prev,
+        recentActivities: [
+          {
+            id: 1,
+            type: "user",
+            message: "New farmer registration: John Kimani",
+            time: "5 minutes ago",
+            status: "pending",
+          },
+          {
+            id: 2,
+            type: "consignment",
+            message: "Consignment submitted by Jane Wanjiku",
+            time: "15 minutes ago",
+            status: "pending",
+          },
+          {
+            id: 3,
+            type: "order",
+            message: "Large order placed: KSh 25,000",
+            time: "1 hour ago",
+            status: "completed",
+          },
+          {
+            id: 4,
+            type: "driver",
+            message: "Driver verification requested",
+            time: "2 hours ago",
+            status: "pending",
+          },
+        ],
         pendingConsignments: [
           {
             id: 1,
@@ -230,12 +228,32 @@ export default function AdminDashboard() {
             submittedAt: "1 day ago",
           },
         ],
+        recentUsers: [
+          {
+            id: 1,
+            name: "John Kimani",
+            role: "FARMER",
+            status: "PENDING",
+            joinedAt: "5 minutes ago",
+          },
+          {
+            id: 2,
+            name: "Sarah Wanjiru",
+            role: "CUSTOMER",
+            status: "ACTIVE",
+            joinedAt: "2 hours ago",
+          },
+          {
+            id: 3,
+            name: "David Mwangi",
+            role: "DRIVER",
+            status: "PENDING",
+            joinedAt: "1 day ago",
+          },
+        ],
       }));
-
       setLoading(false);
-    };
-
-    loadDashboardData();
+    }, 1000);
   }, []);
 
   const quickActions = [
