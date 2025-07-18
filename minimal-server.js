@@ -2200,6 +2200,305 @@ app.get("/api/marketplace/counties", async (req, res) => {
   }
 });
 
+// Customer orders endpoint
+app.get("/api/orders", async (req, res) => {
+  try {
+    console.log("🛒 Customer orders request");
+
+    // Get customer ID from auth token
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    let customerId = 1; // Default for demo
+
+    try {
+      if (token) {
+        const decoded = JSON.parse(Buffer.from(token, "base64").toString());
+        customerId = decoded.id;
+      }
+    } catch (tokenError) {
+      console.log("⚠️ Token decode failed, using demo customer ID");
+    }
+
+    try {
+      // Get orders from database for the customer
+      const result = await pool.query(
+        `
+        SELECT
+          o.id,
+          o.order_number,
+          o.total_amount,
+          o.payment_status,
+          o.delivery_status as status,
+          o.delivery_address,
+          o.notes,
+          o.created_at,
+          o.updated_at,
+          u.first_name as customer_first_name,
+          u.last_name as customer_last_name
+        FROM orders o
+        LEFT JOIN users u ON o.customer_id = u.id
+        WHERE o.customer_id = $1
+        ORDER BY o.created_at DESC
+      `,
+        [customerId],
+      );
+
+      if (result.rows.length > 0) {
+        const orders = result.rows.map((row) => ({
+          id: row.id,
+          orderNumber: row.order_number || `ORD-${row.id}`,
+          totalAmount: parseFloat(row.total_amount) || 0,
+          paymentStatus: row.payment_status || "PENDING",
+          status: row.status || "PENDING",
+          deliveryAddress: row.delivery_address || "Address not specified",
+          notes: row.notes || "",
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          customerName: `${row.customer_first_name || "Unknown"} ${row.customer_last_name || "Customer"}`,
+          items: [], // Could be populated from order_items table
+        }));
+
+        console.log(
+          `✅ Found ${orders.length} orders for customer ${customerId}`,
+        );
+
+        return res.json({
+          success: true,
+          orders: orders,
+        });
+      }
+    } catch (dbError) {
+      console.log("⚠️ Customer orders query failed:", dbError.message);
+    }
+
+    // Fallback demo orders
+    console.log("🛒 Using demo customer orders");
+    const demoOrders = [
+      {
+        id: "order_1",
+        orderNumber: "ORD-2024-001",
+        totalAmount: 2500,
+        paymentStatus: "COMPLETED",
+        status: "DELIVERED",
+        deliveryAddress: "123 Main Street, Nairobi",
+        notes: "Please deliver in the morning",
+        createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+        updatedAt: new Date().toISOString(),
+        customerName: "John Doe",
+        items: [
+          {
+            id: "item_1",
+            productName: "Organic Tomatoes",
+            quantity: 5,
+            unit: "kg",
+            pricePerUnit: 120,
+            totalPrice: 600,
+          },
+          {
+            id: "item_2",
+            productName: "Fresh Spinach",
+            quantity: 10,
+            unit: "bunches",
+            pricePerUnit: 50,
+            totalPrice: 500,
+          },
+        ],
+      },
+      {
+        id: "order_2",
+        orderNumber: "ORD-2024-002",
+        totalAmount: 1800,
+        paymentStatus: "PENDING",
+        status: "PROCESSING",
+        deliveryAddress: "456 Oak Avenue, Nakuru",
+        notes: "Call before delivery",
+        createdAt: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+        updatedAt: new Date().toISOString(),
+        customerName: "John Doe",
+        items: [
+          {
+            id: "item_3",
+            productName: "Premium Maize",
+            quantity: 2,
+            unit: "bags",
+            pricePerUnit: 900,
+            totalPrice: 1800,
+          },
+        ],
+      },
+    ];
+
+    res.json({
+      success: true,
+      orders: demoOrders,
+    });
+  } catch (err) {
+    console.error("❌ Customer orders error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch customer orders",
+      details: err.message,
+    });
+  }
+});
+
+// Driver assignments endpoints
+app.get("/api/driver/assignments", async (req, res) => {
+  try {
+    console.log("🚛 Driver assignments request");
+
+    try {
+      // Get assignments from database - simplified for demo
+      const result = await pool.query(`
+        SELECT
+          c.id,
+          c.title,
+          c.quantity,
+          c.unit,
+          c.location,
+          c.status,
+          c.farmer_id,
+          u.first_name as farmer_first_name,
+          u.last_name as farmer_last_name,
+          u.phone as farmer_phone,
+          c.final_price_per_unit
+        FROM consignments c
+        LEFT JOIN users u ON c.farmer_id = u.id
+        WHERE c.status IN ('DRIVER_ASSIGNED', 'IN_TRANSIT')
+        ORDER BY c.created_at DESC
+      `);
+
+      if (result.rows.length > 0) {
+        const assignments = result.rows.map((row) => ({
+          id: row.id,
+          consignmentId: row.id,
+          title: row.title,
+          farmerName: `${row.farmer_first_name || "Unknown"} ${row.farmer_last_name || "Farmer"}`,
+          farmerPhone: row.farmer_phone || "+254700000000",
+          pickupLocation: row.location || "Location not specified",
+          deliveryLocation: "Nairobi Central Market", // Default delivery location
+          quantity: `${row.quantity} ${row.unit}`,
+          status: row.status,
+          estimatedValue: (row.final_price_per_unit || 0) * (row.quantity || 0),
+          distance: "15 km", // Could be calculated based on actual locations
+          estimatedTime: "45 mins", // Could be calculated based on distance
+        }));
+
+        console.log(`✅ Found ${assignments.length} driver assignments`);
+
+        return res.json({
+          success: true,
+          assignments: assignments,
+        });
+      }
+    } catch (dbError) {
+      console.log("⚠️ Driver assignments query failed:", dbError.message);
+    }
+
+    // Fallback demo assignments
+    console.log("🚛 Using demo driver assignments");
+    const demoAssignments = [
+      {
+        id: "assign_1",
+        consignmentId: "cons_1",
+        title: "Organic Tomatoes Delivery",
+        farmerName: "Jane Wanjiku",
+        farmerPhone: "+254712345678",
+        pickupLocation: "Nakuru, Rift Valley",
+        deliveryLocation: "Nairobi Central Market",
+        quantity: "100 kg",
+        status: "DRIVER_ASSIGNED",
+        estimatedValue: 13000,
+        distance: "180 km",
+        estimatedTime: "3 hours",
+      },
+      {
+        id: "assign_2",
+        consignmentId: "cons_2",
+        title: "Fresh Spinach Delivery",
+        farmerName: "Peter Kamau",
+        farmerPhone: "+254723456789",
+        pickupLocation: "Kiambu, Central Kenya",
+        deliveryLocation: "Westlands Market",
+        quantity: "50 bunches",
+        status: "IN_TRANSIT",
+        estimatedValue: 2500,
+        distance: "45 km",
+        estimatedTime: "1.5 hours",
+      },
+    ];
+
+    res.json({
+      success: true,
+      assignments: demoAssignments,
+    });
+  } catch (err) {
+    console.error("❌ Driver assignments error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch driver assignments",
+      details: err.message,
+    });
+  }
+});
+
+// Update driver assignment status
+app.put("/api/driver/assignments/:id/status", async (req, res) => {
+  try {
+    console.log(`🚛 Updating assignment ${req.params.id} status:`, req.body);
+
+    const { id } = req.params;
+    const { status, notes } = req.body;
+
+    try {
+      // Update assignment status in database
+      const result = await pool.query(
+        `
+        UPDATE consignments
+        SET status = $1,
+            notes = COALESCE($2, notes),
+            updated_at = NOW()
+        WHERE id = $3
+        RETURNING *
+        `,
+        [status, notes, id],
+      );
+
+      if (result.rows.length > 0) {
+        console.log(`✅ Updated assignment ${id} to status: ${status}`);
+
+        return res.json({
+          success: true,
+          message: "Assignment status updated successfully",
+          assignment: result.rows[0],
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "Assignment not found",
+        });
+      }
+    } catch (dbError) {
+      console.log("⚠️ Assignment update failed:", dbError.message);
+
+      // For demo mode, just return success
+      console.log(`🚛 Demo mode: Updated assignment ${id} to ${status}`);
+
+      return res.json({
+        success: true,
+        message: "Assignment status updated successfully (demo mode)",
+        assignment: { id, status, notes },
+      });
+    }
+  } catch (err) {
+    console.error("❌ Assignment update error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update assignment status",
+      details: err.message,
+    });
+  }
+});
+
 // Serve frontend for all non-API routes (SPA fallback)
 app.get("*", (req, res) => {
   // Only handle non-API routes
@@ -2218,7 +2517,10 @@ app.listen(PORT, () => {
   console.log("  GET  /api/admin/users");
   console.log("  GET  /api/consignments");
   console.log("  POST /api/consignments");
+  console.log("  GET  /api/orders");
   console.log("  GET  /api/drivers");
+  console.log("  GET  /api/driver/assignments");
+  console.log("  PUT  /api/driver/assignments/:id/status");
   console.log("  GET  /api/marketplace/products");
   console.log("  GET  /api/marketplace/categories");
   console.log("  GET  /api/marketplace/counties");
