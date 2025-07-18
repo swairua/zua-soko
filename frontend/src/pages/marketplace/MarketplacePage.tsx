@@ -97,7 +97,9 @@ export default function MarketplacePage() {
       const data = await apiService.getProducts(params);
       console.log("🔍 PRODUCTS RESPONSE:", data);
 
-      setProducts(data.products || data);
+      // Ensure we always set an array
+      const productsArray = data.products || data || [];
+      setProducts(Array.isArray(productsArray) ? productsArray : []);
 
       if (data.pagination) {
         setPagination((prev) => ({
