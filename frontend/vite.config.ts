@@ -75,9 +75,10 @@ export default defineConfig(({ mode }) => {
         ? {
             proxy: {
               "/api": {
-                target: "http://localhost:5002",
+                target: "https://zua-soko.fly.dev",
                 changeOrigin: true,
-                secure: false,
+                secure: true,
+                rewrite: (path) => path,
               },
             },
           }
