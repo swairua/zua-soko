@@ -16,30 +16,31 @@ function verifyPassword(password, hash) {
 
 // Database connection - prioritize Render.com database
 let pool;
+let dbConnectionAttempted = false;
+
 async function getDB() {
-  if (!pool) {
-    // Use Render.com database URL if available, fallback to env var
-    const databaseUrl =
-      process.env.DATABASE_URL ||
-      "postgresql://zuasoko_db_user:OoageAtal4KEnVnXn2axejZJxpy4nXto@dpg-d1rl7vripnbc73cj06j0-a.oregon-postgres.render.com/zuasoko_db";
-
-    pool = new Pool({
-      connectionString: databaseUrl,
-      ssl: { rejectUnauthorized: false },
-      max: 3,
-      idleTimeoutMillis: 5000,
-      connectionTimeoutMillis: 10000,
-    });
-
-    // Test connection
+  if (!pool && !dbConnectionAttempted) {
+    dbConnectionAttempted = true;
     try {
+      // Use Render.com database URL if available, fallback to env var
+      const databaseUrl =
+        process.env.DATABASE_URL ||
+        "postgresql://zuasoko_db_user:OoageAtal4KEnVnXn2axejZJxpy4nXto@dpg-d1rl7vripnbc73cj06j0-a.oregon-postgres.render.com/zuasoko_db";
+
+      pool = new Pool({
+        connectionString: databaseUrl,
+        ssl: { rejectUnauthorized: false },
+        max: 3,
+        idleTimeoutMillis: 5000,
+        connectionTimeoutMillis: 10000,
+      });
+
+      // Test connection
       await pool.query("SELECT NOW()");
       console.log("✅ Connected to Render.com PostgreSQL database");
     } catch (error) {
-      console.warn(
-        "⚠️ Database connection failed, will use fallback data:",
-        error.message,
-      );
+      console.warn("⚠️ Database connection failed:", error.message);
+      pool = null; // Reset pool so we don't try to use failed connection
     }
   }
   return pool;
@@ -48,10 +49,28 @@ async function getDB() {
 async function query(text, params = []) {
   try {
     const db = await getDB();
+    if (!db) {
+      throw new Error("Database not available");
+    }
     return await db.query(text, params);
   } catch (error) {
     console.warn("Database query failed:", error.message);
     throw error;
+  }
+}
+
+// Safe database health check
+async function checkDatabaseHealth() {
+  try {
+    const db = await getDB();
+    if (!db) {
+      return "disconnected";
+    }
+
+    await db.query("SELECT NOW()");
+    return "connected";
+  } catch (error) {
+    return "error: " + error.message.substring(0, 50);
   }
 }
 
@@ -122,21 +141,16 @@ export default async function handler(req, res) {
   const { method } = req;
 
   try {
-    // Health check with database status
+    // Health check with safe database status
     if (url === "/api/health" && method === "GET") {
-      let dbStatus = "disconnected";
-      try {
-        await query("SELECT NOW()");
-        dbStatus = "connected";
-      } catch (error) {
-        dbStatus = "error: " + error.message;
-      }
+      const dbStatus = await checkDatabaseHealth();
 
-      return res.json({
+      return res.status(200).json({
         status: "OK",
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || "development",
         database: dbStatus,
+        version: "1.0.0",
       });
     }
 
@@ -393,6 +407,9 @@ export default async function handler(req, res) {
     return res.status(404).json({ error: "Endpoint not found" });
   } catch (error) {
     console.error("API error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({
+      error: "Internal server error",
+      message: error.message,
+    });
   }
 }
