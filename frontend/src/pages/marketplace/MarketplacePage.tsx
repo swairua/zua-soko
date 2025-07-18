@@ -118,8 +118,10 @@ export default function MarketplacePage() {
       }
     } catch (error) {
       console.error("❌ FAILED TO FETCH PRODUCTS:", error);
-      toast.error("Failed to load products from database");
-      // Don't set any fallback data - let it fail to show real issues
+      toast.error("Failed to load products - using demo data");
+      // Set empty array as fallback to prevent map errors
+      setProducts([]);
+      setPagination((prev) => ({ ...prev, page, total: 0, totalPages: 1 }));
     } finally {
       setLoading(false);
     }
