@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
-    console.error("��� JSON Parse Error:", err.message);
+    console.error("🐛 JSON Parse Error:", err.message);
     return res.status(400).json({ error: "Invalid JSON" });
   }
   next();
@@ -110,25 +110,14 @@ app.post("/api/test", (req, res) => {
 // =================================================
 // LOGIN ENDPOINT - EXACTLY AS YOU REQUESTED
 // =================================================
-// Special middleware for login route debugging
-app.use("/api/auth/login", (req, res, next) => {
-  console.log("🔥 LOGIN ROUTE MIDDLEWARE HIT!");
-  console.log(`🔥 Method: ${req.method}`);
-  console.log(`🔥 URL: ${req.url}`);
-  console.log(`🔥 Body:`, req.body);
-  next();
-});
-
 app.post("/api/auth/login", async (req, res) => {
   try {
-    console.log(
-      "🚀 Login request received - URL:",
-      req.url,
-      "Method:",
-      req.method,
-    );
-    console.log("📝 Request headers:", req.headers);
-    console.log("📝 Request body:", req.body);
+    console.log("🔥🔥🔥 LOGIN ENDPOINT HIT! 🔥🔥🔥");
+    console.log("🚀 Login request received");
+    console.log(`📝 Method: ${req.method}`);
+    console.log(`📝 URL: ${req.url}`);
+    console.log(`📝 Path: ${req.path}`);
+    console.log(`📝 Body:`, req.body);
 
     const { phone, password } = req.body;
 
