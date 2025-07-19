@@ -71,7 +71,14 @@ app.get("/", (req, res) => {
 // =================================================
 app.post("/api/auth/login", async (req, res) => {
   try {
-    console.log("🚀 Login request received");
+    console.log(
+      "🚀 Login request received - URL:",
+      req.url,
+      "Method:",
+      req.method,
+    );
+    console.log("📝 Request headers:", req.headers);
+    console.log("📝 Request body:", req.body);
 
     const { phone, password } = req.body;
 
