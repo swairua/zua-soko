@@ -13,15 +13,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(".")); // Serve static files
 
-// Database connection with your live Render.com credentials
+// Database connection with Neon database credentials
 const pool = new Pool({
   connectionString:
     process.env.DATABASE_URL ||
-    "postgresql://zuasoko_db_user:OoageAtal4KEnVnXn2axejZJxpy4nXto@dpg-d1rl7vripnbc73cj06j0-a.oregon-postgres.render.com/zuasoko_db",
+    "postgresql://neondb_owner:npg_bKZoVXhMa8w5@ep-wild-firefly-aetjevra-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
   ssl: { rejectUnauthorized: false },
   max: 10,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000,
 });
 
 // Simple hash function matching what we used before
@@ -552,7 +552,7 @@ app.get("/api/marketplace/counties", async (req, res) => {
       if (counties.length === 0) {
         // Return demo counties if none found
         const demoCounties = ["Nairobi", "Kiambu", "Nakuru", "Meru", "Nyeri"];
-        console.log(`����️ Using demo counties:`, demoCounties);
+        console.log(`🗺️ Using demo counties:`, demoCounties);
         return res.json({
           success: true,
           counties: demoCounties,
