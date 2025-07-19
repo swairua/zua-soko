@@ -10,7 +10,15 @@ const PORT = process.env.PORT || 5002;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+// JSON parsing with error handling
+app.use(express.json({ limit: "10mb" }));
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+    console.error("🐛 JSON Parse Error:", err.message);
+    return res.status(400).json({ error: "Invalid JSON" });
+  }
+  next();
+});
 // Serve static files only for non-API routes
 app.use(express.static(".", { index: false }));
 
