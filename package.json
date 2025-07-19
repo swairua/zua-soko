@@ -6,9 +6,13 @@
     "start": "cd frontend && npm run dev",
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm install && npm run build:prod && mv dist/index.production.html dist/index.html && cp -r dist/* ../ && cd ../api && npm install",
+    "build:builder": "node deploy-builder.js",
+    "deploy:builder": "npm run build:builder",
+    "deploy:vercel": "vercel --prod",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:server": "node server.js",
-    "setup": "npm install && cd frontend && npm install"
+    "setup": "npm install && cd frontend && npm install",
+    "setup:builder": "npm install && cd frontend && npm install @builder.io/react @builder.io/sdk"
   },
   "engines": {
     "node": ">=18"
