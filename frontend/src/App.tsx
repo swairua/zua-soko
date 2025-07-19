@@ -10,9 +10,7 @@ import { useAuthStore } from "./store/auth";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { setupGlobalErrorHandling } from "./utils/errorHandler";
 
-// Builder.io imports
-import "./lib/builder";
-import { registerBuilderComponents } from "./lib/builder-registry";
+// Builder.io imports (loaded conditionally)
 
 // Layout components
 import Navbar from "./components/layout/Navbar";
