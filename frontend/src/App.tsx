@@ -23,6 +23,7 @@ import DatabaseStatus from "./components/DatabaseStatus";
 import HomePage from "./pages/HomePage";
 import MarketplacePage from "./pages/marketplace/MarketplacePage";
 import ProductPage from "./pages/marketplace/ProductPage";
+import BuilderPage from "./pages/BuilderPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 
