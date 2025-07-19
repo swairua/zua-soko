@@ -29,10 +29,48 @@ export default function DriverDashboard() {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      setDeliveries(response.data);
-    } catch (error) {
+      setDeliveries(response.data.assignments || response.data);
+    } catch (error: any) {
       console.error("Error fetching assignments:", error);
-      toast.error("Failed to fetch assignments");
+
+      // If 404, provide fallback demo data until backend is deployed
+      if (error.response?.status === 404) {
+        console.log("🚛 Using fallback demo assignments (endpoint not found)");
+        const demoAssignments = [
+          {
+            id: "assign_1",
+            consignmentId: "cons_1",
+            title: "Organic Tomatoes Delivery",
+            farmerName: "Jane Wanjiku",
+            farmerPhone: "+254712345678",
+            pickupLocation: "Nakuru, Rift Valley",
+            deliveryLocation: "Nairobi Central Market",
+            quantity: "100 kg",
+            status: "DRIVER_ASSIGNED",
+            estimatedValue: 13000,
+            distance: "180 km",
+            estimatedTime: "3 hours",
+          },
+          {
+            id: "assign_2",
+            consignmentId: "cons_2",
+            title: "Fresh Spinach Delivery",
+            farmerName: "Peter Kamau",
+            farmerPhone: "+254723456789",
+            pickupLocation: "Kiambu, Central Kenya",
+            deliveryLocation: "Westlands Market",
+            quantity: "50 bunches",
+            status: "IN_TRANSIT",
+            estimatedValue: 2500,
+            distance: "45 km",
+            estimatedTime: "1.5 hours",
+          },
+        ];
+        setDeliveries(demoAssignments);
+        toast.info("Using demo data - backend deployment needed");
+      } else {
+        toast.error("Failed to fetch assignments");
+      }
     } finally {
       setLoading(false);
     }
@@ -50,9 +88,15 @@ export default function DriverDashboard() {
       toast.success(`Started pickup for delivery ${deliveryId}`);
       // Refresh the data to show updated status
       fetchAssignments();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating delivery status:", error);
-      toast.error("Failed to start pickup");
+      if (error.response?.status === 404) {
+        toast.info("Demo mode: Status update simulated");
+        // In demo mode, just refresh to simulate the change
+        fetchAssignments();
+      } else {
+        toast.error("Failed to start pickup");
+      }
     }
   };
 
@@ -67,9 +111,15 @@ export default function DriverDashboard() {
       toast.success(`Marked delivery ${deliveryId} as completed`);
       // Refresh the data to show updated status
       fetchAssignments();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating delivery status:", error);
-      toast.error("Failed to mark as delivered");
+      if (error.response?.status === 404) {
+        toast.info("Demo mode: Delivery marked as completed");
+        // In demo mode, just refresh to simulate the change
+        fetchAssignments();
+      } else {
+        toast.error("Failed to mark as delivered");
+      }
     }
   };
 
