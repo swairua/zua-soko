@@ -625,10 +625,10 @@ module.exports = async function universalHandler(req, res) {
     const url = req.url || "";
     const method = req.method || "GET";
 
-        // =================================================
+    // =================================================
     // UNIVERSAL LOGIN ENDPOINT
     // =================================================
-    if ((url === "/api/auth/login" || url === "/auth/login") && method === "POST") {
+    if (url === "/api/auth/login" && method === "POST") {
       console.log("🚀 UNIVERSAL LOGIN REQUEST");
 
       try {
