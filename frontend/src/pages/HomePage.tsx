@@ -242,15 +242,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Builder.io Features Content */}
-      {featuresContent && (
-        <BuilderSection
-          sectionName="homepage-features"
-          content={featuresContent}
-          data={{ features, user, isAuthenticated }}
-        />
-      )}
-
       {/* Features Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
