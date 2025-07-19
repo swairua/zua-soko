@@ -139,16 +139,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Builder.io Hero Content */}
-      {heroContent && (
-        <BuilderSection
-          sectionName="homepage-hero"
-          content={heroContent}
-          data={{ user, isAuthenticated }}
-        />
-      )}
-
-      {/* Default Hero Section */}
+      {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary-50 to-primary-100 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
