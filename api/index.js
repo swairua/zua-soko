@@ -2,6 +2,46 @@
 // Zero external dependencies, built-in Node.js modules only
 
 const crypto = require("crypto");
+const { Pool } = require("pg");
+
+// Database connection - try to connect to real database
+let pool;
+let dbConnectionAttempted = false;
+
+async function getDB() {
+  if (!pool && !dbConnectionAttempted) {
+    dbConnectionAttempted = true;
+    try {
+      // Use Render.com database URL if available, fallback to env var
+      const databaseUrl =
+        process.env.DATABASE_URL ||
+        "postgresql://zuasoko_db_user:OoageAtal4KEnVnXn2axejZJxpy4nXto@dpg-d1rl7vripnbc73cj06j0-a.oregon-postgres.render.com/zuasoko_db";
+
+      pool = new Pool({
+        connectionString: databaseUrl,
+        ssl: { rejectUnauthorized: false },
+        max: 5,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
+      });
+
+      console.log("✅ Database pool created successfully");
+    } catch (error) {
+      console.error("❌ Database connection setup failed:", error);
+      pool = null;
+    }
+  }
+  return pool;
+}
+
+// Database query helper
+async function query(text, params) {
+  const db = await getDB();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  return await db.query(text, params);
+}
 
 // Simple hash function using only built-in crypto
 function hashPassword(password) {
