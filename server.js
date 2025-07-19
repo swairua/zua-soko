@@ -77,6 +77,23 @@ app.get("/", (req, res) => {
 });
 
 // =================================================
+// TEST ENDPOINT
+// =================================================
+app.get("/api/test", (req, res) => {
+  console.log("🎉 TEST ENDPOINT HIT!");
+  res.json({ message: "API is working!", timestamp: new Date().toISOString() });
+});
+
+app.post("/api/test", (req, res) => {
+  console.log("🎉 TEST POST ENDPOINT HIT!");
+  res.json({
+    message: "POST API is working!",
+    body: req.body,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// =================================================
 // LOGIN ENDPOINT - EXACTLY AS YOU REQUESTED
 // =================================================
 // Special middleware for login route debugging
