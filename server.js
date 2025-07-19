@@ -602,8 +602,27 @@ app.get("/api/status", async (req, res) => {
 // =================================================
 // SERVE FRONTEND FILES
 // =================================================
-app.get("*", (req, res) => {
+// Only serve frontend for GET requests that don't start with /api
+app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// Handle 404 for API endpoints that don't exist
+app.use("/api/*", (req, res) => {
+  res.status(404).json({
+    error: "API endpoint not found",
+    url: req.url,
+    method: req.method,
+    availableEndpoints: [
+      "POST /api/auth/login",
+      "POST /api/auth/register",
+      "GET /api/products",
+      "GET /api/marketplace/products",
+      "GET /api/marketplace/categories",
+      "GET /api/marketplace/counties",
+      "GET /api/status",
+    ],
+  });
 });
 
 // =================================================
