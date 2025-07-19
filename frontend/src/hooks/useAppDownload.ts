@@ -76,8 +76,8 @@ export const useAppDownload = (): UseAppDownloadReturn => {
       document.body.removeChild(link);
 
       // Track download event (analytics)
-      if (window.gtag) {
-        window.gtag("event", "app_download", {
+      if ((window as any).gtag) {
+        (window as any).gtag("event", "app_download", {
           event_category: "engagement",
           event_label: "android_apk",
           value: 1,
