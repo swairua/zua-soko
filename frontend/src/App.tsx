@@ -97,8 +97,19 @@ function App() {
   const { isAuthenticated, user } = useAuthStore();
 
   useEffect(() => {
-    // Initialize Builder.io components
-    registerBuilderComponents();
+    // Initialize Builder.io components (if available)
+    const initBuilder = async () => {
+      try {
+        const { registerBuilderComponents } = await import(
+          "./lib/builder-registry"
+        );
+        registerBuilderComponents();
+        console.log("✅ Builder.io initialized");
+      } catch (error) {
+        console.warn("⚠️ Builder.io not available:", error.message);
+      }
+    };
+    initBuilder();
   }, []);
 
   useEffect(() => {
