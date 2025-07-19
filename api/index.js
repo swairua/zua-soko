@@ -396,7 +396,7 @@ module.exports = async function universalHandler(req, res) {
           timestamp: new Date().toISOString(),
           environment: process.env.NODE_ENV || "production",
           database: "connected",
-          database_type: "render_postgresql",
+          database_type: "neon_postgresql",
           database_time: result.rows[0].current_time,
           version: "1.0.0",
         });
