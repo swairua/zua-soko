@@ -617,6 +617,7 @@ app.get("/api/status", async (req, res) => {
       status: "OK",
       timestamp: new Date().toISOString(),
       database: "connected",
+      database_type: "neon_postgresql",
       database_time: dbResult.rows[0].current_time,
       environment: process.env.NODE_ENV || "production",
     });
