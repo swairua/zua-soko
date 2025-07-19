@@ -36,6 +36,17 @@ export default function HomePage() {
     downloadApp,
   } = useAppDownload();
 
+  // Builder.io content for dynamic homepage sections
+  const { content: heroContent } = useBuilderContent({
+    model: "section",
+    userAttributes: { section: "homepage-hero" },
+  });
+
+  const { content: featuresContent } = useBuilderContent({
+    model: "section",
+    userAttributes: { section: "homepage-features" },
+  });
+
   const features = [
     {
       icon: <Leaf className="w-8 h-8 text-primary-600" />,
