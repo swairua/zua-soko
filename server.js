@@ -1174,6 +1174,160 @@ app.get("/api/data/search", async (req, res) => {
 });
 
 // =================================================
+// DATA EXPORT ENDPOINTS
+// =================================================
+
+// Export data as CSV
+app.get("/api/data/export/:table", async (req, res) => {
+  try {
+    const { table } = req.params;
+    const { format = "json" } = req.query;
+
+    console.log(`📥 Exporting ${table} data as ${format}`);
+
+    // Validate table name to prevent SQL injection
+    const allowedTables = [
+      "users",
+      "products",
+      "orders",
+      "wallets",
+      "consignments",
+      "order_items",
+    ];
+    if (!allowedTables.includes(table)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid table name. Allowed tables: ${allowedTables.join(", ")}`,
+      });
+    }
+
+    const result = await pool.query(
+      `SELECT * FROM ${table} ORDER BY created_at DESC`,
+    );
+
+    if (format === "csv") {
+      // Convert to CSV
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: `No data found in ${table} table`,
+        });
+      }
+
+      const headers = Object.keys(result.rows[0]);
+      let csv = headers.join(",") + "\n";
+
+      result.rows.forEach((row) => {
+        const values = headers.map((header) => {
+          const value = row[header];
+          // Escape commas and quotes in CSV
+          if (value === null || value === undefined) return "";
+          const stringValue = String(value);
+          if (
+            stringValue.includes(",") ||
+            stringValue.includes('"') ||
+            stringValue.includes("\n")
+          ) {
+            return '"' + stringValue.replace(/"/g, '""') + '"';
+          }
+          return stringValue;
+        });
+        csv += values.join(",") + "\n";
+      });
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${table}_export_${Date.now()}.csv"`,
+      );
+      res.send(csv);
+    } else {
+      // Return as JSON
+      res.json({
+        success: true,
+        table,
+        count: result.rows.length,
+        data: result.rows,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    console.log(`✅ ${table} data exported successfully`);
+  } catch (err) {
+    console.error(`❌ Error exporting ${req.params.table}:`, err);
+    res.status(500).json({
+      success: false,
+      error: "Export failed",
+      details: err.message,
+    });
+  }
+});
+
+// Backup entire database
+app.get("/api/data/backup", async (req, res) => {
+  try {
+    console.log("💾 Creating full database backup");
+
+    const backup = {
+      metadata: {
+        timestamp: new Date().toISOString(),
+        database: "neon_postgresql",
+        application: "zuasoko",
+        version: "1.0.0",
+      },
+      data: {},
+    };
+
+    const tables = [
+      "users",
+      "products",
+      "orders",
+      "wallets",
+      "consignments",
+      "order_items",
+    ];
+
+    for (const table of tables) {
+      try {
+        const result = await pool.query(`SELECT * FROM ${table}`);
+        backup.data[table] = result.rows;
+        console.log(`✅ Backed up ${table}: ${result.rows.length} records`);
+      } catch (err) {
+        console.warn(`⚠️ Could not backup ${table}:`, err.message);
+        backup.data[table] = { error: err.message };
+      }
+    }
+
+    // Calculate backup statistics
+    backup.metadata.totalRecords = Object.values(backup.data)
+      .filter((table) => Array.isArray(table))
+      .reduce((sum, table) => sum + table.length, 0);
+
+    backup.metadata.tablesBackedUp = Object.keys(backup.data).filter((key) =>
+      Array.isArray(backup.data[key]),
+    ).length;
+
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="zuasoko_backup_${Date.now()}.json"`,
+    );
+
+    console.log(
+      `🎉 Database backup complete: ${backup.metadata.totalRecords} records`,
+    );
+    res.json(backup);
+  } catch (err) {
+    console.error("❌ Error creating backup:", err);
+    res.status(500).json({
+      success: false,
+      error: "Backup failed",
+      details: err.message,
+    });
+  }
+});
+
+// =================================================
 // STATUS ENDPOINT
 // =================================================
 app.get("/api/status", async (req, res) => {
