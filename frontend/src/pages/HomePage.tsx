@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/auth";
 import { useAppDownload } from "../hooks/useAppDownload";
 import { ApkInfoModal } from "../components/ApkInfoModal";
-import BuilderSection from "../components/BuilderSection";
-import { useBuilderContent } from "../hooks/useBuilderContent";
+// Builder.io imports (optional)
 import {
   Leaf,
   Users,
