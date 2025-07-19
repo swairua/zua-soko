@@ -263,6 +263,9 @@ function App() {
               {/* Test routes */}
               <Route path="/test-mpesa" element={<TestMpesaPage />} />
 
+              {/* Builder.io catch-all route for dynamic pages */}
+              <Route path="/builder/*" element={<BuilderPage />} />
+
               {/* Catch-all route */}
               <Route path="*" element={<ComingSoonPage />} />
             </Routes>
