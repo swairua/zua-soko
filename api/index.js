@@ -334,13 +334,33 @@ module.exports = async function universalHandler(req, res) {
       method === "GET"
     ) {
       console.log("🏥 UNIVERSAL HEALTH CHECK");
-      return res.status(200).json({
-        status: "OK",
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || "production",
-        database: "demo",
-        version: "1.0.0",
-      });
+
+      try {
+        // Try to query the real database
+        const result = await query(
+          "SELECT NOW() as current_time, version() as db_version",
+        );
+
+        return res.status(200).json({
+          status: "OK",
+          timestamp: new Date().toISOString(),
+          environment: process.env.NODE_ENV || "production",
+          database: "connected",
+          database_type: "render_postgresql",
+          database_time: result.rows[0].current_time,
+          version: "1.0.0",
+        });
+      } catch (dbError) {
+        console.error("🏥 Database connection failed:", dbError.message);
+        return res.status(200).json({
+          status: "OK",
+          timestamp: new Date().toISOString(),
+          environment: process.env.NODE_ENV || "production",
+          database: "demo",
+          database_error: dbError.message,
+          version: "1.0.0",
+        });
+      }
     }
 
     // =================================================
