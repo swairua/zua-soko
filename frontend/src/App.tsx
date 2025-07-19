@@ -257,21 +257,7 @@ function App() {
               {/* Test routes */}
               <Route path="/test-mpesa" element={<TestMpesaPage />} />
 
-              {/* Builder.io catch-all route for dynamic pages */}
-              <Route
-                path="/builder/*"
-                element={
-                  <React.Suspense
-                    fallback={
-                      <div className="flex items-center justify-center min-h-screen">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-                      </div>
-                    }
-                  >
-                    <BuilderPageLazy />
-                  </React.Suspense>
-                }
-              />
+              {/* Builder.io route removed for stability */}
 
               {/* Catch-all route */}
               <Route path="*" element={<ComingSoonPage />} />
