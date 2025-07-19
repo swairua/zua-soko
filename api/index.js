@@ -12,10 +12,10 @@ async function getDB() {
   if (!pool && !dbConnectionAttempted) {
     dbConnectionAttempted = true;
     try {
-      // Use Render.com database URL if available, fallback to env var
+      // Use Neon database URL if available, fallback to env var
       const databaseUrl =
         process.env.DATABASE_URL ||
-        "postgresql://zuasoko_db_user:OoageAtal4KEnVnXn2axejZJxpy4nXto@dpg-d1rl7vripnbc73cj06j0-a.oregon-postgres.render.com/zuasoko_db";
+        "postgresql://neondb_owner:npg_bKZoVXhMa8w5@ep-wild-firefly-aetjevra-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
 
       pool = new Pool({
         connectionString: databaseUrl,
