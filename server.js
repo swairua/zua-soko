@@ -681,7 +681,11 @@ app.get("/api/status", async (req, res) => {
 // SERVE FRONTEND FILES
 // =================================================
 // Only serve frontend for GET requests that don't start with /api
-app.get(/^(?!\/api).*/, (req, res) => {
+app.get("*", (req, res, next) => {
+  // Skip API routes
+  if (req.path.startsWith("/api/")) {
+    return next();
+  }
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
