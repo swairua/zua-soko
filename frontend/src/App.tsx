@@ -98,6 +98,11 @@ function App() {
   const { isAuthenticated, user } = useAuthStore();
 
   useEffect(() => {
+    // Initialize Builder.io components
+    registerBuilderComponents();
+  }, []);
+
+  useEffect(() => {
     setupGlobalErrorHandling();
   }, []);
 
