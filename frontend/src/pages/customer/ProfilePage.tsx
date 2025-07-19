@@ -102,14 +102,18 @@ export default function ProfilePage() {
             orderNumber: "ORD-2024-001",
             totalAmount: 2500,
             paymentStatus: "COMPLETED",
+            paymentMethod: "M-PESA",
             status: "DELIVERED",
             deliveryAddress: "123 Main Street, Nairobi",
+            orderDate: new Date(Date.now() - 86400000).toISOString(),
             createdAt: new Date(Date.now() - 86400000).toISOString(),
             items: [
               {
-                productName: "Organic Tomatoes",
                 quantity: 5,
-                totalPrice: 600,
+                product: {
+                  name: "Organic Tomatoes",
+                  images: [],
+                },
               },
             ],
           },
