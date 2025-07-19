@@ -252,11 +252,61 @@ module.exports = async function universalHandler(req, res) {
 
         console.log(`📱 Login attempt: ${phone}`);
 
-        // Check built-in users first (always available)
+        // Try real database first
+        try {
+          const result = await query(
+            "SELECT * FROM users WHERE phone = $1 OR email = $1",
+            [phone.trim()],
+          );
+
+          if (result.rows.length > 0) {
+            const user = result.rows[0];
+            console.log(
+              `👤 Found user in database: ${user.first_name} ${user.last_name}`,
+            );
+
+            // Verify password against database hash
+            const hashedInput = hashPassword(password);
+            if (hashedInput === user.password_hash) {
+              console.log("✅ Real database login successful");
+
+              const token = createSimpleJWT({
+                userId: user.id,
+                phone: user.phone,
+                role: user.role,
+                exp: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60, // 7 days
+              });
+
+              return res.status(200).json({
+                success: true,
+                message: "Login successful with database",
+                token,
+                user: {
+                  id: user.id,
+                  firstName: user.first_name,
+                  lastName: user.last_name,
+                  email: user.email,
+                  phone: user.phone,
+                  role: user.role,
+                  county: user.county,
+                  verified: user.verified,
+                  registrationFeePaid: user.registration_fee_paid,
+                },
+              });
+            }
+          }
+        } catch (dbError) {
+          console.warn(
+            "⚠️ Database login failed, trying built-in users:",
+            dbError.message,
+          );
+        }
+
+        // Fallback to built-in users if database fails
         const builtInUser =
           BUILT_IN_USERS[phone] || BUILT_IN_USERS[phone.trim()];
         if (builtInUser && builtInUser.password === password) {
-          console.log("✅ Built-in user login successful");
+          console.log("✅ Built-in user login successful (fallback)");
 
           const token = createSimpleJWT({
             userId: builtInUser.id,
@@ -267,7 +317,7 @@ module.exports = async function universalHandler(req, res) {
 
           return res.status(200).json({
             success: true,
-            message: "Login successful",
+            message: "Login successful with demo user",
             token,
             user: {
               id: builtInUser.id,
