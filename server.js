@@ -683,6 +683,12 @@ app.get("*", (req, res, next) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
+// Fallback handler for any unmatched requests
+app.use((req, res, next) => {
+  console.log(`🚫 UNMATCHED REQUEST: ${req.method} ${req.path}`);
+  next();
+});
+
 // Handle 404 for API endpoints that don't exist
 app.use("/api/*", (req, res) => {
   res.status(404).json({
