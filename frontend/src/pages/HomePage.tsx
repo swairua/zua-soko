@@ -35,16 +35,9 @@ export default function HomePage() {
     downloadApp,
   } = useAppDownload();
 
-  // Builder.io content for dynamic homepage sections
-  const { content: heroContent } = useBuilderContent({
-    model: "section",
-    userAttributes: { section: "homepage-hero" },
-  });
-
-  const { content: featuresContent } = useBuilderContent({
-    model: "section",
-    userAttributes: { section: "homepage-features" },
-  });
+  // Builder.io content (disabled for now)
+  const heroContent = null;
+  const featuresContent = null;
 
   const features = [
     {
