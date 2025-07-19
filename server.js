@@ -79,6 +79,15 @@ app.get("/", (req, res) => {
 // =================================================
 // LOGIN ENDPOINT - EXACTLY AS YOU REQUESTED
 // =================================================
+// Special middleware for login route debugging
+app.use("/api/auth/login", (req, res, next) => {
+  console.log("🔥 LOGIN ROUTE MIDDLEWARE HIT!");
+  console.log(`🔥 Method: ${req.method}`);
+  console.log(`🔥 URL: ${req.url}`);
+  console.log(`🔥 Body:`, req.body);
+  next();
+});
+
 app.post("/api/auth/login", async (req, res) => {
   try {
     console.log(
