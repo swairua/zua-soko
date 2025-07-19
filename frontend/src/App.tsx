@@ -11,6 +11,19 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { setupGlobalErrorHandling } from "./utils/errorHandler";
 
 // Builder.io imports (loaded conditionally)
+const BuilderPageLazy = React.lazy(() =>
+  import("./pages/BuilderPage").catch(() =>
+    // Fallback if BuilderPage fails to load
+    Promise.resolve({
+      default: () => (
+        <div className="text-center p-8">
+          <h2>Builder.io not available</h2>
+          <p>This feature requires Builder.io to be configured.</p>
+        </div>
+      ),
+    }),
+  ),
+);
 
 // Layout components
 import Navbar from "./components/layout/Navbar";
