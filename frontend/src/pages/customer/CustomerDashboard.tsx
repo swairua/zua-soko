@@ -168,7 +168,7 @@ export default function CustomerDashboard() {
           totalSpent: 2500,
           pendingOrders: 1,
         });
-        toast.info("Using demo data - backend deployment needed");
+        toast.success("Using demo data - backend deployment needed");
       } else {
         toast.error("Failed to load orders");
       }
