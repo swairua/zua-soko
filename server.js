@@ -552,7 +552,7 @@ app.get("/api/marketplace/counties", async (req, res) => {
       if (counties.length === 0) {
         // Return demo counties if none found
         const demoCounties = ["Nairobi", "Kiambu", "Nakuru", "Meru", "Nyeri"];
-        console.log(`🗺️ Using demo counties:`, demoCounties);
+        console.log(`����️ Using demo counties:`, demoCounties);
         return res.json({
           success: true,
           counties: demoCounties,
@@ -578,6 +578,31 @@ app.get("/api/marketplace/counties", async (req, res) => {
       details: err.message,
     });
   }
+});
+
+// =================================================
+// DEBUG ENDPOINT
+// =================================================
+app.get("/api/debug", (req, res) => {
+  res.json({
+    message: "Debug endpoint working",
+    timestamp: new Date().toISOString(),
+    url: req.url,
+    method: req.method,
+    headers: req.headers,
+    environment: process.env.NODE_ENV || "production",
+  });
+});
+
+app.post("/api/debug", (req, res) => {
+  res.json({
+    message: "Debug POST endpoint working",
+    timestamp: new Date().toISOString(),
+    url: req.url,
+    method: req.method,
+    body: req.body,
+    headers: req.headers,
+  });
 });
 
 // =================================================
