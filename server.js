@@ -681,6 +681,499 @@ app.post("/api/debug", (req, res) => {
 });
 
 // =================================================
+// COMPREHENSIVE DATA FETCHING ENDPOINTS
+// =================================================
+
+// Get all users
+app.get("/api/data/users", async (req, res) => {
+  try {
+    console.log("👥 Fetching all users from database");
+    const result = await pool.query(`
+      SELECT id, first_name, last_name, email, phone, role, county,
+             verified, registration_fee_paid, created_at, updated_at
+      FROM users
+      ORDER BY created_at DESC
+    `);
+
+    console.log(`✅ Found ${result.rows.length} users`);
+    res.json({
+      success: true,
+      count: result.rows.length,
+      data: result.rows,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("❌ Error fetching users:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch users",
+      details: err.message,
+    });
+  }
+});
+
+// Get all products
+app.get("/api/data/products", async (req, res) => {
+  try {
+    console.log("🛍️ Fetching all products from database");
+    const result = await pool.query(`
+      SELECT * FROM products
+      ORDER BY created_at DESC
+    `);
+
+    console.log(`✅ Found ${result.rows.length} products`);
+    res.json({
+      success: true,
+      count: result.rows.length,
+      data: result.rows,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("❌ Error fetching products:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch products",
+      details: err.message,
+    });
+  }
+});
+
+// Get all orders
+app.get("/api/data/orders", async (req, res) => {
+  try {
+    console.log("📦 Fetching all orders from database");
+    const result = await pool.query(`
+      SELECT * FROM orders
+      ORDER BY created_at DESC
+    `);
+
+    console.log(`✅ Found ${result.rows.length} orders`);
+    res.json({
+      success: true,
+      count: result.rows.length,
+      data: result.rows,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("❌ Error fetching orders:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch orders",
+      details: err.message,
+    });
+  }
+});
+
+// Get all wallets
+app.get("/api/data/wallets", async (req, res) => {
+  try {
+    console.log("💰 Fetching all wallets from database");
+    const result = await pool.query(`
+      SELECT w.*, u.first_name, u.last_name, u.phone
+      FROM wallets w
+      LEFT JOIN users u ON w.user_id = u.id
+      ORDER BY w.created_at DESC
+    `);
+
+    console.log(`✅ Found ${result.rows.length} wallets`);
+    res.json({
+      success: true,
+      count: result.rows.length,
+      data: result.rows,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("❌ Error fetching wallets:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch wallets",
+      details: err.message,
+    });
+  }
+});
+
+// Get all consignments
+app.get("/api/data/consignments", async (req, res) => {
+  try {
+    console.log("🚚 Fetching all consignments from database");
+    const result = await pool.query(`
+      SELECT * FROM consignments
+      ORDER BY created_at DESC
+    `);
+
+    console.log(`✅ Found ${result.rows.length} consignments`);
+    res.json({
+      success: true,
+      count: result.rows.length,
+      data: result.rows,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("❌ Error fetching consignments:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch consignments",
+      details: err.message,
+    });
+  }
+});
+
+// Get all tables and their structure
+app.get("/api/data/schema", async (req, res) => {
+  try {
+    console.log("🗄️ Fetching database schema");
+
+    // Get all tables
+    const tablesResult = await pool.query(`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+      ORDER BY table_name
+    `);
+
+    const schema = {};
+
+    // Get columns for each table
+    for (const table of tablesResult.rows) {
+      const tableName = table.table_name;
+      const columnsResult = await pool.query(
+        `
+        SELECT column_name, data_type, is_nullable, column_default
+        FROM information_schema.columns
+        WHERE table_name = $1 AND table_schema = 'public'
+        ORDER BY ordinal_position
+      `,
+        [tableName],
+      );
+
+      schema[tableName] = {
+        columns: columnsResult.rows,
+        count: 0,
+      };
+
+      // Get row count for each table
+      try {
+        const countResult = await pool.query(
+          `SELECT COUNT(*) as count FROM ${tableName}`,
+        );
+        schema[tableName].count = parseInt(countResult.rows[0].count);
+      } catch (err) {
+        console.warn(
+          `Could not get count for table ${tableName}:`,
+          err.message,
+        );
+      }
+    }
+
+    console.log(`✅ Found ${Object.keys(schema).length} tables`);
+    res.json({
+      success: true,
+      tables: Object.keys(schema),
+      schema: schema,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("❌ Error fetching schema:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch schema",
+      details: err.message,
+    });
+  }
+});
+
+// Get everything - complete database dump
+app.get("/api/data/everything", async (req, res) => {
+  try {
+    console.log("🌐 Fetching EVERYTHING from database");
+
+    const data = {};
+
+    // Define tables to fetch
+    const tables = [
+      "users",
+      "products",
+      "orders",
+      "wallets",
+      "consignments",
+      "order_items",
+    ];
+
+    for (const table of tables) {
+      try {
+        console.log(`📋 Fetching data from ${table} table...`);
+        const result = await pool.query(
+          `SELECT * FROM ${table} ORDER BY created_at DESC`,
+        );
+        data[table] = {
+          count: result.rows.length,
+          data: result.rows,
+        };
+        console.log(`✅ ${table}: ${result.rows.length} records`);
+      } catch (err) {
+        console.warn(`⚠️ Could not fetch ${table}:`, err.message);
+        data[table] = {
+          count: 0,
+          data: [],
+          error: err.message,
+        };
+      }
+    }
+
+    // Calculate totals
+    const totals = {
+      totalRecords: Object.values(data).reduce(
+        (sum, table) => sum + table.count,
+        0,
+      ),
+      tablesWithData: Object.keys(data).filter((key) => data[key].count > 0)
+        .length,
+      tablesWithErrors: Object.keys(data).filter((key) => data[key].error)
+        .length,
+    };
+
+    console.log(
+      `🎉 Database dump complete: ${totals.totalRecords} total records`,
+    );
+
+    res.json({
+      success: true,
+      totals,
+      data,
+      timestamp: new Date().toISOString(),
+      database: "neon_postgresql",
+    });
+  } catch (err) {
+    console.error("❌ Error fetching everything:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch everything",
+      details: err.message,
+    });
+  }
+});
+
+// =================================================
+// DATA ANALYSIS & REPORTING ENDPOINTS
+// =================================================
+
+// Get database statistics
+app.get("/api/data/stats", async (req, res) => {
+  try {
+    console.log("📊 Generating database statistics");
+
+    const stats = {};
+
+    // User statistics
+    try {
+      const userStats = await pool.query(`
+        SELECT
+          COUNT(*) as total_users,
+          COUNT(CASE WHEN role = 'FARMER' THEN 1 END) as farmers,
+          COUNT(CASE WHEN role = 'CUSTOMER' THEN 1 END) as customers,
+          COUNT(CASE WHEN role = 'ADMIN' THEN 1 END) as admins,
+          COUNT(CASE WHEN role = 'DRIVER' THEN 1 END) as drivers,
+          COUNT(CASE WHEN verified = true THEN 1 END) as verified_users
+        FROM users
+      `);
+      stats.users = userStats.rows[0];
+    } catch (err) {
+      stats.users = { error: err.message };
+    }
+
+    // Product statistics
+    try {
+      const productStats = await pool.query(`
+        SELECT
+          COUNT(*) as total_products,
+          COUNT(CASE WHEN is_featured = true THEN 1 END) as featured_products,
+          AVG(price_per_unit) as avg_price,
+          SUM(stock_quantity) as total_stock,
+          COUNT(DISTINCT category) as unique_categories,
+          COUNT(DISTINCT farmer_county) as unique_counties
+        FROM products
+      `);
+      stats.products = productStats.rows[0];
+    } catch (err) {
+      stats.products = { error: err.message };
+    }
+
+    // Order statistics
+    try {
+      const orderStats = await pool.query(`
+        SELECT
+          COUNT(*) as total_orders,
+          SUM(total_amount) as total_revenue,
+          AVG(total_amount) as avg_order_value,
+          COUNT(CASE WHEN status = 'COMPLETED' THEN 1 END) as completed_orders,
+          COUNT(CASE WHEN status = 'PENDING' THEN 1 END) as pending_orders
+        FROM orders
+      `);
+      stats.orders = orderStats.rows[0];
+    } catch (err) {
+      stats.orders = { error: err.message };
+    }
+
+    // Wallet statistics
+    try {
+      const walletStats = await pool.query(`
+        SELECT
+          COUNT(*) as total_wallets,
+          SUM(balance) as total_balance,
+          AVG(balance) as avg_balance,
+          MAX(balance) as max_balance
+        FROM wallets
+      `);
+      stats.wallets = walletStats.rows[0];
+    } catch (err) {
+      stats.wallets = { error: err.message };
+    }
+
+    console.log("✅ Database statistics generated");
+    res.json({
+      success: true,
+      stats,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("❌ Error generating stats:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to generate statistics",
+      details: err.message,
+    });
+  }
+});
+
+// Get recent activity
+app.get("/api/data/recent", async (req, res) => {
+  try {
+    console.log("⏰ Fetching recent activity");
+
+    const recent = {};
+
+    // Recent users
+    try {
+      const recentUsers = await pool.query(`
+        SELECT id, first_name, last_name, email, role, created_at
+        FROM users
+        ORDER BY created_at DESC
+        LIMIT 10
+      `);
+      recent.users = recentUsers.rows;
+    } catch (err) {
+      recent.users = { error: err.message };
+    }
+
+    // Recent products
+    try {
+      const recentProducts = await pool.query(`
+        SELECT id, name, category, price_per_unit, farmer_name, created_at
+        FROM products
+        ORDER BY created_at DESC
+        LIMIT 10
+      `);
+      recent.products = recentProducts.rows;
+    } catch (err) {
+      recent.products = { error: err.message };
+    }
+
+    // Recent orders
+    try {
+      const recentOrders = await pool.query(`
+        SELECT id, total_amount, status, payment_status, created_at
+        FROM orders
+        ORDER BY created_at DESC
+        LIMIT 10
+      `);
+      recent.orders = recentOrders.rows;
+    } catch (err) {
+      recent.orders = { error: err.message };
+    }
+
+    console.log("✅ Recent activity fetched");
+    res.json({
+      success: true,
+      recent,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("❌ Error fetching recent activity:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch recent activity",
+      details: err.message,
+    });
+  }
+});
+
+// Search across all data
+app.get("/api/data/search", async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q) {
+      return res.status(400).json({
+        success: false,
+        error: "Search query 'q' parameter is required",
+      });
+    }
+
+    console.log(`🔍 Searching for: ${q}`);
+
+    const results = {};
+    const searchTerm = `%${q}%`;
+
+    // Search users
+    try {
+      const userResults = await pool.query(
+        `
+        SELECT id, first_name, last_name, email, phone, role
+        FROM users
+        WHERE first_name ILIKE $1 OR last_name ILIKE $1 OR email ILIKE $1 OR phone ILIKE $1
+        LIMIT 20
+      `,
+        [searchTerm],
+      );
+      results.users = userResults.rows;
+    } catch (err) {
+      results.users = { error: err.message };
+    }
+
+    // Search products
+    try {
+      const productResults = await pool.query(
+        `
+        SELECT id, name, category, description, farmer_name, farmer_county
+        FROM products
+        WHERE name ILIKE $1 OR description ILIKE $1 OR category ILIKE $1 OR farmer_name ILIKE $1
+        LIMIT 20
+      `,
+        [searchTerm],
+      );
+      results.products = productResults.rows;
+    } catch (err) {
+      results.products = { error: err.message };
+    }
+
+    console.log(`✅ Search completed for: ${q}`);
+    res.json({
+      success: true,
+      query: q,
+      results,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("❌ Error searching:", err);
+    res.status(500).json({
+      success: false,
+      error: "Search failed",
+      details: err.message,
+    });
+  }
+});
+
+// =================================================
 // STATUS ENDPOINT
 // =================================================
 app.get("/api/status", async (req, res) => {
