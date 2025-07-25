@@ -55,9 +55,11 @@ export default function Navbar() {
               className="flex items-center space-x-2"
               onClick={closeMobileMenu}
             >
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">Z</span>
-              </div>
+              <img
+                src="https://cdn.builder.io/api/v1/image/assets%2Fd95a59ea13944377b7d57306ce764f34%2Fc3fa5645a777451c8d0a2cfb29e716c1?format=webp&width=800"
+                alt="Zuasoko Logo"
+                className="w-8 h-8 rounded-lg object-contain"
+              />
               <span className="text-lg sm:text-xl font-bold text-gray-900">
                 Zuasoko
               </span>

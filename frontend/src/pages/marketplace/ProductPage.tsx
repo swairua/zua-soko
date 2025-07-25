@@ -116,7 +116,8 @@ export default function ProductPage() {
         `/api/marketplace/products?category=${category}&county=${county}&limit=4`,
       );
       const products = response.data.products || response.data;
-      setRelatedProducts(products.filter((p: RelatedProduct) => p.id !== id));
+      const safeProducts = Array.isArray(products) ? products : [];
+      setRelatedProducts(safeProducts.filter((p: RelatedProduct) => p?.id !== id));
     } catch (error) {
       console.error("Failed to fetch related products:", error);
     }

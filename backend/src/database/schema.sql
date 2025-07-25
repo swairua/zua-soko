@@ -2,6 +2,8 @@
 -- PostgreSQL Database Schema
 
 -- Drop existing tables (in correct order due to foreign keys)
+DROP TABLE IF EXISTS farmer_categories CASCADE;
+DROP TABLE IF EXISTS farmer_categories_list CASCADE;
 DROP TABLE IF EXISTS wallet_transactions CASCADE;
 DROP TABLE IF EXISTS notifications CASCADE;
 DROP TABLE IF EXISTS payments CASCADE;
@@ -76,6 +78,25 @@ CREATE TABLE users (
     last_login_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Farmer categories list table (master list of available categories)
+CREATE TABLE farmer_categories_list (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Farmer categories table (many-to-many relationship between farmers and categories)
+CREATE TABLE farmer_categories (
+    id SERIAL PRIMARY KEY,
+    farmer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    category_id INTEGER REFERENCES farmer_categories_list(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(farmer_id, category_id)
 );
 
 -- Warehouses table
@@ -253,6 +274,11 @@ CREATE INDEX idx_wallet_transactions_type ON wallet_transactions(type);
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX idx_notifications_read_at ON notifications(read_at);
 
+-- Farmer categories indexes
+CREATE INDEX idx_farmer_categories_farmer_id ON farmer_categories(farmer_id);
+CREATE INDEX idx_farmer_categories_category_id ON farmer_categories(category_id);
+CREATE INDEX idx_farmer_categories_list_is_active ON farmer_categories_list(is_active);
+
 -- Create triggers for updated_at timestamps
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -281,4 +307,7 @@ CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_payments_updated_at BEFORE UPDATE ON payments
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_farmer_categories_list_updated_at BEFORE UPDATE ON farmer_categories_list
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

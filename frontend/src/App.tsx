@@ -40,6 +40,7 @@ import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
 import MarketplaceManagementPage from "./pages/admin/MarketplaceManagementPage";
 import RegistrationFeesPage from "./pages/admin/RegistrationFeesPage";
+import FarmerCategoriesPage from "./pages/admin/FarmerCategoriesPage";
 
 // Driver pages
 import DriverDashboard from "./pages/driver/DriverDashboard";
@@ -210,6 +211,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={["ADMIN"]}>
                     <RegistrationFeesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/farmer-categories"
+                element={
+                  <ProtectedRoute allowedRoles={["ADMIN"]}>
+                    <FarmerCategoriesPage />
                   </ProtectedRoute>
                 }
               />

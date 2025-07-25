@@ -131,7 +131,7 @@ export default function MobileBottomNav() {
     }
   };
 
-  const navItems = getNavItems().filter((item) => item.show);
+  const navItems = (Array.isArray(getNavItems()) ? getNavItems() : []).filter((item) => item?.show);
 
   const isActive = (path: string) => {
     if (path === "/" && location.pathname === "/") {

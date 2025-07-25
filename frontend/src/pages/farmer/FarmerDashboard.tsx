@@ -43,7 +43,7 @@ interface Consignment {
 }
 
 interface Wallet {
-  id: string;
+  id?: string;
   balance: number;
   transactions: Array<{
     id: string;
@@ -88,50 +88,90 @@ export default function FarmerDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
 
       const [consignmentsRes, walletRes, notificationsRes] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL}/consignments`, {
+        axios.get("/api/consignments", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get(`${import.meta.env.VITE_API_URL}/wallet`, {
+        axios.get("/api/wallet", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get(`${import.meta.env.VITE_API_URL}/notifications`, {
+        axios.get("/api/notifications", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
-      // Safely extract data from API responses
-      const consignmentsData = Array.isArray(consignmentsRes.data.consignments)
-        ? consignmentsRes.data.consignments
-        : [];
-      const walletData = walletRes.data.wallet || walletRes.data;
-      const notificationsData = Array.isArray(
-        notificationsRes.data.notifications,
-      )
-        ? notificationsRes.data.notifications
-        : [];
+      // Safely extract data from API responses with multiple layers of validation
+      console.log("🚜 Raw API responses:", {
+        consignments: consignmentsRes.data,
+        wallet: walletRes.data,
+        notifications: notificationsRes.data
+      });
+
+      // Safe consignments extraction
+      let consignmentsData = [];
+      if (consignmentsRes.data && consignmentsRes.data.consignments && Array.isArray(consignmentsRes.data.consignments)) {
+        consignmentsData = consignmentsRes.data.consignments;
+      } else if (Array.isArray(consignmentsRes.data)) {
+        consignmentsData = consignmentsRes.data;
+      }
+
+      // Safe wallet extraction
+      let walletData = { balance: 0, transactions: [] };
+      if (walletRes.data && walletRes.data.wallet) {
+        walletData = {
+          balance: parseFloat(walletRes.data.wallet.balance) || 0,
+          transactions: Array.isArray(walletRes.data.wallet.transactions) ? walletRes.data.wallet.transactions : []
+        };
+      } else if (walletRes.data && typeof walletRes.data === 'object') {
+        walletData = {
+          balance: parseFloat(walletRes.data.balance) || 0,
+          transactions: Array.isArray(walletRes.data.transactions) ? walletRes.data.transactions : []
+        };
+      }
+
+      // Safe notifications extraction
+      let notificationsData = [];
+      if (notificationsRes.data && notificationsRes.data.notifications && Array.isArray(notificationsRes.data.notifications)) {
+        notificationsData = notificationsRes.data.notifications;
+      } else if (Array.isArray(notificationsRes.data)) {
+        notificationsData = notificationsRes.data;
+      }
+
+      console.log("🚜 Processed data:", {
+        consignments: consignmentsData.length,
+        wallet: walletData,
+        notifications: notificationsData.length
+      });
 
       setConsignments(consignmentsData);
       setWallet(walletData);
       setNotifications(notificationsData);
 
-      // Calculate stats
-      const totalConsignments = consignmentsData.length;
-      const pendingConsignments = consignmentsData.filter(
-        (c: Consignment) => c.status === "PENDING",
+      // Calculate stats with safe array operations
+      const safeConsignments = Array.isArray(consignmentsData) ? consignmentsData : [];
+      const totalConsignments = safeConsignments.length;
+      const pendingConsignments = safeConsignments.filter(
+        (c: any) => c && c.status === "PENDING",
       ).length;
-      const completedConsignments = consignmentsData.filter(
-        (c: Consignment) => c.status === "COMPLETED",
+      const completedConsignments = safeConsignments.filter(
+        (c: any) => c && c.status === "COMPLETED",
       ).length;
+
+      const safeTransactions = Array.isArray(walletData.transactions) ? walletData.transactions : [];
       const totalEarnings =
-        (walletData.balance || 0) +
-        (Array.isArray(walletData.transactions)
-          ? walletData.transactions
-              .filter((t: any) => t.type === "DEBIT")
-              .reduce((sum: number, t: any) => sum + t.amount, 0)
-          : 0);
+        (Number(walletData.balance) || 0) +
+        safeTransactions
+          .filter((t: any) => t && t.type === "DEBIT")
+          .reduce((sum: number, t: any) => sum + (parseFloat(t.amount) || 0), 0);
+
+      console.log("🚜 Calculated stats:", {
+        totalConsignments,
+        pendingConsignments,
+        completedConsignments,
+        totalEarnings,
+      });
 
       setStats({
         totalConsignments,
@@ -149,9 +189,9 @@ export default function FarmerDashboard() {
 
   const handleWithdraw = async (amount: number, phoneNumber: string) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/wallet/withdraw`,
+        "/api/wallet/withdraw",
         { amount, phoneNumber },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -180,9 +220,9 @@ export default function FarmerDashboard() {
 
     setPaymentLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/admin/registration-fees/stk-push`,
+        "/api/admin/registration-fees/stk-push",
         {
           farmer_id: user?.id,
           phone_number: paymentPhoneNumber,
@@ -701,9 +741,9 @@ function ConsignmentsSection({
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       await axios.post(
-        `${import.meta.env.VITE_API_URL}/consignments`,
+        "/api/consignments",
         {
           ...formData,
           quantity: parseFloat(formData.quantity),
@@ -1299,9 +1339,9 @@ function WalletSection({ wallet, onWithdraw, onRefresh }: any) {
 function NotificationsSection({ notifications, onRefresh }: any) {
   const markAsRead = async (notificationId: string) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       await axios.put(
-        `${import.meta.env.VITE_API_URL}/notifications/${notificationId}/read`,
+        "/api/notifications/${notificationId}/read",
         {},
         { headers: { Authorization: `Bearer ${token}` } },
       );

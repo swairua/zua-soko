@@ -278,6 +278,66 @@ async function initializeDemoData() {
       ],
     );
 
+    // Create demo farmer categories
+    const categories = [
+      { name: "Vegetables", description: "Fresh vegetables and leafy greens" },
+      { name: "Fruits", description: "Fresh fruits and berries" },
+      { name: "Grains", description: "Cereals, rice, wheat, and other grains" },
+      { name: "Legumes", description: "Beans, peas, lentils, and pulses" },
+      { name: "Cereals", description: "Maize, millet, sorghum, and other cereals" },
+      { name: "Herbs", description: "Medicinal and culinary herbs" },
+      { name: "Root Vegetables", description: "Potatoes, carrots, onions, and tubers" },
+      { name: "Dairy", description: "Milk and dairy products" },
+      { name: "Poultry", description: "Chickens, eggs, and poultry products" },
+      { name: "Livestock", description: "Cattle, goats, sheep, and livestock products" }
+    ];
+
+    for (const category of categories) {
+      await pool.query(
+        `
+        INSERT INTO farmer_categories_list (name, description, is_active)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (name) DO NOTHING
+        `,
+        [category.name, category.description, true]
+      );
+    }
+
+    // Assign demo categories to the demo farmer
+    try {
+      // Get vegetable and fruit category IDs
+      const vegetableCategory = await pool.query(
+        "SELECT id FROM farmer_categories_list WHERE name = 'Vegetables'"
+      );
+      const fruitCategory = await pool.query(
+        "SELECT id FROM farmer_categories_list WHERE name = 'Fruits'"
+      );
+
+      if (vegetableCategory.rows.length > 0) {
+        await pool.query(
+          `
+          INSERT INTO farmer_categories (farmer_id, category_id)
+          VALUES ($1, $2)
+          ON CONFLICT (farmer_id, category_id) DO NOTHING
+          `,
+          ["farmer-user-id", vegetableCategory.rows[0].id]
+        );
+      }
+
+      if (fruitCategory.rows.length > 0) {
+        await pool.query(
+          `
+          INSERT INTO farmer_categories (farmer_id, category_id)
+          VALUES ($1, $2)
+          ON CONFLICT (farmer_id, category_id) DO NOTHING
+          `,
+          ["farmer-user-id", fruitCategory.rows[0].id]
+        );
+      }
+    } catch (categoryError) {
+      console.log("⚠️ Could not assign demo categories:", categoryError.message);
+    }
+
     console.log("✅ Demo data initialized successfully");
     console.log("📋 Demo credentials:");
     console.log("   Admin: +254712345678 / password123");

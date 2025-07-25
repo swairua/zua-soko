@@ -262,7 +262,7 @@ export default function MarketplacePage() {
                   }
                 >
                   <option value="">All Categories</option>
-                  {categories.map((category) => (
+                  {(Array.isArray(categories) ? categories : []).map((category) => (
                     <option key={category} value={category}>
                       {category}
                     </option>
@@ -281,7 +281,7 @@ export default function MarketplacePage() {
                   onChange={(e) => handleFilterChange("county", e.target.value)}
                 >
                   <option value="">All Counties</option>
-                  {counties.map((county) => (
+                  {(Array.isArray(counties) ? counties : []).map((county) => (
                     <option key={county} value={county}>
                       {county}
                     </option>
@@ -383,7 +383,7 @@ export default function MarketplacePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
+          {(Array.isArray(products) ? products : []).map((product) => (
             <div
               key={product.id}
               className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
@@ -466,7 +466,7 @@ export default function MarketplacePage() {
                 {/* Tags */}
                 {product.tags && product.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {product.tags.slice(0, 3).map((tag) => (
+                    {(Array.isArray(product.tags) ? product.tags : []).slice(0, 3).map((tag) => (
                       <span
                         key={tag}
                         className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs"

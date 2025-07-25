@@ -137,7 +137,7 @@ export default function MarketplaceManagementPage() {
     try {
       console.log("🛍️ Fetching marketplace products (refresh)");
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/admin/marketplace/products`,
+        `/api/admin/products`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -257,14 +257,14 @@ export default function MarketplaceManagementPage() {
       let response;
       if (editingProduct) {
         response = await axios.put(
-          `${import.meta.env.VITE_API_URL}/admin/marketplace/products/${editingProduct.id}`,
+          `/api/admin/products/${editingProduct.id}`,
           productData,
           { headers: { Authorization: `Bearer ${token}` } },
         );
         toast.success("Product updated successfully");
       } else {
         response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/admin/marketplace/products`,
+          `/api/admin/products`,
           productData,
           { headers: { Authorization: `Bearer ${token}` } },
         );
@@ -296,7 +296,7 @@ export default function MarketplaceManagementPage() {
 
     try {
       await axios.delete(
-        `${import.meta.env.VITE_API_URL}/admin/marketplace/products/${productId}`,
+        `/api/admin/products/${productId}`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
@@ -1054,6 +1054,131 @@ export default function MarketplaceManagementPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   placeholder="Enter product description"
                 />
+              </div>
+
+              {/* Image Upload Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Product Images
+                </label>
+                <div className="space-y-4">
+                  {/* Current Images */}
+                  {formData.images.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {formData.images.map((image, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={image}
+                            alt={`Product ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newImages = formData.images.filter((_, i) => i !== index);
+                              setFormData({ ...formData, images: newImages });
+                            }}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add Image Options */}
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                    <div className="text-center">
+                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="mt-4 space-y-3">
+                        {/* File Upload Button */}
+                        <div>
+                          <input
+                            type="file"
+                            id="imageFileInput"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => {
+                              const files = Array.from(e.target.files || []);
+                              files.forEach(file => {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  const imageDataUrl = event.target?.result as string;
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    images: [...prev.images, imageDataUrl]
+                                  }));
+                                };
+                                reader.readAsDataURL(file);
+                              });
+                              // Reset the input
+                              e.target.value = '';
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => document.getElementById('imageFileInput')?.click()}
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                          >
+                            <Upload className="w-4 h-4 inline mr-2" />
+                            Upload Images
+                          </button>
+                        </div>
+
+                        {/* Or add URL */}
+                        <div className="flex items-center">
+                          <div className="flex-1 h-px bg-gray-300"></div>
+                          <span className="px-3 text-sm text-gray-500">or</span>
+                          <div className="flex-1 h-px bg-gray-300"></div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const imageUrl = prompt("Enter image URL:");
+                            if (imageUrl && imageUrl.trim()) {
+                              setFormData({
+                                ...formData,
+                                images: [...formData.images, imageUrl.trim()]
+                              });
+                            }
+                          }}
+                          className="bg-white px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        >
+                          <Plus className="w-4 h-4 inline mr-2" />
+                          Add Image URL
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-3">
+                        Upload image files or enter image URLs. Supported formats: JPG, PNG, WebP
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Image Upload Tips */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <Image className="h-5 w-5 text-blue-400" />
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-blue-800">
+                          Image Guidelines
+                        </h3>
+                        <div className="mt-2 text-sm text-blue-700">
+                          <ul className="list-disc pl-5 space-y-1">
+                            <li>Use high-quality images (minimum 800x800 pixels)</li>
+                            <li>Ensure images clearly show the product</li>
+                            <li>First image will be used as the main product image</li>
+                            <li>You can add multiple images to showcase different angles</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="flex items-center space-x-4">

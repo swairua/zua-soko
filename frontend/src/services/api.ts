@@ -21,7 +21,7 @@ api.interceptors.request.use((config) => {
     config.data,
   );
 
-  const token = localStorage.getItem("authToken");
+  const token = localStorage.getItem("authToken") || localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

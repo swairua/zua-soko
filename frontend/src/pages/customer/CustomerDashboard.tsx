@@ -22,18 +22,25 @@ interface Order {
   id: string;
   totalAmount: number;
   status: string;
-  paymentMethod: string;
+  paymentMethod?: string;
   paymentStatus: string;
   deliveryAddress: string;
-  deliveryPhone: string;
-  orderDate: string;
-  estimatedDelivery: string;
+  deliveryPhone?: string;
+  orderDate?: string;
+  estimatedDelivery?: string;
+  orderNumber?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  customerName?: string;
   items: Array<{
-    id: string;
+    id?: string;
     quantity: number;
-    pricePerUnit: number;
+    pricePerUnit?: number;
     totalPrice: number;
-    product: {
+    productName?: string;
+    unit?: string;
+    product?: {
       id: string;
       name: string;
       images: string[];
@@ -65,27 +72,38 @@ export default function CustomerDashboard() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/orders`,
+        "/api/orders",
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
 
-      const orders = response.data.orders || response.data;
+      console.log("🛒 Raw orders response:", response.data);
+
+      // Safe orders extraction
+      let orders = [];
+      if (response.data && Array.isArray(response.data.orders)) {
+        orders = response.data.orders;
+      } else if (Array.isArray(response.data)) {
+        orders = response.data;
+      }
+
+      console.log("🛒 Processed orders:", orders.length);
       setOrders(orders);
 
-      // Calculate stats
-      const totalOrders = orders.length;
-      const completedOrders = orders.filter(
-        (o: Order) => o.status === "DELIVERED",
+      // Calculate stats with safe array operations
+      const safeOrders = Array.isArray(orders) ? orders : [];
+      const totalOrders = safeOrders.length;
+      const completedOrders = safeOrders.filter(
+        (o: any) => o && o.status === "DELIVERED",
       ).length;
-      const totalSpent = orders
-        .filter((o: Order) => o.paymentStatus === "COMPLETED")
-        .reduce((sum: number, o: Order) => sum + o.totalAmount, 0);
-      const pendingOrders = orders.filter(
-        (o: Order) => o.status === "PENDING",
+      const totalSpent = safeOrders
+        .filter((o: any) => o && o.paymentStatus === "COMPLETED")
+        .reduce((sum: number, o: any) => sum + (parseFloat(o.totalAmount) || 0), 0);
+      const pendingOrders = safeOrders.filter(
+        (o: any) => o && o.status === "PENDING",
       ).length;
 
       setStats({
@@ -154,7 +172,7 @@ export default function CustomerDashboard() {
           totalSpent: 2500,
           pendingOrders: 1,
         });
-        toast.info("Using demo data - backend deployment needed");
+        toast("Using demo data - backend deployment needed", { icon: "ℹ️" });
       } else {
         toast.error("Failed to load orders");
       }
@@ -312,17 +330,17 @@ export default function CustomerDashboard() {
             </div>
           </div>
           <div className="p-6">
-            {orders.slice(0, 3).map((order) => (
+            {(Array.isArray(orders) ? orders : []).slice(0, 3).map((order) => (
               <div
                 key={order.id}
                 className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0"
               >
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                    {order.items[0]?.product?.images?.[0] ? (
+                    {Array.isArray(order?.items) && order.items[0]?.product?.images?.[0] ? (
                       <img
                         src={order.items[0].product.images[0]}
-                        alt={order.items[0].product.name}
+                        alt={order.items[0].product.name || 'Product'}
                         className="w-12 h-12 rounded-lg object-cover"
                       />
                     ) : (
@@ -331,15 +349,16 @@ export default function CustomerDashboard() {
                   </div>
                   <div className="ml-4">
                     <p className="font-medium text-gray-900">
-                      Order #{order.id.slice(-8)}
+                      Order #{order?.id ? String(order.id).slice(-8) : 'N/A'}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {order.items.length} item
-                      {order.items.length > 1 ? "s" : ""} • KES{" "}
-                      {order.totalAmount.toLocaleString()}
+                      {Array.isArray(order?.items) ? order.items.length : 0} item
+                      {(Array.isArray(order?.items) && order.items.length > 1) ? "s" : ""} • KES{" "}
+                      {(order?.totalAmount || 0).toLocaleString()}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {new Date(order.orderDate).toLocaleDateString()}
+                      {order?.orderDate ? new Date(order.orderDate).toLocaleDateString() :
+                       order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'Unknown date'}
                     </p>
                   </div>
                 </div>
@@ -351,7 +370,7 @@ export default function CustomerDashboard() {
                     <span className="ml-1">{order.status}</span>
                   </span>
                   <p className="text-sm text-gray-500 mt-1">
-                    {order.paymentMethod}
+                    {order.paymentMethod || 'Payment method not specified'}
                   </p>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
@@ -37,6 +37,7 @@ interface RegisterFormData {
   farmSize?: number;
   kraPin?: string;
   subCounty?: string;
+  categories?: number[]; // Farmer category IDs
 
   // Driver-specific
   licenseNumber?: string;
@@ -46,6 +47,13 @@ interface RegisterFormData {
 
   // Agent-specific
   assignedCounty?: string;
+}
+
+interface FarmerCategory {
+  id: number;
+  name: string;
+  description: string;
+  is_active: boolean;
 }
 
 const kenyanCounties = [
@@ -142,6 +150,8 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [farmerCategories, setFarmerCategories] = useState<FarmerCategory[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
   const {
     register,
@@ -154,9 +164,38 @@ export default function RegisterPage() {
   const watchRole = watch("role");
   const watchPassword = watch("password");
 
+  // Fetch farmer categories when component mounts
+  useEffect(() => {
+    const fetchFarmerCategories = async () => {
+      try {
+        const response = await axios.get("/api/farmer-categories");
+        setFarmerCategories(response.data.categories || []);
+      } catch (error) {
+        console.error("Failed to fetch farmer categories:", error);
+        toast.error("Failed to load farmer categories");
+      }
+    };
+
+    fetchFarmerCategories();
+  }, []);
+
+  const toggleCategory = (categoryId: number) => {
+    setSelectedCategories(prev =>
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
   const onSubmit = async (data: RegisterFormData) => {
     if (data.password !== data.confirmPassword) {
       toast.error("Passwords do not match");
+      return;
+    }
+
+    // Validate farmer categories
+    if (data.role === "FARMER" && selectedCategories.length === 0) {
+      toast.error("Please select at least one farming category");
       return;
     }
 
@@ -178,6 +217,7 @@ export default function RegisterPage() {
         if (data.farmSize) registrationData.farmSize = data.farmSize;
         if (data.kraPin) registrationData.kraPin = data.kraPin;
         if (data.subCounty) registrationData.subCounty = data.subCounty;
+        registrationData.categories = selectedCategories;
       } else if (data.role === "DRIVER") {
         registrationData.licenseNumber = data.licenseNumber;
         registrationData.vehicleType = data.vehicleType;
@@ -584,6 +624,66 @@ export default function RegisterPage() {
                         placeholder="e.g., A123456789K"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        Farming Categories *
+                      </label>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Select one or more categories that describe what you farm:
+                      </p>
+                      {farmerCategories.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto">
+                          {farmerCategories.map((category) => (
+                            <label
+                              key={category.id}
+                              className="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedCategories.includes(category.id)}
+                                onChange={() => toggleCategory(category.id)}
+                                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 mt-0.5 mr-3"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {category.name}
+                                </div>
+                                {category.description && (
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    {category.description}
+                                  </div>
+                                )}
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-gray-500 border border-gray-200 rounded-lg">
+                          Loading categories...
+                        </div>
+                      )}
+
+                      {selectedCategories.length > 0 && (
+                        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <p className="text-sm text-green-800">
+                            Selected {selectedCategories.length} categor{selectedCategories.length === 1 ? 'y' : 'ies'}:
+                            <span className="font-medium ml-1">
+                              {farmerCategories
+                                .filter(cat => selectedCategories.includes(cat.id))
+                                .map(cat => cat.name)
+                                .join(', ')}
+                            </span>
+                          </p>
+                        </div>
+                      )}
+
+                      {selectedCategories.length === 0 && (
+                        <p className="text-sm text-red-600 mt-2">
+                          Please select at least one farming category.
+                        </p>
+                      )}
                     </div>
 
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

@@ -52,15 +52,23 @@ export default function OrderHistoryPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/orders`,
+        "/api/orders",
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
 
-      setOrders(response.data);
+      // Safely extract orders data
+      let ordersData = [];
+      if (response.data && Array.isArray(response.data.orders)) {
+        ordersData = response.data.orders;
+      } else if (Array.isArray(response.data)) {
+        ordersData = response.data;
+      }
+
+      setOrders(ordersData);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
       toast.error("Failed to load orders");
@@ -143,7 +151,7 @@ export default function OrderHistoryPage() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Pending</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {orders.filter((o) => o.status === "PENDING").length}
+                  {(Array.isArray(orders) ? orders : []).filter((o) => o?.status === "PENDING").length}
                 </p>
               </div>
             </div>
@@ -155,7 +163,7 @@ export default function OrderHistoryPage() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Delivered</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {orders.filter((o) => o.status === "DELIVERED").length}
+                  {(Array.isArray(orders) ? orders : []).filter((o) => o?.status === "DELIVERED").length}
                 </p>
               </div>
             </div>
@@ -168,9 +176,9 @@ export default function OrderHistoryPage() {
                 <p className="text-sm font-medium text-gray-500">Total Spent</p>
                 <p className="text-2xl font-bold text-gray-900">
                   KES{" "}
-                  {orders
-                    .filter((o) => o.paymentStatus === "COMPLETED")
-                    .reduce((sum, o) => sum + o.totalAmount, 0)
+                  {(Array.isArray(orders) ? orders : [])
+                    .filter((o) => o?.paymentStatus === "COMPLETED")
+                    .reduce((sum, o) => sum + (o?.totalAmount || 0), 0)
                     .toLocaleString()}
                 </p>
               </div>
@@ -202,7 +210,7 @@ export default function OrderHistoryPage() {
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
-              {orders.map((order) => (
+              {(Array.isArray(orders) ? orders : []).map((order) => (
                 <div key={order.id} className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
@@ -222,8 +230,8 @@ export default function OrderHistoryPage() {
                           Order #{order.id.slice(-8)}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          {order.items.length} item
-                          {order.items.length > 1 ? "s" : ""} • KES{" "}
+                          {Array.isArray(order?.items) ? order.items.length : 0} item
+                          {Array.isArray(order?.items) && order.items.length > 1 ? "s" : ""} • KES{" "}
                           {order.totalAmount.toLocaleString()}
                         </p>
                       </div>
@@ -327,7 +335,7 @@ export default function OrderHistoryPage() {
                     Items Ordered
                   </h4>
                   <div className="space-y-3">
-                    {selectedOrder.items.map((item) => (
+                    {(Array.isArray(selectedOrder?.items) ? selectedOrder.items : []).map((item) => (
                       <div
                         key={item.id}
                         className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
