@@ -234,21 +234,34 @@ export const useAppDownload = (): UseAppDownloadReturn => {
         await checkAvailability();
       } catch (error) {
         console.log("🔄 Initial availability check failed, will retry on user interaction");
+        // Set default app info even if check fails
+        setDefaultAppInfo();
+        setIsAvailable(false);
       } finally {
         setLoading(false);
       }
     };
 
-    // Only check if we're not in development mode or if explicitly needed
-    const shouldCheck = !window.location.hostname.includes('localhost') ||
-                       window.location.search.includes('check-app');
+    // Enhanced development environment detection
+    const isDevelopment = window.location.hostname.includes('localhost') ||
+                         window.location.hostname.includes('127.0.0.1') ||
+                         window.location.hostname.includes('dev') ||
+                         process.env.NODE_ENV === 'development';
+
+    const shouldCheck = !isDevelopment || window.location.search.includes('check-app');
 
     if (shouldCheck) {
-      initCheck();
+      initCheck().catch((error) => {
+        console.log("🔄 Failed to initialize app download check:", error.name);
+        setLoading(false);
+        setIsAvailable(false);
+        setDefaultAppInfo();
+      });
     } else {
       console.log("🔄 Skipping app availability check in development");
       setLoading(false);
       setIsAvailable(false);
+      setDefaultAppInfo();
     }
   }, []);
 
