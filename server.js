@@ -69,9 +69,6 @@ pool.connect(async (err, client, release) => {
 
           // Clear old products
           await client.query("DELETE FROM products");
-
-          // Reset sequence
-          await client.query("ALTER SEQUENCE products_id_seq RESTART WITH 1");
         }
       }
 
