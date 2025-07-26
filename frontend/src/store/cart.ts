@@ -58,12 +58,19 @@ export const useCart = create<CartStore>()(
       addToCart: async (newItem) => {
         try {
           set({ isLoading: true });
-          
+
+          // Validate product ID
+          if (!newItem.productId || newItem.productId === 'undefined' || newItem.productId === 'null') {
+            throw new Error("Invalid product ID");
+          }
+
+          console.log("🛒 Adding to cart - Product ID:", newItem.productId, "Type:", typeof newItem.productId);
+
           // Fetch latest product data from database to ensure accuracy
           const productData = await apiService.getProduct(newItem.productId);
-          
+
           if (!productData || !productData.product) {
-            throw new Error("Product not found");
+            throw new Error("Product not found in database");
           }
 
           const product = productData.product;
