@@ -104,7 +104,11 @@ export default function MarketplacePage() {
 
       // Filter out products with invalid or placeholder IDs
       const rawProducts = data.products || data;
+      console.log("🔍 RAW PRODUCTS DATA:", rawProducts);
+
       const validProducts = Array.isArray(rawProducts) ? rawProducts.filter(product => {
+        console.log("🔍 Checking product:", { id: product?.id, name: product?.name, type: typeof product?.id });
+
         if (!product || !product.id) {
           console.warn("⚠️ Filtering out product with missing ID:", product);
           return false;
@@ -128,10 +132,16 @@ export default function MarketplacePage() {
           return false;
         }
 
+        console.log("✅ Product passed validation:", { id, name: product.name });
         return true;
       }) : [];
 
-      console.log(`🔍 Filtered ${rawProducts.length - validProducts.length} invalid products`);
+      console.log(`🔍 Product filtering results:`, {
+        raw: rawProducts.length,
+        valid: validProducts.length,
+        filtered: rawProducts.length - validProducts.length
+      });
+
       setProducts(validProducts);
 
       if (data.pagination) {
