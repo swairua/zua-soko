@@ -36,14 +36,66 @@ function verifyPassword(password, hash) {
   return hashPassword(password) === hash;
 }
 
-// Test database connection
-pool.connect((err, client, release) => {
+// Test database connection and initialize products
+pool.connect(async (err, client, release) => {
   if (err) {
     console.error("❌ Database connection error:", err);
-  } else {
-    console.log("✅ Connected to PostgreSQL database");
-    release();
+    return;
   }
+
+  console.log("✅ Connected to PostgreSQL database");
+
+  try {
+    // Check if products table exists and initialize with real integer IDs
+    const tableCheck = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name = 'products'
+      );
+    `);
+
+    if (tableCheck.rows[0].exists) {
+      // Check current products
+      const currentProducts = await client.query("SELECT id, name FROM products ORDER BY id");
+      console.log(`📦 Found ${currentProducts.rows.length} existing products`);
+
+      // If we have products but they might be old placeholder ones, reset them
+      if (currentProducts.rows.length > 0) {
+        const firstProduct = currentProducts.rows[0];
+        // Check if the first product has a string ID (indicating old placeholder data)
+        if (typeof firstProduct.id === 'string' && firstProduct.id.includes('-')) {
+          console.log("🔄 Resetting products with placeholder IDs to real integer IDs...");
+
+          // Clear old products
+          await client.query("DELETE FROM products");
+
+          // Reset sequence
+          await client.query("ALTER SEQUENCE products_id_seq RESTART WITH 1");
+        }
+      }
+
+      // Ensure we have some products
+      const productCount = await client.query("SELECT COUNT(*) FROM products");
+      if (parseInt(productCount.rows[0].count) === 0) {
+        console.log("📦 Adding products with real integer IDs...");
+        await client.query(`
+          INSERT INTO products (name, description, category, price_per_unit, unit, stock_quantity, is_active, images) VALUES
+          ('Fresh Tomatoes', 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.', 'Vegetables', 130.00, 'kg', 85, true, '{"https://images.unsplash.com/photo-1546470427-e212b9d56085"}'),
+          ('Sweet Potatoes', 'Fresh sweet potatoes, rich in nutrients and vitamins.', 'Root Vegetables', 80.00, 'kg', 45, true, '{"https://images.unsplash.com/photo-1518977676601-b53f82aba655"}'),
+          ('Fresh Spinach', 'Organic spinach leaves, perfect for healthy meals.', 'Leafy Greens', 120.00, 'kg', 30, true, '{"https://images.unsplash.com/photo-1576045057995-568f588f82fb"}'),
+          ('Green Beans', 'Tender green beans, freshly harvested.', 'Vegetables', 100.00, 'kg', 60, true, '{"https://images.unsplash.com/photo-1628773822503-930a7eaecf80"}')
+        `);
+
+        const newCount = await client.query("SELECT COUNT(*) FROM products");
+        console.log(`✅ Added ${newCount.rows[0].count} products with real integer IDs`);
+      }
+    }
+  } catch (initError) {
+    console.error("⚠️ Error initializing products:", initError.message);
+  }
+
+  release();
 });
 
 // =================================================
