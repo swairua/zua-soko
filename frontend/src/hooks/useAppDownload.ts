@@ -79,14 +79,19 @@ export const useAppDownload = (): UseAppDownloadReturn => {
 
       // Create AbortController for timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // Reduced to 3 second timeout
 
       try {
-        // Check if APK file exists with timeout
+        // Check if APK file exists with timeout and error handling
         const apkResponse = await fetch(downloadUrl, {
           method: "HEAD",
           signal: controller.signal,
-          cache: "no-cache"
+          cache: "no-cache",
+          mode: "cors"
+        }).catch((fetchError) => {
+          // Handle fetch-specific errors
+          console.log("🌐 Fetch error for APK check:", fetchError.name);
+          throw fetchError;
         });
 
         clearTimeout(timeoutId);
