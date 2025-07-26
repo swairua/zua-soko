@@ -152,11 +152,9 @@ export const apiService = {
       throw new Error(`Invalid product ID: "${id}" appears to be a placeholder value`);
     }
 
-    // Validate that ID is numeric (backend expects numbers)
-    const numericId = Number(id);
-    if (isNaN(numericId) || !Number.isInteger(numericId) || numericId <= 0) {
-      throw new Error(`Invalid product ID: "${id}" must be a positive integer. Backend expects numeric IDs, not UUIDs.`);
-    }
+    // Temporarily allow UUID-style IDs since products may have legitimate UUIDs
+    // TODO: Investigate ID format expectations with backend
+    console.log("🛍️ Fetching product with ID:", id, "Type:", typeof id);
 
     const response = await api.get(`/marketplace/products/${id}`);
     console.log("🛍️ SINGLE PRODUCT SUCCESS:", response.data);
