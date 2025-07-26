@@ -398,6 +398,7 @@ app.get("/api/marketplace/products", async (req, res) => {
              p.farmer_name, p.farmer_county,
              p.created_at, p.images
       FROM products p
+      WHERE p.is_active = true
     `;
 
     const params = [];
@@ -2296,7 +2297,7 @@ app.get("*", (req, res) => {
 // START SERVER
 // =================================================
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`�� Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "production"}`);
   console.log(
     `🗄️ Database: ${process.env.DATABASE_URL ? "Configured" : "Using fallback"}`,
