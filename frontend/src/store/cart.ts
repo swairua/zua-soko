@@ -97,10 +97,13 @@ export const useCart = create<CartStore>()(
             console.log("🔄 Using fallback product data:", product);
           }
           
-          // Validate stock availability
-          if (product.stock_quantity <= 0) {
+          // Validate stock availability (skip validation if using fallback data)
+          if (fetchedFromApi && product.stock_quantity <= 0) {
             toast.error("Product is out of stock");
             return;
+          } else if (!fetchedFromApi) {
+            // When using fallback data, show a warning but allow the addition
+            console.log("⚠️ Using cached/fallback data - stock validation skipped");
           }
 
           const { cart } = get();
