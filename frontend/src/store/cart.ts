@@ -145,7 +145,7 @@ export const useCart = create<CartStore>()(
             // Add new item with fresh product data
             const cartItem: CartItem = {
               id: `cart-${Date.now()}-${Math.random()}`,
-              productId: newItem.productId,
+              productId: productId,
               name: product.name,
               pricePerUnit: product.price_per_unit,
               quantity: Math.min(newItem.quantity, product.stock_quantity),
