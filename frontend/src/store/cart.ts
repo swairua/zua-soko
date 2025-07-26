@@ -245,32 +245,13 @@ export const useCart = create<CartStore>()(
       refreshCart: async () => {
         const { cart } = get();
 
-        // First clean up any items with invalid product IDs
+        // Only remove items that are clearly broken (null/undefined IDs)
         const validItems = cart.items.filter(item => {
-          const id = String(item.productId);
+          const id = item.productId;
 
-          // Check for placeholder patterns
-          const placeholderPatterns = [
-            /^[c]{8}-[c]{4}-[c]{4}-[c]{4}-[c]{12}$/i,
-            /^[d]{8}-[d]{4}-[d]{4}-[d]{4}-[d]{12}$/i,
-            /^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/i,
-            /^[f]{8}-[f]{4}-[f]{4}-[f]{4}-[f]{12}$/i,
-            /^[1]{8}-[1]{4}-[1]{4}-[1]{4}-[1]{12}$/i,
-            /^example-/i,
-            /^test-/i,
-            /^placeholder/i
-          ];
-
-          const isPlaceholder = placeholderPatterns.some(pattern => pattern.test(id));
-          if (isPlaceholder) {
-            console.warn("🧹 Removing cart item with placeholder ID:", id, item.name);
-            return false;
-          }
-
-          // Check if ID is numeric (backend requirement)
-          const numericId = Number(id);
-          if (isNaN(numericId) || !Number.isInteger(numericId) || numericId <= 0) {
-            console.warn("🧹 Removing cart item with non-numeric ID:", id, item.name);
+          // Only filter out clearly invalid items
+          if (!id && id !== 0) {
+            console.warn("🧹 Removing cart item with missing ID:", item.name);
             return false;
           }
 
