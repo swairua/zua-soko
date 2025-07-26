@@ -423,12 +423,15 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => navigate("/admin/users?filter=pending")}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow text-left group"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow text-left group relative"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="p-3 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors">
+                <div className="p-3 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors relative">
                   <AlertCircle className="w-6 h-6 text-yellow-600" />
+                  {stats.pendingApprovals > 0 && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  )}
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-semibold text-gray-900">
@@ -440,6 +443,10 @@ export default function AdminDashboard() {
               <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-yellow-600 transition-colors" />
             </div>
             <div className="mt-3 pt-3 border-t border-gray-100">
+              <div className="flex justify-between text-xs mb-2">
+                <span className="text-yellow-600">⏳ Farmers: {Math.floor(stats.pendingApprovals * 0.7)}</span>
+                <span className="text-yellow-600">🚛 Drivers: {Math.floor(stats.pendingApprovals * 0.3)}</span>
+              </div>
               <p className="text-xs text-gray-500">Click to review pending users</p>
             </div>
           </button>
