@@ -475,6 +475,7 @@ export default function RegisterPage() {
                       },
                     })}
                     type="email"
+                    placeholder="your@email.com (optional)"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                   {errors.email && (
@@ -482,6 +483,9 @@ export default function RegisterPage() {
                       {errors.email.message}
                     </p>
                   )}
+                  <p className="mt-1 text-xs text-gray-500">
+                    Optional - used for account recovery and important updates
+                  </p>
                 </div>
 
                 <div>
