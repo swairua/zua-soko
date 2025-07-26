@@ -19,52 +19,28 @@ import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
 
 interface Product {
-  id: string;
+  id: number;
   name: string;
   category: string;
-  pricePerUnit: number;
+  price_per_unit: number;
   unit: string;
-  stockQuantity: number;
-  minStockLevel?: number;
-  images: string[];
   description: string;
-  isFeatured: boolean;
-  isAvailable: boolean;
-  tags: string[];
-  harvestDate?: string;
-  expiryDate?: string;
-  latitude?: number;
-  longitude?: number;
-  farmer: {
-    id: string;
-    county: string;
-    subCounty?: string;
-    farmName?: string;
-    farmSize?: number;
-    user: {
-      firstName: string;
-      lastName: string;
-      phone: string;
-      email?: string;
-    };
-  };
-  createdAt: string;
-  updatedAt: string;
+  stock_quantity: number;
+  quantity: number;
+  images: string[];
+  farmer_name?: string;
+  farmer_county?: string;
+  created_at: string;
 }
 
 interface RelatedProduct {
-  id: string;
+  id: number;
   name: string;
-  pricePerUnit: number;
+  price_per_unit: number;
   unit: string;
   images: string[];
-  farmer: {
-    county: string;
-    user: {
-      firstName: string;
-      lastName: string;
-    };
-  };
+  farmer_name?: string;
+  farmer_county?: string;
 }
 
 export default function ProductPage() {
