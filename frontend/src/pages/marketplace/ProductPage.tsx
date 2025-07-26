@@ -354,7 +354,7 @@ export default function ProductPage() {
           {/* Price and Stock */}
           <div className="mb-6">
             <div className="text-3xl font-bold text-gray-900 mb-2">
-              {formatPrice(product.pricePerUnit)}
+              {formatPrice(product.price_per_unit)}
               <span className="text-lg font-normal text-gray-600 ml-2">
                 per {product.unit}
               </span>
@@ -473,7 +473,7 @@ export default function ProductPage() {
                     </button>
                   </div>
                   <span className="text-sm text-gray-600">
-                    Total: {formatPrice(product.pricePerUnit * quantity)}
+                    Total: {formatPrice(product.price_per_unit * quantity)}
                   </span>
                 </div>
 
@@ -637,7 +637,7 @@ export default function ProductPage() {
                     {relatedProduct.farmer.user.lastName}
                   </p>
                   <div className="text-lg font-bold text-gray-900">
-                    {formatPrice(relatedProduct.pricePerUnit)}
+                    {formatPrice(relatedProduct.price_per_unit)}
                     <span className="text-xs font-normal text-gray-600 ml-1">
                       /{relatedProduct.unit}
                     </span>
