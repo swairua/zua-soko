@@ -244,14 +244,19 @@ export default function RegisterPage() {
       navigate("/login");
     } catch (error: any) {
       console.error("Registration error:", error);
+      console.log("Error response data:", error.response?.data);
+      console.log("Error status:", error.response?.status);
+      console.log("Error headers:", error.response?.headers);
 
       // Enhanced error handling for different response formats
       let message = "Registration failed";
 
       if (error.response?.data) {
         const data = error.response.data;
+        console.log("Full error data object:", data);
+
         // Try different possible error message fields
-        message = data.message || data.error || data.details || message;
+        message = data.message || data.error || data.details || data.msg || message;
 
         // Special handling for 409 conflict errors
         if (error.response.status === 409) {
@@ -262,8 +267,18 @@ export default function RegisterPage() {
           } else if (message.toLowerCase().includes("user") || message.toLowerCase().includes("exist")) {
             message = "An account with these details already exists. Please try logging in or use different credentials.";
           } else {
-            message = "Registration conflict: " + message;
+            message = `Registration conflict: ${message}`;
           }
+
+          // Add a helpful action button in the toast
+          toast.error(message, {
+            duration: 6000,
+            action: {
+              label: 'Go to Login',
+              onClick: () => navigate('/login'),
+            },
+          });
+          return; // Exit early to avoid duplicate toast
         }
       } else if (error.message) {
         message = error.message;
