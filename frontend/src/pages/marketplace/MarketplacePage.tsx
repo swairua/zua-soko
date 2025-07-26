@@ -10,7 +10,7 @@ import {
   Heart,
   Eye,
 } from "lucide-react";
-import { useCart } from "../../store/cart";
+import { useCartStore } from "../../store/cart";
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
 
