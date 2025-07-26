@@ -125,7 +125,7 @@ app.post("/api/auth/login", async (req, res) => {
     const { phone, password } = req.body;
 
     if (!phone || !password) {
-      console.log("❌ Missing credentials");
+      console.log("�� Missing credentials");
       return res
         .status(400)
         .json({ message: "Phone and password are required" });
@@ -442,10 +442,7 @@ app.get("/api/marketplace/products", async (req, res) => {
 
     let query = `
       SELECT p.id, p.name, p.category, p.price_per_unit, p.unit, p.description,
-             p.stock_quantity,
-             COALESCE(p.is_featured, false) as is_featured,
-             p.farmer_name, p.farmer_county,
-             p.created_at, p.images
+             p.stock_quantity, p.quantity, p.images, p.created_at
       FROM products p
       WHERE 1=1
     `;
