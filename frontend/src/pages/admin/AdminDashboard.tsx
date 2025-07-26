@@ -507,6 +507,14 @@ export default function AdminDashboard() {
               <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-purple-600 transition-colors" />
             </div>
             <div className="mt-3 pt-3 border-t border-gray-100">
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-green-600">↗ +12.5%</span>
+                <span className="text-gray-500">vs last month</span>
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mb-2">
+                <span>Commissions: {formatCurrency(stats.monthlyRevenue * 0.1)}</span>
+                <span>Fees: {formatCurrency(stats.monthlyRevenue * 0.05)}</span>
+              </div>
               <p className="text-xs text-gray-500">Click to view revenue analytics</p>
             </div>
           </button>
