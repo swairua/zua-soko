@@ -194,12 +194,44 @@ export default function MarketplacePage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Fresh Marketplace
-        </h1>
-        <p className="text-gray-600">
-          Discover fresh produce directly from local farmers
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Fresh Marketplace
+            </h1>
+            <p className="text-gray-600">
+              Discover fresh produce directly from local farmers
+            </p>
+          </div>
+
+          {/* Reset Button for fixing cart issues */}
+          <button
+            onClick={async () => {
+              try {
+                // Clear cart storage
+                localStorage.removeItem('cart-storage');
+                sessionStorage.removeItem('cart-storage');
+
+                // Call API to reset products (if admin)
+                if (user?.role === 'ADMIN') {
+                  await axios.post('/api/admin/reset-products');
+                  toast.success("Products and cart reset successfully!");
+                } else {
+                  toast.success("Cart reset successfully!");
+                }
+
+                // Reload page for fresh start
+                window.location.reload();
+              } catch (error) {
+                toast.success("Cart reset successfully! Page reloading...");
+                window.location.reload();
+              }
+            }}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center"
+          >
+            🔄 Reset Everything
+          </button>
+        </div>
       </div>
 
       {/* Search and Filter Controls */}

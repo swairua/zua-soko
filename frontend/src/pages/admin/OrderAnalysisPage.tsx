@@ -174,24 +174,24 @@ export default function OrderAnalysisPage() {
     const csvData = [
       ["Metric", "Value"],
       ["Total Orders", analytics.totalOrders],
-      ["Total Revenue", `KSh ${analytics.totalRevenue.toLocaleString()}`],
+      ["Total Revenue", `KSh ${(analytics.totalRevenue || 0).toLocaleString()}`],
       [
         "Average Order Value",
-        `KSh ${analytics.averageOrderValue.toLocaleString()}`,
+        `KSh ${(analytics.averageOrderValue || 0).toLocaleString()}`,
       ],
       [""],
       ["Top Products", "Orders", "Revenue"],
       ...analytics.topProducts.map((p) => [
         p.name,
         p.orders,
-        `KSh ${p.revenue.toLocaleString()}`,
+        `KSh ${(p.revenue || 0).toLocaleString()}`,
       ]),
       [""],
       ["Top Customers", "Orders", "Total Spent"],
       ...analytics.topCustomers.map((c) => [
         c.name,
         c.orders,
-        `KSh ${c.totalSpent.toLocaleString()}`,
+        `KSh ${(c.totalSpent || 0).toLocaleString()}`,
       ]),
     ];
 
@@ -271,7 +271,7 @@ export default function OrderAnalysisPage() {
               </div>
               <div className="ml-4">
                 <h3 className="text-2xl font-bold text-gray-900">
-                  {analytics.totalOrders.toLocaleString()}
+                  {(analytics.totalOrders || 0).toLocaleString()}
                 </h3>
                 <p className="text-gray-600 text-sm">Total Orders</p>
               </div>
@@ -285,7 +285,7 @@ export default function OrderAnalysisPage() {
               </div>
               <div className="ml-4">
                 <h3 className="text-2xl font-bold text-gray-900">
-                  KSh {analytics.totalRevenue.toLocaleString()}
+                  KSh {(analytics.totalRevenue || 0).toLocaleString()}
                 </h3>
                 <p className="text-gray-600 text-sm">Total Revenue</p>
               </div>
@@ -299,7 +299,7 @@ export default function OrderAnalysisPage() {
               </div>
               <div className="ml-4">
                 <h3 className="text-2xl font-bold text-gray-900">
-                  KSh {Math.round(analytics.averageOrderValue).toLocaleString()}
+                  KSh {Math.round(analytics.averageOrderValue || 0).toLocaleString()}
                 </h3>
                 <p className="text-gray-600 text-sm">Avg Order Value</p>
               </div>
@@ -343,7 +343,7 @@ export default function OrderAnalysisPage() {
                         {trend.orders} orders
                       </div>
                       <div className="text-xs text-gray-600">
-                        KSh {trend.revenue.toLocaleString()}
+                        KSh {(trend.revenue || 0).toLocaleString()}
                       </div>
                     </div>
                   </div>
@@ -429,7 +429,7 @@ export default function OrderAnalysisPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-gray-900">
-                        KSh {product.revenue.toLocaleString()}
+                        KSh {(product.revenue || 0).toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -469,7 +469,7 @@ export default function OrderAnalysisPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-gray-900">
-                        KSh {customer.totalSpent.toLocaleString()}
+                        KSh {(customer.totalSpent || 0).toLocaleString()}
                       </p>
                     </div>
                   </div>

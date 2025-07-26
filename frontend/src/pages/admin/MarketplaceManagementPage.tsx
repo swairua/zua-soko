@@ -438,7 +438,7 @@ export default function MarketplaceManagementPage() {
                   <tfoot>
                     <tr class="total">
                       <td colspan="3"><strong>Total Amount</strong></td>
-                      <td><strong>KSh ${invoice.total_amount.toLocaleString()}</strong></td>
+                      <td><strong>KSh ${(invoice.total_amount || 0).toLocaleString()}</strong></td>
                     </tr>
                   </tfoot>
                 </table>
@@ -573,7 +573,7 @@ export default function MarketplaceManagementPage() {
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  KSh {stats.totalRevenue.toLocaleString()}
+                  KSh {(stats.totalRevenue || 0).toLocaleString()}
                 </h3>
                 <p className="text-gray-600 text-sm">Total Revenue</p>
               </div>
@@ -732,7 +732,7 @@ export default function MarketplaceManagementPage() {
 
                         <div className="flex items-center justify-between mb-3">
                           <span className="text-lg font-semibold text-green-600">
-                            KSh {product.price_per_unit.toLocaleString()}/
+                            KSh {(product.price_per_unit || 0).toLocaleString()}/
                             {product.unit}
                           </span>
                           <span className="text-sm text-gray-600">
@@ -847,7 +847,7 @@ export default function MarketplaceManagementPage() {
                               </p>
                               <p>
                                 <strong>Amount:</strong> KSh{" "}
-                                {order.total_amount.toLocaleString()}
+                                {(order.total_amount || 0).toLocaleString()}
                               </p>
                             </div>
                             <div>
@@ -1304,7 +1304,7 @@ export default function MarketplaceManagementPage() {
                     </p>
                     <p>
                       <strong>Total:</strong> KSh{" "}
-                      {showOrderDetails.total_amount.toLocaleString()}
+                      {(showOrderDetails.total_amount || 0).toLocaleString()}
                     </p>
                   </div>
                 </div>

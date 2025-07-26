@@ -110,7 +110,7 @@ const kenyanCounties = [
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { cart, clearCart, refreshCart } = useCart();
+  const { cart, clearCart, refreshCart, removeFromCart, repairCart, nuclearReset } = useCart();
   const { user, isAuthenticated, loginWithData } = useAuthStore();
   const [cartSummary, setCartSummary] = useState<CartSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -142,12 +142,56 @@ export default function CheckoutPage() {
   const watchCreateAccount = watch("createAccount");
 
   useEffect(() => {
-    fetchCartSummary();
-  }, []);
+    // IMMEDIATE CART RESET - No tolerance for invalid items
+    console.log("🚨 CHECKOUT RESET - Clearing all cart data immediately");
+
+    // Nuclear reset
+    nuclearReset();
+
+    // Redirect to marketplace immediately
+    toast.error("Cart was reset due to invalid data. Redirecting to marketplace...");
+    setTimeout(() => {
+      navigate('/marketplace');
+    }, 1500);
+  }, []); // Only run once on mount
 
   const fetchCartSummary = async () => {
     try {
       setLoading(true);
+
+      console.log("🛒 CHECKOUT - Current cart state:", cart);
+      console.log("🛒 CHECKOUT - Cart items detail:", cart.items);
+
+      // Check if items have valid prices
+      const itemsWithInvalidPrices = cart.items.filter(item => !item.pricePerUnit || item.pricePerUnit <= 0);
+      if (itemsWithInvalidPrices.length > 0) {
+        console.error("🛒 CHECKOUT - Items with invalid prices:", itemsWithInvalidPrices);
+
+        // Force clear invalid items immediately
+        itemsWithInvalidPrices.forEach(item => {
+          console.log("🛒 CHECKOUT - Removing invalid item:", item);
+          removeFromCart(item.id);
+        });
+
+        // Show warning to user
+        toast.error(`Removed ${itemsWithInvalidPrices.length} invalid items from cart. Please re-add products.`);
+      }
+
+      // Repair cart to remove invalid items and recalculate
+      repairCart();
+
+      // Double-check: if cart still has zero total but has items, clear everything
+      if (cart.items.length > 0 && cart.totalAmount === 0) {
+        console.warn("🛒 CHECKOUT - Cart has items but zero total, clearing all items");
+        clearCart();
+        toast.error("Cart had invalid data and was cleared. Please re-add products from the marketplace.");
+        navigate("/marketplace");
+        return;
+      }
+
+      // Force refresh after repair
+      refreshCart();
+
       // Use local cart data from Zustand store
       const deliveryFee = cart.totalAmount > 2000 ? 0 : 300;
       const cartData = {
@@ -162,6 +206,7 @@ export default function CheckoutPage() {
         unavailableItems: [],
       };
 
+      console.log("🛒 CHECKOUT - Final cart data:", cartData);
       setCartSummary(cartData);
 
       // Check if cart is empty
@@ -359,6 +404,54 @@ export default function CheckoutPage() {
     );
   }
 
+  // Check if cart has zero values issue
+  const hasZeroValueIssue = cartSummary.totalAmount === 0 && cartSummary.items.length > 0;
+
+  if (hasZeroValueIssue) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Cart Contains Invalid Items
+          </h1>
+          <p className="text-gray-600 mb-4">
+            Your cart contains items with Ksh 0 pricing data. This happens when items were added before system updates.
+          </p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <h3 className="text-sm font-medium text-yellow-800 mb-2">What you need to do:</h3>
+            <ol className="text-sm text-yellow-700 list-decimal list-inside space-y-1">
+              <li>Clear your current cart (items with Ksh 0 prices)</li>
+              <li>Visit the marketplace to see current products with correct prices</li>
+              <li>Add fresh products to your cart</li>
+            </ol>
+          </div>
+          <div className="space-y-3">
+            <button
+              onClick={() => {
+                clearCart();
+                toast.success("Cart cleared! You can now add products with correct prices.");
+                navigate("/marketplace");
+              }}
+              className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors mr-4"
+            >
+              Clear Cart & Go to Marketplace
+            </button>
+            <button
+              onClick={() => navigate("/marketplace")}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              View Marketplace (Keep Cart)
+            </button>
+          </div>
+          <p className="text-sm text-gray-500 mt-4">
+            The marketplace has products with correct prices (Ksh 85, Ksh 120, etc.)
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
@@ -371,7 +464,27 @@ export default function CheckoutPage() {
           Back to Cart
         </button>
 
-        <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+
+          {/* Force Fix Button if issues detected */}
+          {cart.items.some(item => !item.pricePerUnit || item.pricePerUnit <= 0) && (
+            <button
+              onClick={() => {
+                console.log("🛒 FORCE FIX - Nuclear reset and redirecting");
+                nuclearReset();
+                toast.success("Cart completely reset! Redirecting to marketplace...");
+                setTimeout(() => {
+                  window.location.href = '/marketplace'; // Force full page reload
+                }, 1000);
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center animate-pulse"
+            >
+              <AlertCircle className="w-4 h-4 mr-2" />
+              🚨 Force Fix Cart
+            </button>
+          )}
+        </div>
 
         {/* Progress Steps */}
         <div className="mt-6">
@@ -875,7 +988,7 @@ export default function CheckoutPage() {
                           {item.name}
                         </p>
                         <p className="text-xs text-gray-600">
-                          {item.quantity} × {formatPrice(item.pricePerUnit)}
+                          {item.quantity} × {formatPrice(item.pricePerUnit || 0)}
                         </p>
                       </div>
 

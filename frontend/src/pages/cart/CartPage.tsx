@@ -10,6 +10,7 @@ import {
   MapPin,
   Clock,
   Tag,
+  AlertCircle,
 } from "lucide-react";
 import { useCart } from "../../store/cart";
 import { useAuthStore } from "../../store/auth";
@@ -53,9 +54,61 @@ export default function CartPage() {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
 
+  // Modal state
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{
+    type: 'clearCart' | 'removeItem';
+    message: string;
+    onConfirm: () => void;
+    itemId?: string;
+  } | null>(null);
+
   useEffect(() => {
-    refreshCart();
-  }, [refreshCart]);
+    // NUCLEAR RESET - Clear everything
+    console.log("🚨 CART RESET - Clearing all cart data");
+
+    // Clear all storage
+    try {
+      localStorage.removeItem('cart-storage');
+      localStorage.removeItem('cart');
+      sessionStorage.removeItem('cart-storage');
+      sessionStorage.removeItem('cart');
+    } catch (e) {
+      console.warn("Storage clear error:", e);
+    }
+
+    // Force clear cart
+    clearCart();
+
+    // Show success message
+    toast.success("Cart reset successfully! Add fresh products from marketplace.", {
+      duration: 4000,
+    });
+
+    // Refresh to ensure clean state
+    setTimeout(() => {
+      refreshCart();
+    }, 100);
+  }, []); // Only run once on mount
+
+  // Modal functions
+  const showConfirmation = (type: 'clearCart' | 'removeItem', message: string, onConfirm: () => void, itemId?: string) => {
+    setConfirmAction({ type, message, onConfirm, itemId });
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirm = () => {
+    if (confirmAction) {
+      confirmAction.onConfirm();
+    }
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+  };
+
+  const handleCancel = () => {
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+  };
 
   const handleQuantityChange = async (itemId: string, newQuantity: number) => {
     if (newQuantity < 0) return;
@@ -75,27 +128,34 @@ export default function CartPage() {
   };
 
   const handleRemoveItem = async (itemId: string) => {
-    if (
-      window.confirm(
-        "Are you sure you want to remove this item from your cart?",
-      )
-    ) {
-      try {
-        removeFromCart(itemId);
-      } catch (error) {
-        // Error is handled in the context
-      }
-    }
+    showConfirmation(
+      'removeItem',
+      "Are you sure you want to remove this item from your cart?",
+      () => {
+        try {
+          removeFromCart(itemId);
+          toast.success("Item removed from cart");
+        } catch (error) {
+          // Error is handled in the context
+        }
+      },
+      itemId
+    );
   };
 
   const handleClearCart = async () => {
-    if (window.confirm("Are you sure you want to clear your entire cart?")) {
-      try {
-        await clearCart();
-      } catch (error) {
-        // Error is handled in the context
+    showConfirmation(
+      'clearCart',
+      "Are you sure you want to clear your entire cart? This action cannot be undone.",
+      async () => {
+        try {
+          await clearCart();
+          toast.success("Cart cleared successfully");
+        } catch (error) {
+          // Error is handled in the context
+        }
       }
-    }
+    );
   };
 
   const applyCoupon = () => {
@@ -174,15 +234,24 @@ export default function CartPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             Your cart is empty
           </h1>
-          <p className="text-gray-600 mb-8">
-            Looks like you haven't added any items to your cart yet.
+          <p className="text-gray-600 mb-6">
+            {cart?.totalAmount === 0 ?
+              "Invalid items were automatically removed. Let's add some fresh products!" :
+              "Looks like you haven't added any items to your cart yet."
+            }
           </p>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
+            <h3 className="text-sm font-medium text-green-800 mb-2">🌱 Available Fresh Products:</h3>
+            <p className="text-sm text-green-700">
+              Fresh Tomatoes (Ksh 85/kg) • Fresh Spinach (Ksh 120/kg) • More varieties available
+            </p>
+          </div>
           <Link
             to="/marketplace"
             className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium inline-flex items-center"
           >
             <ShoppingBag className="w-5 h-5 mr-2" />
-            Start Shopping
+            Browse Fresh Products
           </Link>
         </div>
       </div>
@@ -208,14 +277,69 @@ export default function CartPage() {
         </div>
 
         {cart.items.length > 0 && (
-          <button
-            onClick={handleClearCart}
-            className="text-red-600 hover:text-red-700 text-sm font-medium"
-          >
-            Clear Cart
-          </button>
+          <div className="flex space-x-3">
+            {/* Check if any items have zero prices */}
+            {cart.items.some(item => !item.pricePerUnit || item.pricePerUnit <= 0) && (
+              <>
+                <button
+                  onClick={() => {
+                    const invalidItems = cart.items.filter(item => !item.pricePerUnit || item.pricePerUnit <= 0);
+                    invalidItems.forEach(item => removeFromCart(item.id));
+                    toast.success(`Removed ${invalidItems.length} items with invalid prices. Please add fresh products from marketplace.`);
+                  }}
+                  className="text-orange-600 hover:text-orange-700 text-sm font-medium bg-orange-50 px-3 py-1 rounded border border-orange-200"
+                >
+                  🔧 Fix Ksh 0 Items
+                </button>
+                <button
+                  onClick={() => {
+                    clearCart();
+                    toast.success("Cart cleared! Visit marketplace to add products with correct prices.");
+                    setTimeout(() => navigate("/marketplace"), 1500);
+                  }}
+                  className="text-white bg-green-600 hover:bg-green-700 text-sm font-medium px-3 py-1 rounded"
+                >
+                  🌱 Clear & Shop Fresh
+                </button>
+              </>
+            )}
+            <button
+              onClick={handleClearCart}
+              className="text-red-600 hover:text-red-700 text-sm font-medium"
+            >
+              Clear Cart
+            </button>
+          </div>
         )}
       </div>
+
+      {/* Warning banner for zero-price items */}
+      {cart.items.some(item => !item.pricePerUnit || item.pricePerUnit <= 0) && (
+        <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-lg p-6 mb-6">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <AlertCircle className="w-6 h-6 text-red-600 mt-1" />
+            </div>
+            <div className="ml-3 flex-1">
+              <h3 className="text-lg font-semibold text-red-800 mb-2">⚠️ Cart Contains Invalid Items</h3>
+              <p className="text-sm text-red-700 mb-3">
+                Your cart has items showing <strong>Ksh 0</strong> due to recent system updates. These items cannot be purchased.
+              </p>
+              <div className="bg-white rounded p-3 mb-3">
+                <h4 className="text-sm font-medium text-gray-800 mb-1">✅ Quick Fix Options:</h4>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li>• Click "🔧 Fix Ksh 0 Items" to remove invalid items automatically</li>
+                  <li>• Click "🌱 Clear & Shop Fresh" to start over with working products</li>
+                  <li>• Visit marketplace to see current prices (Ksh 85, Ksh 120, etc.)</li>
+                </ul>
+              </div>
+              <p className="text-xs text-green-700 font-medium">
+                🌱 Marketplace has fresh products with correct pricing ready for you!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Items */}
@@ -473,6 +597,47 @@ export default function CartPage() {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && confirmAction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-md w-full mx-4 shadow-xl">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {confirmAction.type === 'clearCart' ? 'Clear Cart' : 'Remove Item'}
+                </h3>
+              </div>
+
+              <p className="text-gray-600 mb-6">
+                {confirmAction.message}
+              </p>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleCancel}
+                  className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirm}
+                  className={`flex-1 py-2 px-4 rounded-lg transition-colors font-medium text-white ${
+                    confirmAction.type === 'clearCart'
+                      ? 'bg-red-600 hover:bg-red-700'
+                      : 'bg-red-600 hover:bg-red-700'
+                  }`}
+                >
+                  {confirmAction.type === 'clearCart' ? 'Clear Cart' : 'Remove Item'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

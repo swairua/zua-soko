@@ -137,8 +137,9 @@ export default function ProductPage() {
     if (!product) return;
 
     try {
-      await addToCart(product.id, quantity);
+      await addToCart(product, quantity);
       setQuantity(1); // Reset quantity after adding
+      toast.success(`Added ${product.name} to cart`);
     } catch (error) {
       // Error is handled in the context
     }

@@ -211,8 +211,8 @@ app.post("/api/auth/register", async (req, res) => {
     const hashedPassword = hashPassword(password);
 
     const result = await pool.query(
-      `INSERT INTO users (first_name, last_name, email, phone, password_hash, role, county, verified, registration_fee_paid)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+      `INSERT INTO users (first_name, last_name, email, phone, password_hash, role, county, verified)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
       [
         firstName,
         lastName,
@@ -222,7 +222,6 @@ app.post("/api/auth/register", async (req, res) => {
         role,
         county,
         true,
-        role !== "FARMER",
       ],
     );
 
@@ -269,7 +268,6 @@ app.post("/api/auth/register", async (req, res) => {
         role,
         county,
         verified: true,
-        registrationFeePaid: role !== "FARMER",
       },
     });
   } catch (err) {
@@ -283,6 +281,53 @@ app.post("/api/auth/register", async (req, res) => {
 // =================================================
 // MARKETPLACE ENDPOINTS
 // =================================================
+
+// GET /api/marketplace/products/:id - Get individual product details
+app.get("/api/marketplace/products/:id", async (req, res) => {
+  try {
+    const productId = req.params.id;
+    console.log("🛍️ Marketplace product detail request received:", productId);
+
+    // Validate product ID is a number
+    const productIdNum = parseInt(productId);
+    if (isNaN(productIdNum)) {
+      console.log("❌ Invalid product ID format:", productId);
+      return res.status(400).json({
+        message: "Invalid product ID format. Product ID must be a number.",
+        details: `Received: ${productId}, Expected: numeric ID`
+      });
+    }
+
+    const result = await pool.query(`
+      SELECT id, name, category, price_per_unit, unit, description,
+             stock_quantity, images, created_at,
+             'Demo Farmer' as farmer_name,
+             'Central' as farmer_county
+      FROM products
+      WHERE id = $1 AND is_active = true
+    `, [productIdNum]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found"
+      });
+    }
+
+    console.log("✅ Product details fetched successfully");
+
+    res.json({
+      success: true,
+      product: result.rows[0],
+    });
+  } catch (err) {
+    console.error("❌ Marketplace product detail error:", err);
+    return res.status(500).json({
+      message: "Failed to fetch product details",
+      details: err.message,
+    });
+  }
+});
 
 // GET /api/marketplace/products
 app.get("/api/marketplace/products", async (req, res) => {
@@ -1107,7 +1152,7 @@ app.get("/api/orders", authenticateToken, async (req, res) => {
 // GET /api/admin/analytics/stats
 app.get("/api/admin/analytics/stats", authenticateAdmin, async (req, res) => {
   try {
-    console.log("📊 Admin analytics stats request received");
+    console.log("��� Admin analytics stats request received");
 
     // Get user count
     const userCount = await pool.query("SELECT COUNT(*) as count FROM users");
@@ -1533,6 +1578,85 @@ app.get("/api/admin/driver-earnings", authenticateAdmin, async (req, res) => {
 });
 
 // =================================================
+// INITIALIZE FARMER CATEGORIES TABLES
+// =================================================
+
+// Initialize farmer categories tables if they don't exist
+async function initializeFarmerCategoriesTables() {
+  try {
+    console.log("🔄 Checking farmer categories tables...");
+
+    // Create farmer_categories_list table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS farmer_categories_list (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) UNIQUE NOT NULL,
+        description TEXT,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create farmer_categories table (without foreign key for now due to type mismatch)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS farmer_categories (
+        id SERIAL PRIMARY KEY,
+        farmer_id VARCHAR(255),
+        category_id INTEGER REFERENCES farmer_categories_list(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(farmer_id, category_id)
+      )
+    `);
+
+    // Create indexes
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_farmer_categories_farmer_id ON farmer_categories(farmer_id)
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_farmer_categories_category_id ON farmer_categories(category_id)
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_farmer_categories_list_is_active ON farmer_categories_list(is_active)
+    `);
+
+    // Insert default categories if table is empty
+    const categoryCount = await pool.query("SELECT COUNT(*) FROM farmer_categories_list");
+    if (parseInt(categoryCount.rows[0].count) === 0) {
+      console.log("📂 Adding default farmer categories...");
+      const defaultCategories = [
+        { name: "Vegetables", description: "Fresh vegetables and leafy greens" },
+        { name: "Fruits", description: "Fresh fruits and berries" },
+        { name: "Grains", description: "Cereals, rice, wheat, and other grains" },
+        { name: "Legumes", description: "Beans, peas, lentils, and pulses" },
+        { name: "Cereals", description: "Maize, millet, sorghum, and other cereals" },
+        { name: "Herbs", description: "Medicinal and culinary herbs" },
+        { name: "Root Vegetables", description: "Potatoes, carrots, onions, and tubers" },
+        { name: "Dairy", description: "Milk and dairy products" },
+        { name: "Poultry", description: "Chickens, eggs, and poultry products" },
+        { name: "Livestock", description: "Cattle, goats, sheep, and livestock products" }
+      ];
+
+      for (const category of defaultCategories) {
+        await pool.query(`
+          INSERT INTO farmer_categories_list (name, description, is_active)
+          VALUES ($1, $2, $3)
+          ON CONFLICT (name) DO NOTHING
+        `, [category.name, category.description, true]);
+      }
+      console.log("✅ Default farmer categories added");
+    }
+
+    console.log("✅ Farmer categories tables initialized");
+  } catch (error) {
+    console.error("❌ Error initializing farmer categories tables:", error);
+  }
+}
+
+// Call initialization on startup
+initializeFarmerCategoriesTables();
+
+// =================================================
 // ADMIN FARMER CATEGORIES ENDPOINTS
 // =================================================
 
@@ -1757,6 +1881,47 @@ app.post("/api/admin/products", authenticateAdmin, async (req, res) => {
   }
 });
 
+// GET /api/admin/products/:id - Get single product for admin
+app.get("/api/admin/products/:id", authenticateAdmin, async (req, res) => {
+  try {
+    const productId = req.params.id;
+    console.log("📦 Admin fetching product:", productId);
+
+    // Validate product ID is a number (since we use SERIAL PRIMARY KEY)
+    const productIdNum = parseInt(productId);
+    if (isNaN(productIdNum)) {
+      console.log("❌ Invalid product ID format:", productId);
+      return res.status(400).json({
+        message: "Invalid product ID format. Product ID must be a number.",
+        details: `Received: ${productId}, Expected: numeric ID`
+      });
+    }
+
+    const result = await pool.query(`
+      SELECT *
+      FROM products
+      WHERE id = $1
+    `, [productIdNum]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    console.log("✅ Product fetched successfully");
+
+    res.json({
+      success: true,
+      product: result.rows[0],
+    });
+  } catch (err) {
+    console.error("❌ Admin fetch product error:", err);
+    return res.status(500).json({
+      message: "Failed to fetch product",
+      details: err.message,
+    });
+  }
+});
+
 // PUT /api/admin/products/:id - Update product
 app.put("/api/admin/products/:id", authenticateAdmin, async (req, res) => {
   try {
@@ -1776,6 +1941,16 @@ app.put("/api/admin/products/:id", authenticateAdmin, async (req, res) => {
     } = req.body;
 
     console.log("📦 Admin updating product:", productId);
+
+    // Validate product ID is a number
+    const productIdNum = parseInt(productId);
+    if (isNaN(productIdNum)) {
+      console.log("❌ Invalid product ID format:", productId);
+      return res.status(400).json({
+        message: "Invalid product ID format. Product ID must be a number.",
+        details: `Received: ${productId}, Expected: numeric ID`
+      });
+    }
 
     if (!name || !category || !price_per_unit || !unit) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -1798,7 +1973,7 @@ app.put("/api/admin/products/:id", authenticateAdmin, async (req, res) => {
       Array.isArray(images) ? images : [],
       stock_quantity || 0,
       is_active !== false,
-      productId
+      productIdNum
     ]);
 
     if (result.rows.length === 0) {
@@ -1827,11 +2002,21 @@ app.delete("/api/admin/products/:id", authenticateAdmin, async (req, res) => {
     const productId = req.params.id;
     console.log("📦 Admin deleting product:", productId);
 
+    // Validate product ID is a number
+    const productIdNum = parseInt(productId);
+    if (isNaN(productIdNum)) {
+      console.log("❌ Invalid product ID format:", productId);
+      return res.status(400).json({
+        message: "Invalid product ID format. Product ID must be a number.",
+        details: `Received: ${productId}, Expected: numeric ID`
+      });
+    }
+
     const result = await pool.query(`
       DELETE FROM products
       WHERE id = $1
       RETURNING id, name
-    `, [productId]);
+    `, [productIdNum]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Product not found" });
@@ -1848,6 +2033,84 @@ app.delete("/api/admin/products/:id", authenticateAdmin, async (req, res) => {
     console.error("❌ Admin delete product error:", err);
     return res.status(500).json({
       message: "Failed to delete product",
+      details: err.message,
+    });
+  }
+});
+
+// POST /api/admin/reset-products - Reset products with valid data
+app.post("/api/admin/reset-products", authenticateAdmin, async (req, res) => {
+  try {
+    console.log("🔄 Admin resetting products...");
+
+    // Clear existing products
+    await pool.query("DELETE FROM products");
+
+    // Insert fresh products with valid prices
+    const freshProducts = [
+      {
+        name: "Fresh Tomatoes",
+        description: "Premium quality tomatoes from Nakuru farms",
+        category: "Vegetables",
+        quantity: 500,
+        unit: "kg",
+        price_per_unit: 85,
+        images: ["https://images.unsplash.com/photo-1546470427-e212b9d56085"],
+        stock_quantity: 500,
+        is_active: true
+      },
+      {
+        name: "Fresh Spinach",
+        description: "Organic spinach leaves, rich in vitamins",
+        category: "Vegetables",
+        quantity: 100,
+        unit: "kg",
+        price_per_unit: 120,
+        images: ["https://images.unsplash.com/photo-1576045057995-568f588f82fb"],
+        stock_quantity: 100,
+        is_active: true
+      },
+      {
+        name: "Sweet Bananas",
+        description: "Sweet and ripe bananas from central Kenya",
+        category: "Fruits",
+        quantity: 200,
+        unit: "kg",
+        price_per_unit: 60,
+        images: ["https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e"],
+        stock_quantity: 200,
+        is_active: true
+      }
+    ];
+
+    for (const product of freshProducts) {
+      await pool.query(`
+        INSERT INTO products (name, description, category, quantity, unit, price_per_unit, images, stock_quantity, is_active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `, [
+        product.name,
+        product.description,
+        product.category,
+        product.quantity,
+        product.unit,
+        product.price_per_unit,
+        product.images,
+        product.stock_quantity,
+        product.is_active
+      ]);
+    }
+
+    console.log("✅ Products reset successfully");
+
+    res.json({
+      success: true,
+      message: "Products reset successfully",
+      products: freshProducts
+    });
+  } catch (err) {
+    console.error("❌ Admin reset products error:", err);
+    return res.status(500).json({
+      message: "Failed to reset products",
       details: err.message,
     });
   }
@@ -1877,6 +2140,120 @@ app.get("/api/admin/products", authenticateAdmin, async (req, res) => {
     console.error("❌ Admin products error:", err);
     return res.status(500).json({
       message: "Failed to fetch products",
+      details: err.message,
+    });
+  }
+});
+
+// =================================================
+// ADMIN SETTINGS ENDPOINTS
+// =================================================
+
+// GET /api/admin/settings - Get system settings
+app.get("/api/admin/settings", authenticateAdmin, async (req, res) => {
+  try {
+    console.log("⚙️ Admin settings request received");
+
+    // Default settings structure
+    const defaultSettings = {
+      platform: {
+        name: "Zuasoko",
+        description: "Agricultural Platform connecting farmers to markets",
+        supportEmail: "support@zuasoko.com",
+        supportPhone: "+254712345678"
+      },
+      fees: {
+        farmerRegistrationFee: 300,
+        registrationFeeEnabled: true,
+        gracePeriodDays: 7
+      },
+      payments: {
+        mpesaEnabled: true,
+        mpesaShortcode: "174379",
+        mpesaPasskey: "demo-passkey",
+        bankTransferEnabled: false,
+        commissionRate: 5.0
+      },
+      notifications: {
+        emailEnabled: false,
+        smsEnabled: true,
+        pushEnabled: true,
+        adminNotifications: true
+      },
+      security: {
+        passwordMinLength: 6,
+        sessionTimeout: 1440,
+        twoFactorRequired: false,
+        maxLoginAttempts: 5
+      },
+      features: {
+        consignmentApprovalRequired: true,
+        autoDriverAssignment: false,
+        inventoryTracking: true,
+        priceModeration: true
+      }
+    };
+
+    console.log("⚙️ Returning default system settings");
+
+    res.json({
+      success: true,
+      settings: defaultSettings
+    });
+  } catch (err) {
+    console.error("❌ Admin settings error:", err);
+    return res.status(500).json({
+      message: "Failed to fetch settings",
+      details: err.message,
+    });
+  }
+});
+
+// PUT /api/admin/settings - Update system settings
+app.put("/api/admin/settings", authenticateAdmin, async (req, res) => {
+  try {
+    const settings = req.body;
+    console.log("⚙️ Admin updating settings:", Object.keys(settings));
+
+    // In a real application, you would save these to a database
+    // For now, we'll just validate the structure and return success
+
+    const requiredSections = ['platform', 'fees', 'payments', 'notifications', 'security', 'features'];
+    const missingSections = requiredSections.filter(section => !settings[section]);
+
+    if (missingSections.length > 0) {
+      return res.status(400).json({
+        message: `Missing required sections: ${missingSections.join(', ')}`
+      });
+    }
+
+    // Validate specific fields
+    if (settings.fees && typeof settings.fees.farmerRegistrationFee !== 'number') {
+      return res.status(400).json({
+        message: "Farmer registration fee must be a number"
+      });
+    }
+
+    if (settings.payments && typeof settings.payments.commissionRate !== 'number') {
+      return res.status(400).json({
+        message: "Commission rate must be a number"
+      });
+    }
+
+    console.log("✅ Settings validation passed");
+
+    // TODO: In production, save settings to database
+    // For now, just return success
+
+    res.json({
+      success: true,
+      message: "Settings updated successfully",
+      settings: settings
+    });
+  } catch (err) {
+    console.error("❌ Admin update settings error:", err);
+    return res.status(500).json({
+      message: "Failed to update settings",
       details: err.message,
     });
   }

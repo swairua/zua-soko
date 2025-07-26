@@ -496,7 +496,7 @@ export default function ConsignmentManagementPage() {
                               <span>{consignment.category}</span>
                               <span>•</span>
                               <span>
-                                Total: KSh {totalValue.toLocaleString()}
+                                Total: KSh {(totalValue || 0).toLocaleString()}
                               </span>
                             </div>
 
@@ -511,8 +511,8 @@ export default function ConsignmentManagementPage() {
                                     <span className="ml-2 text-blue-600">
                                       (Total: KSh{" "}
                                       {(
-                                        consignment.adminSuggestedPrice *
-                                        consignment.quantity
+                                        (consignment.adminSuggestedPrice || 0) *
+                                        (consignment.quantity || 0)
                                       ).toLocaleString()}
                                       )
                                     </span>

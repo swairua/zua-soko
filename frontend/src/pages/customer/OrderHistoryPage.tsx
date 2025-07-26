@@ -232,7 +232,7 @@ export default function OrderHistoryPage() {
                         <p className="text-sm text-gray-500">
                           {Array.isArray(order?.items) ? order.items.length : 0} item
                           {Array.isArray(order?.items) && order.items.length > 1 ? "s" : ""} • KES{" "}
-                          {order.totalAmount.toLocaleString()}
+                          {(order.totalAmount || 0).toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -357,7 +357,7 @@ export default function OrderHistoryPage() {
                           </div>
                         </div>
                         <p className="font-medium text-gray-900">
-                          KES {item.totalPrice.toLocaleString()}
+                          KES {(item.totalPrice || 0).toLocaleString()}
                         </p>
                       </div>
                     ))}
@@ -395,7 +395,7 @@ export default function OrderHistoryPage() {
                       Total Amount
                     </span>
                     <span className="text-lg font-bold text-gray-900">
-                      KES {selectedOrder.totalAmount.toLocaleString()}
+                      KES {(selectedOrder.totalAmount || 0).toLocaleString()}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500 mt-1">

@@ -64,75 +64,30 @@ export default function UserManagementPage() {
 
   const fetchUsers = async () => {
     try {
-      // Since we don't have the API endpoint yet, using mock data
-      const mockUsers: User[] = [
-        {
-          id: "1",
-          phone: "+254712345678",
-          email: "admin@zuasoko.com",
-          firstName: "Admin",
-          lastName: "User",
-          role: "ADMIN",
-          status: "ACTIVE",
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: "2",
-          phone: "+254734567890",
-          email: "farmer@zuasoko.com",
-          firstName: "Jane",
-          lastName: "Wanjiku",
-          role: "FARMER",
-          status: "ACTIVE",
-          profile: { farmName: "Green Valley Farm", county: "Kiambu" },
-          createdAt: new Date(
-            Date.now() - 7 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        },
-        {
-          id: "3",
-          phone: "+254756789012",
-          email: "customer@zuasoko.com",
-          firstName: "Mary",
-          lastName: "Wangari",
-          role: "CUSTOMER",
-          status: "ACTIVE",
-          profile: { county: "Nairobi" },
-          createdAt: new Date(
-            Date.now() - 14 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        },
-        {
-          id: "4",
-          phone: "+254778901234",
-          email: "driver@zuasoko.com",
-          firstName: "Michael",
-          lastName: "Kiprotich",
-          role: "DRIVER",
-          status: "ACTIVE",
+      console.log("📊 Fetching users from real API");
+      const response = await axios.get("/api/admin/users", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data.success) {
+        const apiUsers = response.data.users.map((user: any) => ({
+          id: user.id,
+          phone: user.phone,
+          email: user.email || '',
+          firstName: user.first_name,
+          lastName: user.last_name,
+          role: user.role,
+          status: user.verified ? "ACTIVE" : "PENDING",
+          createdAt: user.created_at,
           profile: {
-            vehicleType: "Pickup Truck",
-            licenseNumber: "DL123456789",
+            county: user.county,
           },
-          createdAt: new Date(
-            Date.now() - 21 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        },
-        {
-          id: "5",
-          phone: "+254790123456",
-          email: "pending.farmer@zuasoko.com",
-          firstName: "John",
-          lastName: "Kimani",
-          role: "FARMER",
-          status: "PENDING",
-          profile: { farmName: "Highlands Farm", county: "Nyeri" },
-          createdAt: new Date(
-            Date.now() - 2 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        },
-      ];
-      setUsers(mockUsers);
+        }));
+        console.log(`📊 Loaded ${apiUsers.length} users from API`);
+        setUsers(apiUsers);
+      } else {
+        throw new Error("API response not successful");
+      }
     } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("Failed to fetch users");

@@ -20,6 +20,8 @@ interface CartState {
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
   refreshCart: () => void;
+  repairCart: () => void;
+  nuclearReset: () => void;
 }
 
 // Helper function to ensure valid numbers
@@ -36,9 +38,25 @@ export const useCartStore = create<CartState>()(
       totalAmount: 0,
 
       addToCart: (product, quantity) => {
+        console.log("🛒 addToCart called with:", { product, quantity });
         const state = get();
         const safeQuantity = safeNumber(quantity);
-        const safePrice = safeNumber(product.pricePerUnit);
+        // Handle both pricePerUnit and price_per_unit field names
+        const priceValue = product.pricePerUnit || product.price_per_unit || 0;
+        const safePrice = safeNumber(priceValue);
+
+        console.log("🛒 Processed values:", {
+          safeQuantity,
+          safePrice,
+          priceValue,
+          productPrice: product.pricePerUnit,
+          productPriceAlt: product.price_per_unit
+        });
+
+        if (safePrice <= 0) {
+          console.error("🛒 ERROR: Product price is 0 or invalid!", { product, priceValue, safePrice });
+          return;
+        }
 
         if (safeQuantity <= 0) return;
 
@@ -72,7 +90,7 @@ export const useCartStore = create<CartState>()(
           // Add new item
           const newItem: CartItem = {
             id: `cart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            productId: product.id || `product-${Date.now()}`,
+            productId: String(product.id || `product-${Date.now()}`),
             name: product.name || "Unknown Product",
             pricePerUnit: safePrice,
             quantity: safeQuantity,
@@ -80,16 +98,22 @@ export const useCartStore = create<CartState>()(
             unit: product.unit || "kg",
           };
 
+          console.log("🛒 Adding new cart item:", newItem);
+
           const updatedItems = [...state.items, newItem];
           const totalItems = updatedItems.reduce(
             (sum, item) => sum + safeNumber(item.quantity),
             0,
           );
           const totalAmount = updatedItems.reduce(
-            (sum, item) =>
-              sum + safeNumber(item.pricePerUnit) * safeNumber(item.quantity),
+            (sum, item) => {
+              const itemTotal = safeNumber(item.pricePerUnit) * safeNumber(item.quantity);
+              return sum + itemTotal;
+            },
             0,
           );
+
+          console.log("🛒 Cart updated - Total items:", totalItems, "Total amount:", totalAmount);
 
           set({
             items: updatedItems,
@@ -149,29 +173,142 @@ export const useCartStore = create<CartState>()(
       },
 
       clearCart: () => {
+        // Clear localStorage to ensure complete reset
+        try {
+          localStorage.removeItem('cart-storage');
+        } catch (e) {
+          console.warn("Could not clear cart storage:", e);
+        }
+
         set({
           items: [],
           totalItems: 0,
           totalAmount: 0,
         });
+
+        console.log("🛒 Cart completely cleared and storage reset");
       },
 
       refreshCart: () => {
         const state = get();
-        const totalItems = state.items.reduce(
+        console.log("🛒 refreshCart - Current items:", state.items);
+
+        // Auto-remove zero price items during refresh
+        const validItems = state.items.filter(item => {
+          const hasValidPrice = item.pricePerUnit && item.pricePerUnit > 0;
+          if (!hasValidPrice) {
+            console.warn("🛒 refreshCart - Auto-removing zero price item:", item);
+            return false;
+          }
+          return true;
+        });
+
+        const totalItems = validItems.reduce(
           (sum, item) => sum + safeNumber(item.quantity),
           0,
         );
-        const totalAmount = state.items.reduce(
-          (sum, item) =>
-            sum + safeNumber(item.pricePerUnit) * safeNumber(item.quantity),
+        const totalAmount = validItems.reduce(
+          (sum, item) => {
+            const itemPrice = safeNumber(item.pricePerUnit);
+            const itemQuantity = safeNumber(item.quantity);
+            const itemTotal = itemPrice * itemQuantity;
+            console.log("🛒 refreshCart item:", {
+              name: item.name,
+              price: itemPrice,
+              quantity: itemQuantity,
+              total: itemTotal
+            });
+            return sum + itemTotal;
+          },
           0,
         );
 
+        console.log("🛒 refreshCart - Calculated totals:", {
+          originalItems: state.items.length,
+          validItems: validItems.length,
+          totalItems,
+          totalAmount
+        });
+
         set({
+          items: validItems,
           totalItems,
           totalAmount,
         });
+      },
+
+      repairCart: () => {
+        const state = get();
+        console.log("🛒 repairCart - Checking cart items:", state.items);
+
+        // Remove items with invalid prices or quantities
+        const validItems = state.items.filter(item => {
+          const hasValidPrice = item.pricePerUnit && Number(item.pricePerUnit) > 0;
+          const hasValidQuantity = item.quantity && Number(item.quantity) > 0;
+          const hasValidName = item.name && item.name.trim().length > 0;
+
+          const isValid = hasValidPrice && hasValidQuantity && hasValidName;
+
+          if (!isValid) {
+            console.warn("🛒 repairCart - Removing invalid item:", {
+              item,
+              hasValidPrice,
+              hasValidQuantity,
+              hasValidName,
+              priceValue: item.pricePerUnit,
+              quantityValue: item.quantity
+            });
+            return false;
+          }
+          return true;
+        });
+
+        // Recalculate totals
+        const totalItems = validItems.reduce(
+          (sum, item) => sum + safeNumber(item.quantity),
+          0,
+        );
+        const totalAmount = validItems.reduce(
+          (sum, item) => sum + safeNumber(item.pricePerUnit) * safeNumber(item.quantity),
+          0,
+        );
+
+        console.log("🛒 repairCart - Repaired cart:", {
+          originalItems: state.items.length,
+          validItems: validItems.length,
+          totalItems,
+          totalAmount
+        });
+
+        set({
+          items: validItems,
+          totalItems,
+          totalAmount,
+        });
+      },
+
+      nuclearReset: () => {
+        console.log("🛒 NUCLEAR RESET - Completely destroying cart data");
+
+        // Clear all possible storage keys
+        try {
+          localStorage.removeItem('cart-storage');
+          localStorage.removeItem('cart');
+          localStorage.removeItem('zustand-cart');
+          sessionStorage.removeItem('cart-storage');
+          sessionStorage.removeItem('cart');
+        } catch (e) {
+          console.warn("Storage clear error:", e);
+        }
+
+        // Reset state completely
+        set({
+          items: [],
+          totalItems: 0,
+          totalAmount: 0,
+        });
+
+        console.log("🛒 NUCLEAR RESET - Complete. Cart should be empty.");
       },
     }),
     {
@@ -200,6 +337,8 @@ export const useCart = () => {
     updateQuantity: cartStore.updateQuantity,
     clearCart: cartStore.clearCart,
     refreshCart: cartStore.refreshCart,
+    repairCart: cartStore.repairCart,
+    nuclearReset: cartStore.nuclearReset,
     isLoading: false, // For compatibility
   };
 };

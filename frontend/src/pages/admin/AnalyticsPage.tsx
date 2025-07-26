@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   TrendingUp,
   TrendingDown,
@@ -37,6 +38,7 @@ interface ChartData {
 
 export default function AnalyticsPage() {
   const { token } = useAuthStore();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("30");
   const [stats, setStats] = useState<DashboardStats>({
@@ -174,7 +176,7 @@ export default function AnalyticsPage() {
       style: "currency",
       currency: "KES",
       minimumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount || 0);
   };
 
   const getActivityIcon = (type: string) => {
@@ -191,6 +193,51 @@ export default function AnalyticsPage() {
         return <DollarSign className="w-4 h-4 text-emerald-600" />;
       default:
         return <Activity className="w-4 h-4 text-gray-600" />;
+    }
+  };
+
+  const generateReport = () => {
+    try {
+      // Create CSV data for analytics report
+      const reportData = [
+        ['Analytics Report - ' + new Date().toLocaleDateString()],
+        [''],
+        ['Key Metrics'],
+        ['Total Users', (stats.totalUsers || 0).toString()],
+        ['Total Orders', (stats.totalOrders || 0).toString()],
+        ['Total Revenue', `KES ${(stats.totalRevenue || 0).toLocaleString()}`],
+        ['Active Drivers', (stats.activeDrivers || 0).toString()],
+        ['Pending Approvals', (stats.pendingApprovals || 0).toString()],
+        [''],
+        ['Monthly Revenue Data'],
+        ['Month', 'Revenue (KES)'],
+        ...monthlyData.map(item => [item.name, item.value.toLocaleString()]),
+        [''],
+        ['Category Distribution'],
+        ['Category', 'Percentage'],
+        ...categoryData.map(item => [item.name, `${item.value}%`]),
+      ];
+
+      // Convert to CSV
+      const csv = reportData.map(row =>
+        row.map(cell => `"${cell}"`).join(',')
+      ).join('\n');
+
+      // Download file
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `analytics_report_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success('Analytics report downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating report:', error);
+      toast.error('Failed to generate report');
     }
   };
 
@@ -278,7 +325,7 @@ export default function AnalyticsPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Users</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats.totalUsers.toLocaleString()}
+                  {(stats.totalUsers || 0).toLocaleString()}
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
@@ -301,7 +348,7 @@ export default function AnalyticsPage() {
                   Total Orders
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats.totalOrders.toLocaleString()}
+                  {(stats.totalOrders || 0).toLocaleString()}
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-lg">
@@ -436,25 +483,34 @@ export default function AnalyticsPage() {
             Quick Actions
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <Users className="w-6 h-6 text-blue-600 mb-2" />
-              <h4 className="font-medium text-gray-900">Manage Users</h4>
+            <button
+              onClick={() => navigate('/admin/users')}
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors text-left group"
+            >
+              <Users className="w-6 h-6 text-blue-600 mb-2 group-hover:scale-110 transition-transform" />
+              <h4 className="font-medium text-gray-900 group-hover:text-blue-600">Manage Users</h4>
               <p className="text-sm text-gray-500">
                 View and manage platform users
               </p>
             </button>
 
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <Package className="w-6 h-6 text-green-600 mb-2" />
-              <h4 className="font-medium text-gray-900">Review Consignments</h4>
+            <button
+              onClick={() => navigate('/admin/consignments')}
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-green-300 transition-colors text-left group"
+            >
+              <Package className="w-6 h-6 text-green-600 mb-2 group-hover:scale-110 transition-transform" />
+              <h4 className="font-medium text-gray-900 group-hover:text-green-600">Review Consignments</h4>
               <p className="text-sm text-gray-500">
                 Approve pending consignments
               </p>
             </button>
 
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <Download className="w-6 h-6 text-purple-600 mb-2" />
-              <h4 className="font-medium text-gray-900">Generate Reports</h4>
+            <button
+              onClick={() => generateReport()}
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-purple-300 transition-colors text-left group"
+            >
+              <Download className="w-6 h-6 text-purple-600 mb-2 group-hover:scale-110 transition-transform" />
+              <h4 className="font-medium text-gray-900 group-hover:text-purple-600">Generate Reports</h4>
               <p className="text-sm text-gray-500">
                 Download detailed analytics
               </p>
