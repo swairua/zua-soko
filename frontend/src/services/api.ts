@@ -29,7 +29,7 @@ api.interceptors.request.use((config) => {
   }
 
   // Add timing metadata
-  config.metadata = { startTime: Date.now() };
+  (config as any).metadata = { startTime: Date.now() };
 
   return config;
 });
