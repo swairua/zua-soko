@@ -34,6 +34,45 @@ export const useAppDownload = (): UseAppDownloadReturn => {
 
   const downloadUrl = "/downloads/zuasoko-app.apk";
 
+  const setDefaultAppInfo = () => {
+    setAppInfo({
+      version: "1.0.0",
+      versionCode: 1,
+      size: "25 MB",
+      releaseDate: new Date().toISOString().split('T')[0],
+      releaseNotes: [
+        "Browse fresh produce from local farmers",
+        "Secure mobile payments with M-Pesa",
+        "Real-time order tracking",
+        "Direct farmer-to-consumer marketplace"
+      ],
+      features: [
+        "Marketplace browsing",
+        "Cart management",
+        "Secure checkout",
+        "Order history",
+        "User profiles"
+      ],
+      minAndroidVersion: "5.0",
+      targetAndroidVersion: "14.0",
+      permissions: [
+        "Internet access",
+        "Camera (for profile photos)",
+        "Storage (for app data)"
+      ],
+      screenshots: [
+        "/images/app-screen-1.jpg",
+        "/images/app-screen-2.jpg",
+        "/images/app-screen-3.jpg"
+      ],
+      requirements: {
+        ram: "2 GB",
+        storage: "100 MB",
+        android: "5.0+"
+      }
+    });
+  };
+
   const checkAvailability = async (): Promise<boolean> => {
     try {
       console.log("🔍 Checking APK availability at:", downloadUrl);
