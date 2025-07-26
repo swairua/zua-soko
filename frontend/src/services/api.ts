@@ -27,6 +27,10 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Add timing metadata
+  config.metadata = { startTime: Date.now() };
+
   return config;
 });
 
