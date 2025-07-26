@@ -74,7 +74,7 @@ export default function MarketplacePage() {
     totalPages: 0,
   });
 
-  const { addToCart, isLoading: cartLoading } = useCart();
+  const { addToCart, isLoading: cartLoading } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
 
   // Fetch products from real database
