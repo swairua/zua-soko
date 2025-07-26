@@ -344,13 +344,13 @@ export const useCartStore = () => {
       await cartStore.addToCart({
         productId: String(product.id),
         name: product.name || "Unknown Product",
-        pricePerUnit: product.price_per_unit || product.pricePerUnit || 0,
-        quantity: Math.max(1, quantity || 1),
+        pricePerUnit: Number(product.price_per_unit || product.pricePerUnit || 0),
+        quantity: Math.max(1, Number(quantity) || 1),
         unit: product.unit || "kg",
-        images: product.images || [],
-        maxStock: product.stock_quantity || 999,
-        farmerName: product.farmer_name || "Local Farmer",
-        farmerCounty: product.farmer_county || "Kenya",
+        images: Array.isArray(product.images) ? product.images : [],
+        maxStock: Number(product.stock_quantity || product.stockQuantity || 999),
+        farmerName: product.farmer_name || product.farmerName || "Local Farmer",
+        farmerCounty: product.farmer_county || product.farmerCounty || "Kenya",
         category: product.category || "General"
       });
     },
