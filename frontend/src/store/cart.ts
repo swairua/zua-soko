@@ -1,344 +1,303 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import toast from "react-hot-toast";
+import { apiService } from "../services/api";
 
-interface CartItem {
+export interface CartItem {
   id: string;
   productId: string;
   name: string;
   pricePerUnit: number;
   quantity: number;
-  images: string[];
   unit: string;
+  images: string[];
+  maxStock?: number;
+  farmerName?: string;
+  farmerCounty?: string;
+  category?: string;
 }
 
-interface CartState {
+export interface Cart {
   items: CartItem[];
   totalItems: number;
   totalAmount: number;
-  addToCart: (product: any, quantity: number) => void;
-  removeFromCart: (itemId: string) => void;
-  updateQuantity: (itemId: string, quantity: number) => void;
-  clearCart: () => void;
-  refreshCart: () => void;
-  repairCart: () => void;
-  nuclearReset: () => void;
 }
 
-// Helper function to ensure valid numbers
-const safeNumber = (value: any): number => {
-  const num = Number(value);
-  return isNaN(num) || !isFinite(num) ? 0 : num;
+interface CartStore {
+  cart: Cart;
+  isLoading: boolean;
+  addToCart: (item: Omit<CartItem, "id">) => Promise<void>;
+  removeFromCart: (itemId: string) => void;
+  updateQuantity: (itemId: string, quantity: number) => void;
+  clearCart: () => Promise<void>;
+  refreshCart: () => Promise<void>;
+  validateCartItems: () => Promise<void>;
+}
+
+const initialCart: Cart = {
+  items: [],
+  totalItems: 0,
+  totalAmount: 0,
 };
 
-export const useCartStore = create<CartState>()(
+const calculateTotals = (items: CartItem[]): Pick<Cart, "totalItems" | "totalAmount"> => {
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalAmount = items.reduce(
+    (sum, item) => sum + (item.pricePerUnit || 0) * item.quantity,
+    0,
+  );
+  return { totalItems, totalAmount };
+};
+
+export const useCart = create<CartStore>()(
   persist(
     (set, get) => ({
-      items: [],
-      totalItems: 0,
-      totalAmount: 0,
+      cart: initialCart,
+      isLoading: false,
 
-      addToCart: (product, quantity) => {
-        console.log("🛒 addToCart called with:", { product, quantity });
-        const state = get();
-        const safeQuantity = safeNumber(quantity);
-        // Handle both pricePerUnit and price_per_unit field names
-        const priceValue = product.pricePerUnit || product.price_per_unit || 0;
-        const safePrice = safeNumber(priceValue);
+      addToCart: async (newItem) => {
+        try {
+          set({ isLoading: true });
+          
+          // Fetch latest product data from database to ensure accuracy
+          const productData = await apiService.getProduct(newItem.productId);
+          
+          if (!productData || !productData.product) {
+            throw new Error("Product not found");
+          }
 
-        console.log("🛒 Processed values:", {
-          safeQuantity,
-          safePrice,
-          priceValue,
-          productPrice: product.pricePerUnit,
-          productPriceAlt: product.price_per_unit
-        });
+          const product = productData.product;
+          
+          // Validate stock availability
+          if (product.stock_quantity <= 0) {
+            toast.error("Product is out of stock");
+            return;
+          }
 
-        if (safePrice <= 0) {
-          console.error("🛒 ERROR: Product price is 0 or invalid!", { product, priceValue, safePrice });
-          return;
-        }
-
-        if (safeQuantity <= 0) return;
-
-        const existingItem = state.items.find(
-          (item) => item.productId === product.id,
-        );
-
-        if (existingItem) {
-          // Update existing item
-          const updatedItems = state.items.map((item) =>
-            item.productId === product.id
-              ? { ...item, quantity: safeNumber(item.quantity) + safeQuantity }
-              : item,
-          );
-          const totalItems = updatedItems.reduce(
-            (sum, item) => sum + safeNumber(item.quantity),
-            0,
-          );
-          const totalAmount = updatedItems.reduce(
-            (sum, item) =>
-              sum + safeNumber(item.pricePerUnit) * safeNumber(item.quantity),
-            0,
+          const { cart } = get();
+          const existingItemIndex = cart.items.findIndex(
+            (item) => item.productId === newItem.productId,
           );
 
-          set({
+          let updatedItems: CartItem[];
+
+          if (existingItemIndex >= 0) {
+            // Update existing item with fresh product data
+            const existingItem = cart.items[existingItemIndex];
+            const newQuantity = Math.min(
+              existingItem.quantity + newItem.quantity,
+              product.stock_quantity
+            );
+            
+            if (newQuantity > product.stock_quantity) {
+              toast.error(`Only ${product.stock_quantity} items available in stock`);
+            }
+
+            updatedItems = cart.items.map((item, index) =>
+              index === existingItemIndex
+                ? {
+                    ...item,
+                    quantity: newQuantity,
+                    pricePerUnit: product.price_per_unit,
+                    name: product.name,
+                    unit: product.unit,
+                    category: product.category,
+                    maxStock: product.stock_quantity,
+                    images: product.images || []
+                  }
+                : item,
+            );
+          } else {
+            // Add new item with fresh product data
+            const cartItem: CartItem = {
+              id: `cart-${Date.now()}-${Math.random()}`,
+              productId: newItem.productId,
+              name: product.name,
+              pricePerUnit: product.price_per_unit,
+              quantity: Math.min(newItem.quantity, product.stock_quantity),
+              unit: product.unit,
+              category: product.category,
+              maxStock: product.stock_quantity,
+              images: product.images || [],
+              farmerName: product.farmer_name || "Local Farmer",
+              farmerCounty: product.farmer_county || "Kenya"
+            };
+            updatedItems = [...cart.items, cartItem];
+          }
+
+          const totals = calculateTotals(updatedItems);
+          const updatedCart = {
             items: updatedItems,
-            totalItems,
-            totalAmount,
-          });
-        } else {
-          // Add new item
-          const newItem: CartItem = {
-            id: `cart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            productId: String(product.id || `product-${Date.now()}`),
-            name: product.name || "Unknown Product",
-            pricePerUnit: safePrice,
-            quantity: safeQuantity,
-            images: Array.isArray(product.images) ? product.images : [],
-            unit: product.unit || "kg",
+            ...totals,
           };
 
-          console.log("🛒 Adding new cart item:", newItem);
-
-          const updatedItems = [...state.items, newItem];
-          const totalItems = updatedItems.reduce(
-            (sum, item) => sum + safeNumber(item.quantity),
-            0,
-          );
-          const totalAmount = updatedItems.reduce(
-            (sum, item) => {
-              const itemTotal = safeNumber(item.pricePerUnit) * safeNumber(item.quantity);
-              return sum + itemTotal;
-            },
-            0,
-          );
-
-          console.log("🛒 Cart updated - Total items:", totalItems, "Total amount:", totalAmount);
-
-          set({
-            items: updatedItems,
-            totalItems,
-            totalAmount,
-          });
+          set({ cart: updatedCart });
+          toast.success("Item added to cart!");
+        } catch (error: any) {
+          console.error("Error adding to cart:", error);
+          toast.error(error.message || "Failed to add item to cart");
+        } finally {
+          set({ isLoading: false });
         }
       },
 
       removeFromCart: (itemId) => {
-        const state = get();
-        const updatedItems = state.items.filter((item) => item.id !== itemId);
-        const totalItems = updatedItems.reduce(
-          (sum, item) => sum + safeNumber(item.quantity),
-          0,
-        );
-        const totalAmount = updatedItems.reduce(
-          (sum, item) =>
-            sum + safeNumber(item.pricePerUnit) * safeNumber(item.quantity),
-          0,
-        );
-
-        set({
+        const { cart } = get();
+        const updatedItems = cart.items.filter((item) => item.id !== itemId);
+        const totals = calculateTotals(updatedItems);
+        const updatedCart = {
           items: updatedItems,
-          totalItems,
-          totalAmount,
-        });
+          ...totals,
+        };
+
+        set({ cart: updatedCart });
       },
 
       updateQuantity: (itemId, quantity) => {
-        const state = get();
-        const safeQuantity = safeNumber(quantity);
+        if (quantity < 0) return;
 
-        if (safeQuantity <= 0) {
-          get().removeFromCart(itemId);
-          return;
+        const { cart } = get();
+        let updatedItems: CartItem[];
+
+        if (quantity === 0) {
+          updatedItems = cart.items.filter((item) => item.id !== itemId);
+        } else {
+          updatedItems = cart.items.map((item) =>
+            item.id === itemId
+              ? { ...item, quantity: Math.min(quantity, item.maxStock || 999) }
+              : item,
+          );
         }
 
-        const updatedItems = state.items.map((item) =>
-          item.id === itemId ? { ...item, quantity: safeQuantity } : item,
-        );
-        const totalItems = updatedItems.reduce(
-          (sum, item) => sum + safeNumber(item.quantity),
-          0,
-        );
-        const totalAmount = updatedItems.reduce(
-          (sum, item) =>
-            sum + safeNumber(item.pricePerUnit) * safeNumber(item.quantity),
-          0,
-        );
-
-        set({
+        const totals = calculateTotals(updatedItems);
+        const updatedCart = {
           items: updatedItems,
-          totalItems,
-          totalAmount,
-        });
+          ...totals,
+        };
+
+        set({ cart: updatedCart });
       },
 
-      clearCart: () => {
-        // Clear localStorage to ensure complete reset
+      clearCart: async () => {
+        set({ cart: initialCart });
+        toast.success("Cart cleared!");
+      },
+
+      refreshCart: async () => {
+        const { cart } = get();
+        await get().validateCartItems();
+        const totals = calculateTotals(cart.items);
+        set({ cart: { ...cart, ...totals } });
+      },
+
+      validateCartItems: async () => {
         try {
-          localStorage.removeItem('cart-storage');
-        } catch (e) {
-          console.warn("Could not clear cart storage:", e);
-        }
+          set({ isLoading: true });
+          const { cart } = get();
+          
+          if (cart.items.length === 0) return;
 
-        set({
-          items: [],
-          totalItems: 0,
-          totalAmount: 0,
-        });
+          const updatedItems: CartItem[] = [];
+          let hasChanges = false;
 
-        console.log("🛒 Cart completely cleared and storage reset");
-      },
+          for (const item of cart.items) {
+            try {
+              // Fetch latest product data
+              const productData = await apiService.getProduct(item.productId);
+              
+              if (productData && productData.product) {
+                const product = productData.product;
+                
+                // Update item with latest data
+                const updatedItem: CartItem = {
+                  ...item,
+                  name: product.name,
+                  pricePerUnit: product.price_per_unit,
+                  unit: product.unit,
+                  category: product.category,
+                  maxStock: product.stock_quantity,
+                  images: product.images || [],
+                  farmerName: product.farmer_name || item.farmerName,
+                  farmerCounty: product.farmer_county || item.farmerCounty,
+                  // Adjust quantity if it exceeds available stock
+                  quantity: Math.min(item.quantity, product.stock_quantity)
+                };
 
-      refreshCart: () => {
-        const state = get();
-        console.log("🛒 refreshCart - Current items:", state.items);
+                // Check if anything changed
+                if (
+                  item.pricePerUnit !== product.price_per_unit ||
+                  item.quantity > product.stock_quantity ||
+                  item.name !== product.name
+                ) {
+                  hasChanges = true;
+                }
 
-        // Auto-remove zero price items during refresh
-        const validItems = state.items.filter(item => {
-          const hasValidPrice = item.pricePerUnit && item.pricePerUnit > 0;
-          if (!hasValidPrice) {
-            console.warn("🛒 refreshCart - Auto-removing zero price item:", item);
-            return false;
+                updatedItems.push(updatedItem);
+              } else {
+                // Product no longer exists
+                hasChanges = true;
+                console.log(`Product ${item.productId} no longer available`);
+              }
+            } catch (error) {
+              // Keep original item if we can't fetch data
+              console.error(`Error validating item ${item.productId}:`, error);
+              updatedItems.push(item);
+            }
           }
-          return true;
-        });
 
-        const totalItems = validItems.reduce(
-          (sum, item) => sum + safeNumber(item.quantity),
-          0,
-        );
-        const totalAmount = validItems.reduce(
-          (sum, item) => {
-            const itemPrice = safeNumber(item.pricePerUnit);
-            const itemQuantity = safeNumber(item.quantity);
-            const itemTotal = itemPrice * itemQuantity;
-            console.log("🛒 refreshCart item:", {
-              name: item.name,
-              price: itemPrice,
-              quantity: itemQuantity,
-              total: itemTotal
-            });
-            return sum + itemTotal;
-          },
-          0,
-        );
-
-        console.log("🛒 refreshCart - Calculated totals:", {
-          originalItems: state.items.length,
-          validItems: validItems.length,
-          totalItems,
-          totalAmount
-        });
-
-        set({
-          items: validItems,
-          totalItems,
-          totalAmount,
-        });
-      },
-
-      repairCart: () => {
-        const state = get();
-        console.log("🛒 repairCart - Checking cart items:", state.items);
-
-        // Remove items with invalid prices or quantities
-        const validItems = state.items.filter(item => {
-          const hasValidPrice = item.pricePerUnit && Number(item.pricePerUnit) > 0;
-          const hasValidQuantity = item.quantity && Number(item.quantity) > 0;
-          const hasValidName = item.name && item.name.trim().length > 0;
-
-          const isValid = hasValidPrice && hasValidQuantity && hasValidName;
-
-          if (!isValid) {
-            console.warn("🛒 repairCart - Removing invalid item:", {
-              item,
-              hasValidPrice,
-              hasValidQuantity,
-              hasValidName,
-              priceValue: item.pricePerUnit,
-              quantityValue: item.quantity
-            });
-            return false;
+          if (hasChanges) {
+            const totals = calculateTotals(updatedItems);
+            const updatedCart = {
+              items: updatedItems,
+              ...totals,
+            };
+            set({ cart: updatedCart });
+            
+            const removedCount = cart.items.length - updatedItems.length;
+            if (removedCount > 0) {
+              toast.error(`${removedCount} unavailable item(s) removed from cart`);
+            }
           }
-          return true;
-        });
-
-        // Recalculate totals
-        const totalItems = validItems.reduce(
-          (sum, item) => sum + safeNumber(item.quantity),
-          0,
-        );
-        const totalAmount = validItems.reduce(
-          (sum, item) => sum + safeNumber(item.pricePerUnit) * safeNumber(item.quantity),
-          0,
-        );
-
-        console.log("🛒 repairCart - Repaired cart:", {
-          originalItems: state.items.length,
-          validItems: validItems.length,
-          totalItems,
-          totalAmount
-        });
-
-        set({
-          items: validItems,
-          totalItems,
-          totalAmount,
-        });
-      },
-
-      nuclearReset: () => {
-        console.log("🛒 NUCLEAR RESET - Completely destroying cart data");
-
-        // Clear all possible storage keys
-        try {
-          localStorage.removeItem('cart-storage');
-          localStorage.removeItem('cart');
-          localStorage.removeItem('zustand-cart');
-          sessionStorage.removeItem('cart-storage');
-          sessionStorage.removeItem('cart');
-        } catch (e) {
-          console.warn("Storage clear error:", e);
+        } catch (error) {
+          console.error("Error validating cart items:", error);
+        } finally {
+          set({ isLoading: false });
         }
-
-        // Reset state completely
-        set({
-          items: [],
-          totalItems: 0,
-          totalAmount: 0,
-        });
-
-        console.log("🛒 NUCLEAR RESET - Complete. Cart should be empty.");
       },
     }),
     {
       name: "cart-storage",
-      partialize: (state) => ({
-        items: state.items,
-        totalItems: state.totalItems,
-        totalAmount: state.totalAmount,
-      }),
     },
   ),
 );
 
-// Create a compatibility object for components expecting the old cart structure
-export const useCart = () => {
-  const cartStore = useCartStore();
-
+// Legacy compatibility for components using old cart structure
+export const useCartStore = () => {
+  const cartStore = useCart();
+  
   return {
-    cart: {
-      items: cartStore.items,
-      totalItems: cartStore.totalItems,
-      totalAmount: cartStore.totalAmount,
+    items: cartStore.cart.items,
+    totalItems: cartStore.cart.totalItems,
+    totalAmount: cartStore.cart.totalAmount,
+    addToCart: async (product: any, quantity: number) => {
+      await cartStore.addToCart({
+        productId: String(product.id),
+        name: product.name,
+        pricePerUnit: product.price_per_unit || product.pricePerUnit,
+        quantity,
+        unit: product.unit,
+        images: product.images || [],
+        maxStock: product.stock_quantity,
+        farmerName: product.farmer_name,
+        farmerCounty: product.farmer_county,
+        category: product.category
+      });
     },
-    addToCart: cartStore.addToCart,
     removeFromCart: cartStore.removeFromCart,
     updateQuantity: cartStore.updateQuantity,
     clearCart: cartStore.clearCart,
     refreshCart: cartStore.refreshCart,
-    repairCart: cartStore.repairCart,
-    nuclearReset: cartStore.nuclearReset,
-    isLoading: false, // For compatibility
+    repairCart: cartStore.validateCartItems,
+    nuclearReset: cartStore.clearCart,
   };
 };
