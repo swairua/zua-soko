@@ -41,8 +41,8 @@ api.interceptors.response.use(
     console.log("📍 URL:", response.config.url);
     console.log("📊 Status:", `${response.status} ${response.statusText}`);
     console.log("📦 Data:", response.data);
-    console.log("⏱️ Duration:", response.config.metadata?.startTime ?
-      `${Date.now() - response.config.metadata.startTime}ms` : 'Unknown');
+    console.log("⏱️ Duration:", (response.config as any).metadata?.startTime ?
+      `${Date.now() - (response.config as any).metadata.startTime}ms` : 'Unknown');
     console.groupEnd();
     return response;
   },
