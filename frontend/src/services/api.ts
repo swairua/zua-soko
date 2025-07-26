@@ -73,6 +73,23 @@ api.interceptors.response.use(
     const errorSummary = `API Error: ${errorDetails.method} ${errorDetails.url} - ${errorDetails.status} ${errorDetails.statusText} - ${errorDetails.message}`;
     console.error("📋 Error Summary:", errorSummary);
 
+    // Add context for common errors
+    if (errorDetails.status === 400) {
+      console.warn("💡 Common 400 causes: Invalid request data, missing required fields, or malformed JSON");
+    } else if (errorDetails.status === 401) {
+      console.warn("💡 Common 401 causes: Missing or invalid authentication token");
+    } else if (errorDetails.status === 403) {
+      console.warn("💡 Common 403 causes: Insufficient permissions for this resource");
+    } else if (errorDetails.status === 404) {
+      console.warn("💡 Common 404 causes: Resource not found or incorrect URL");
+    } else if (errorDetails.status === 409) {
+      console.warn("💡 Common 409 causes: Conflict with existing data (duplicate phone/email)");
+    } else if (errorDetails.status === 500) {
+      console.warn("💡 Common 500 causes: Server-side error, database connection issues");
+    } else if (error.code === 'NETWORK_ERROR' || !errorDetails.status) {
+      console.warn("💡 Network issues: Check internet connection and server availability");
+    }
+
     // NO BYPASS - Let all errors bubble up to force real database debugging
     return Promise.reject(error);
   },
