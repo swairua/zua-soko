@@ -215,25 +215,10 @@ app.get("/api/products", async (req, res) => {
     });
   } catch (err) {
     console.error("Products error:", err);
-
-    // Fallback demo products
-    res.json({
-      success: true,
-      products: [
-        {
-          id: 1,
-          name: "Fresh Tomatoes",
-          category: "Vegetables",
-          price_per_unit: 130,
-          unit: "kg",
-          description: "Organic red tomatoes, Grade A quality",
-          stock_quantity: 85,
-          is_featured: true,
-          farmer_name: "Demo Farmer",
-          farmer_county: "Nakuru",
-          created_at: new Date().toISOString(),
-        },
-      ],
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch products from database",
+      details: err.message,
     });
   }
 });
