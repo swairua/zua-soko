@@ -160,10 +160,18 @@ export default function MarketplacePage() {
     }));
   };
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = async (product: Product) => {
     try {
+      console.log("🛍️ Marketplace adding to cart:", product);
+
+      // Validate product data before adding
+      if (!product || !product.id) {
+        toast.error("Invalid product - cannot add to cart");
+        return;
+      }
+
       // Allow all users (including guests) to add to cart
-      addToCart(product, 1);
+      await addToCart(product, 1);
       toast.success(`Added ${product.name} to cart`);
     } catch (error) {
       console.error("Failed to add to cart:", error);
