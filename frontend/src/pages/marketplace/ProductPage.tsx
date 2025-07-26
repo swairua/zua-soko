@@ -87,7 +87,24 @@ export default function ProductPage() {
 
       const response = await axios.get(`/api/marketplace/products/${id}`);
       const productData = response.data.product || response.data;
-      setProduct(productData);
+
+      // Transform database response to match component interface
+      const transformedProduct = {
+        id: productData.id,
+        name: productData.name,
+        category: productData.category,
+        price_per_unit: productData.price_per_unit,
+        unit: productData.unit,
+        description: productData.description || '',
+        stock_quantity: productData.stock_quantity,
+        quantity: productData.quantity || productData.stock_quantity,
+        images: Array.isArray(productData.images) ? productData.images : [],
+        farmer_name: productData.farmer_name || 'Local Farmer',
+        farmer_county: productData.farmer_county || 'Kenya',
+        created_at: productData.created_at || new Date().toISOString()
+      };
+
+      setProduct(transformedProduct);
 
       // Fetch related products
       if (productData) {
