@@ -59,17 +59,14 @@ export const useCart = create<CartStore>()(
         try {
           set({ isLoading: true });
 
-          // Validate product ID
+          // Validate product ID - now expecting real integer IDs
           if (!newItem.productId || newItem.productId === 'undefined' || newItem.productId === 'null') {
             throw new Error("Invalid product ID");
           }
 
-          // Temporarily disable placeholder ID validation since products may have legitimate UUIDs
-          // TODO: Investigate why products have UUID-style IDs that look like placeholders
+          // Convert to string for API calls (backend expects string in URL)
           const id = String(newItem.productId);
-          console.log("🛒 Product ID being added to cart:", id);
-
-          console.log("🛒 Adding to cart - Product ID:", newItem.productId, "Type:", typeof newItem.productId);
+          console.log("🛒 Adding to cart - Product ID:", id, "Type:", typeof newItem.productId);
 
           // Try to fetch latest product data from database
           let product;
