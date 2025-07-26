@@ -309,17 +309,24 @@ export const useCartStore = () => {
     totalItems: cartStore.cart.totalItems,
     totalAmount: cartStore.cart.totalAmount,
     addToCart: async (product: any, quantity: number) => {
+      console.log("🛒 Legacy addToCart called with:", { product, quantity });
+
+      if (!product || !product.id) {
+        toast.error("Invalid product - cannot add to cart");
+        return;
+      }
+
       await cartStore.addToCart({
         productId: String(product.id),
-        name: product.name,
-        pricePerUnit: product.price_per_unit || product.pricePerUnit,
-        quantity,
-        unit: product.unit,
+        name: product.name || "Unknown Product",
+        pricePerUnit: product.price_per_unit || product.pricePerUnit || 0,
+        quantity: Math.max(1, quantity || 1),
+        unit: product.unit || "kg",
         images: product.images || [],
-        maxStock: product.stock_quantity,
-        farmerName: product.farmer_name,
-        farmerCounty: product.farmer_county,
-        category: product.category
+        maxStock: product.stock_quantity || 999,
+        farmerName: product.farmer_name || "Local Farmer",
+        farmerCounty: product.farmer_county || "Kenya",
+        category: product.category || "General"
       });
     },
     removeFromCart: cartStore.removeFromCart,
