@@ -270,14 +270,21 @@ export default function RegisterPage() {
             message = `Registration conflict: ${message}`;
           }
 
-          // Add a helpful action button in the toast
-          toast.error(message, {
-            duration: 6000,
-            action: {
-              label: 'Go to Login',
+          // Show error message with extra duration for 409 conflicts
+          toast.error(message, { duration: 8000 });
+
+          // Add a follow-up toast with login suggestion
+          setTimeout(() => {
+            toast("👆 Click here to go to login page", {
+              duration: 5000,
               onClick: () => navigate('/login'),
-            },
-          });
+              style: {
+                cursor: 'pointer',
+                backgroundColor: '#3B82F6',
+                color: 'white',
+              }
+            });
+          }, 2000);
           return; // Exit early to avoid duplicate toast
         }
       } else if (error.message) {
