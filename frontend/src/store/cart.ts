@@ -73,7 +73,7 @@ export const useCart = create<CartStore>()(
           let fetchedFromApi = false;
 
           try {
-            const productData = await apiService.getProduct(newItem.productId);
+            const productData = await apiService.getProduct(productId);
             if (productData && productData.product) {
               product = productData.product;
               fetchedFromApi = true;
