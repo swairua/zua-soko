@@ -301,12 +301,12 @@ export default function RegisterPage() {
           Create your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Or{" "}
+          Already have an account?{" "}
           <Link
             to="/login"
             className="font-medium text-primary-600 hover:text-primary-500"
           >
-            sign in to your existing account
+            Sign in here
           </Link>
         </p>
       </div>
