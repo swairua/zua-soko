@@ -129,8 +129,30 @@ export const apiService = {
 
   getProduct: async (id: string) => {
     console.log("🛍️ FETCHING SINGLE PRODUCT from real database:", id);
+
+    // Validate product ID to prevent invalid requests
+    if (!id || id === 'undefined' || id === 'null' || id.trim() === '') {
+      throw new Error('Invalid product ID: ID is empty or undefined');
+    }
+
+    // Check for placeholder UUIDs that are commonly used in development
+    const placeholderPatterns = [
+      /^[c]{8}-[c]{4}-[c]{4}-[c]{4}-[c]{12}$/i, // cccccccc-cccc-cccc-cccc-cccccccccccc
+      /^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/i, // 00000000-0000-0000-0000-000000000000
+      /^[f]{8}-[f]{4}-[f]{4}-[f]{4}-[f]{12}$/i, // ffffffff-ffff-ffff-ffff-ffffffffffff
+      /^[1]{8}-[1]{4}-[1]{4}-[1]{4}-[1]{12}$/i, // 11111111-1111-1111-1111-111111111111
+      /^example-/i, // example-*
+      /^test-/i,    // test-*
+      /^placeholder/i // placeholder*
+    ];
+
+    const isPlaceholder = placeholderPatterns.some(pattern => pattern.test(id));
+    if (isPlaceholder) {
+      throw new Error(`Invalid product ID: "${id}" appears to be a placeholder value`);
+    }
+
     const response = await api.get(`/marketplace/products/${id}`);
-    console.log("🛍️ SINGLE PRODUCT SUCCESS:", response.data);
+    console.log("🛍��� SINGLE PRODUCT SUCCESS:", response.data);
     return response.data;
   },
 
