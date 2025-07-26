@@ -107,8 +107,8 @@ export default function ProductPage() {
       setProduct(transformedProduct);
 
       // Fetch related products
-      if (productData) {
-        fetchRelatedProducts(productData.category, productData.farmer.county);
+      if (transformedProduct) {
+        fetchRelatedProducts(transformedProduct.category, transformedProduct.farmer_county || 'Kenya');
       }
     } catch (error: any) {
       console.error("Failed to fetch product:", error);
