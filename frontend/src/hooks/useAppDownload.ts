@@ -155,6 +155,9 @@ export const useAppDownload = (): UseAppDownloadReturn => {
         url: downloadUrl
       });
 
+      // Set default app info for UI display even if APK doesn't exist
+      setDefaultAppInfo();
+
       // Don't show error to user, just quietly disable download
       setIsAvailable(false);
       return false;
