@@ -458,7 +458,7 @@ app.get("/api/marketplace/products", async (req, res) => {
     let countQuery = `
       SELECT COUNT(*) as total
       FROM products p
-      WHERE 1=1
+      WHERE p.is_active = true
     `;
     const countParams = [];
     let countParamCount = 0;
@@ -2297,7 +2297,7 @@ app.get("*", (req, res) => {
 // START SERVER
 // =================================================
 app.listen(PORT, () => {
-  console.log(`�� Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "production"}`);
   console.log(
     `🗄️ Database: ${process.env.DATABASE_URL ? "Configured" : "Using fallback"}`,
