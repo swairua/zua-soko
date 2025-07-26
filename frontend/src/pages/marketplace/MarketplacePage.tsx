@@ -97,7 +97,36 @@ export default function MarketplacePage() {
       const data = await apiService.getProducts(params);
       console.log("🔍 PRODUCTS RESPONSE:", data);
 
-      setProducts(data.products || data);
+      // Filter out products with invalid or placeholder IDs
+      const rawProducts = data.products || data;
+      const validProducts = Array.isArray(rawProducts) ? rawProducts.filter(product => {
+        if (!product || !product.id) {
+          console.warn("⚠️ Filtering out product with missing ID:", product);
+          return false;
+        }
+
+        const id = String(product.id);
+        const placeholderPatterns = [
+          /^[c]{8}-[c]{4}-[c]{4}-[c]{4}-[c]{12}$/i, // cccccccc-cccc-cccc-cccc-cccccccccccc
+          /^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/i, // 00000000-0000-0000-0000-000000000000
+          /^[f]{8}-[f]{4}-[f]{4}-[f]{4}-[f]{12}$/i, // ffffffff-ffff-ffff-ffff-ffffffffffff
+          /^[1]{8}-[1]{4}-[1]{4}-[1]{4}-[1]{12}$/i, // 11111111-1111-1111-1111-111111111111
+          /^example-/i,
+          /^test-/i,
+          /^placeholder/i
+        ];
+
+        const isPlaceholder = placeholderPatterns.some(pattern => pattern.test(id));
+        if (isPlaceholder) {
+          console.warn("⚠️ Filtering out product with placeholder ID:", id, product);
+          return false;
+        }
+
+        return true;
+      }) : [];
+
+      console.log(`🔍 Filtered ${rawProducts.length - validProducts.length} invalid products`);
+      setProducts(validProducts);
 
       if (data.pagination) {
         setPagination((prev) => ({
