@@ -192,11 +192,30 @@ export const useAppDownload = (): UseAppDownloadReturn => {
   useEffect(() => {
     const initCheck = async () => {
       setLoading(true);
-      await checkAvailability();
-      setLoading(false);
+
+      // Add a small delay to avoid immediate network requests on page load
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      try {
+        await checkAvailability();
+      } catch (error) {
+        console.log("🔄 Initial availability check failed, will retry on user interaction");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    initCheck();
+    // Only check if we're not in development mode or if explicitly needed
+    const shouldCheck = !window.location.hostname.includes('localhost') ||
+                       window.location.search.includes('check-app');
+
+    if (shouldCheck) {
+      initCheck();
+    } else {
+      console.log("🔄 Skipping app availability check in development");
+      setLoading(false);
+      setIsAvailable(false);
+    }
   }, []);
 
   return {
