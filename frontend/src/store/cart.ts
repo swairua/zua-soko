@@ -370,7 +370,7 @@ export const useCartStore = () => {
       }
 
       await cartStore.addToCart({
-        productId: String(product.id),
+        productId: Number(product.id),
         name: product.name || "Unknown Product",
         pricePerUnit: Number(product.price_per_unit || product.pricePerUnit || 0),
         quantity: Math.max(1, Number(quantity) || 1),
