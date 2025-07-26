@@ -96,6 +96,28 @@ function App() {
 
   useEffect(() => {
     setupGlobalErrorHandling();
+
+    // Clean up old UUID-based data on app startup
+    try {
+      const cartData = localStorage.getItem('cart-storage');
+      if (cartData) {
+        const parsed = JSON.parse(cartData);
+        if (parsed.state?.cart?.items) {
+          const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          const filteredItems = parsed.state.cart.items.filter((item: any) => {
+            return !uuidPattern.test(String(item.productId));
+          });
+
+          if (filteredItems.length !== parsed.state.cart.items.length) {
+            console.log('🧹 Cleaning up old UUID cart items');
+            parsed.state.cart.items = filteredItems;
+            localStorage.setItem('cart-storage', JSON.stringify(parsed));
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Error cleaning up old cart data:', error);
+    }
   }, []);
 
   return (
