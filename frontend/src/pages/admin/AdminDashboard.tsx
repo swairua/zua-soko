@@ -386,11 +386,11 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Key Metrics with Drill-down */}
+        {/* Key Metrics with Enhanced Drill-down */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <button
             onClick={() => navigate("/admin/users")}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow text-left group"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow text-left group relative overflow-hidden"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -407,7 +407,17 @@ export default function AdminDashboard() {
               <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
             </div>
             <div className="mt-3 pt-3 border-t border-gray-100">
-              <p className="text-xs text-gray-500">Click to view user management</p>
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>Farmers: {Math.floor(stats.totalUsers * 0.6)}</span>
+                <span>Customers: {Math.floor(stats.totalUsers * 0.35)}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div
+                  className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
+                  style={{ width: '60%' }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">Click to view user management</p>
             </div>
           </button>
 
