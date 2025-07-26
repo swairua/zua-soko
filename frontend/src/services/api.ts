@@ -53,7 +53,7 @@ api.interceptors.response.use(
       method: (error.config?.method || 'Unknown').toUpperCase(),
       status: error.response?.status || 'No Status',
       statusText: error.response?.statusText || 'No Status Text',
-      data: error.response?.data || 'No Response Data',
+      data: error.response?.data ? JSON.stringify(error.response.data, null, 2) : 'No Response Data',
       message: error.message || 'No Error Message',
       hostname: window.location.hostname,
       timestamp: new Date().toISOString(),
