@@ -353,7 +353,7 @@ app.get("/api/marketplace/products/:id", async (req, res) => {
              'Demo Farmer' as farmer_name,
              'Central' as farmer_county
       FROM products
-      WHERE id = $1 AND is_active = true
+      WHERE id = $1
     `, [productIdNum]);
 
     if (result.rows.length === 0) {
