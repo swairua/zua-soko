@@ -244,7 +244,32 @@ export default function RegisterPage() {
       navigate("/login");
     } catch (error: any) {
       console.error("Registration error:", error);
-      const message = error.response?.data?.error || "Registration failed";
+
+      // Enhanced error handling for different response formats
+      let message = "Registration failed";
+
+      if (error.response?.data) {
+        const data = error.response.data;
+        // Try different possible error message fields
+        message = data.message || data.error || data.details || message;
+
+        // Special handling for 409 conflict errors
+        if (error.response.status === 409) {
+          if (message.toLowerCase().includes("phone")) {
+            message = "This phone number is already registered. Please use a different phone number or try logging in.";
+          } else if (message.toLowerCase().includes("email")) {
+            message = "This email address is already registered. Please use a different email or try logging in.";
+          } else if (message.toLowerCase().includes("user") || message.toLowerCase().includes("exist")) {
+            message = "An account with these details already exists. Please try logging in or use different credentials.";
+          } else {
+            message = "Registration conflict: " + message;
+          }
+        }
+      } else if (error.message) {
+        message = error.message;
+      }
+
+      console.log("Processed error message:", message);
       toast.error(message);
     } finally {
       setLoading(false);
