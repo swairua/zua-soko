@@ -13,13 +13,15 @@ const api = axios.create({
 
 // Add request interceptor for auth token and enhanced logging
 api.interceptors.request.use((config) => {
-  console.log(
-    "🚀 API REQUEST:",
-    config.method?.toUpperCase(),
-    config.url,
-    "Data:",
-    config.data,
-  );
+  console.group("🚀 API REQUEST");
+  console.log("📍 URL:", config.url);
+  console.log("🔧 Method:", config.method?.toUpperCase());
+  console.log("📦 Data:", config.data);
+  console.log("🔑 Headers:", {
+    'Content-Type': config.headers['Content-Type'],
+    'Authorization': config.headers['Authorization'] ? '[TOKEN PRESENT]' : '[NO TOKEN]'
+  });
+  console.groupEnd();
 
   const token = localStorage.getItem("authToken") || localStorage.getItem("token");
   if (token) {
