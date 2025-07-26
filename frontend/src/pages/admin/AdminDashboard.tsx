@@ -696,32 +696,41 @@ export default function AdminDashboard() {
             </div>
             <div className="divide-y divide-gray-200">
               {(Array.isArray(stats.pendingConsignments) ? stats.pendingConsignments : []).map((consignment) => (
-                <div key={consignment.id} className="p-6">
+                <button
+                  key={consignment.id}
+                  onClick={() => handleReviewConsignment(consignment.id)}
+                  className="w-full p-6 text-left hover:bg-gray-50 transition-colors"
+                >
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium text-gray-900 mb-1">
                         {consignment.title}
                       </h4>
-                      <p className="text-sm text-gray-500">
-                        by {consignment.farmer}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {consignment.submittedAt}
-                      </p>
+                      <div className="flex items-center text-sm text-gray-500 mb-1">
+                        <span>👨‍🌾 {consignment.farmer}</span>
+                        <span className="mx-2">•</span>
+                        <span>📅 {consignment.submittedAt}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                          Pending Review
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Click to review →
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">
+                    <div className="text-right ml-4">
+                      <p className="text-lg font-semibold text-gray-900">
                         {formatCurrency(consignment.value)}
                       </p>
-                      <button
-                        onClick={() => handleReviewConsignment(consignment.id)}
-                        className="mt-2 bg-primary-600 text-white px-3 py-1 rounded text-xs hover:bg-primary-700"
-                      >
-                        Review
-                      </button>
+                      <div className="flex items-center text-xs text-gray-500 mt-1">
+                        <ArrowRight className="w-3 h-3 mr-1" />
+                        <span>Review Details</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
             <div className="p-6 border-t border-gray-200">
