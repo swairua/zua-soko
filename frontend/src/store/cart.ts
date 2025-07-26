@@ -142,7 +142,29 @@ export const useCart = create<CartStore>()(
           toast.success("Item added to cart!");
         } catch (error: any) {
           console.error("Error adding to cart:", error);
-          toast.error(error.message || "Failed to add item to cart");
+          console.log("Full error object:", {
+            message: error.message,
+            response: error.response,
+            status: error.response?.status,
+            data: error.response?.data,
+            productId: newItem.productId
+          });
+
+          let userMessage = "Failed to add item to cart";
+
+          if (error.response?.status === 400) {
+            userMessage = "Invalid product - this item may no longer be available";
+          } else if (error.response?.status === 404) {
+            userMessage = "Product not found - this item may have been removed";
+          } else if (error.message === "Invalid product ID") {
+            userMessage = "Cannot add item - invalid product information";
+          } else if (error.message === "Product not found in database") {
+            userMessage = "Product no longer available in our inventory";
+          } else if (error.message) {
+            userMessage = error.message;
+          }
+
+          toast.error(userMessage);
         } finally {
           set({ isLoading: false });
         }
