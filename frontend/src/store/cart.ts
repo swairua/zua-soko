@@ -355,11 +355,12 @@ export const useCart = create<CartStore>()(
 // Legacy compatibility for components using old cart structure
 export const useCartStore = () => {
   const cartStore = useCart();
-  
+
   return {
     items: cartStore.cart.items,
     totalItems: cartStore.cart.totalItems,
     totalAmount: cartStore.cart.totalAmount,
+    isLoading: cartStore.isLoading,
     addToCart: async (product: any, quantity: number) => {
       console.log("🛒 Legacy addToCart called with:", { product, quantity });
 
