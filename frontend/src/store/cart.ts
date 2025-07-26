@@ -86,7 +86,7 @@ export const useCart = create<CartStore>()(
           // Fallback to using the provided item data if API fails
           if (!product) {
             product = {
-              id: newItem.productId,
+              id: productId,
               name: newItem.name,
               price_per_unit: newItem.pricePerUnit,
               unit: newItem.unit,
