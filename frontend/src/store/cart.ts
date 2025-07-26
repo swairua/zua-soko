@@ -247,7 +247,7 @@ export const useCart = create<CartStore>()(
           const id = item.productId;
 
           // Only filter out clearly invalid items
-          if (!id && id !== 0) {
+          if (!id && id !== "0") {
             console.warn("🧹 Removing cart item with missing ID:", item.name);
             return false;
           }
