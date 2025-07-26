@@ -130,7 +130,7 @@ export default function ProductPage() {
       );
       const products = response.data.products || response.data;
       const safeProducts = Array.isArray(products) ? products : [];
-      setRelatedProducts(safeProducts.filter((p: RelatedProduct) => p?.id !== id));
+      setRelatedProducts(safeProducts.filter((p: RelatedProduct) => p?.id !== Number(id)));
     } catch (error) {
       console.error("Failed to fetch related products:", error);
     }
