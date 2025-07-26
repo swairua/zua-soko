@@ -638,14 +638,23 @@ export default function AdminDashboard() {
             </div>
             <div className="divide-y divide-gray-200">
               {(Array.isArray(stats.recentActivities) ? stats.recentActivities : []).map((activity) => (
-                <div key={activity.id} className="p-6">
+                <button
+                  key={activity.id}
+                  onClick={() => {
+                    if (activity.type === "user") navigate("/admin/users");
+                    else if (activity.type === "consignment") navigate("/admin/consignments");
+                    else if (activity.type === "order") navigate("/admin/marketplace");
+                    else if (activity.type === "driver") navigate("/admin/drivers");
+                  }}
+                  className="w-full p-6 text-left hover:bg-gray-50 transition-colors"
+                >
                   <div className="flex items-start">
                     <div
-                      className={`p-2 rounded-lg ${getStatusColor(activity.status)} mr-4`}
+                      className={`p-2 rounded-lg ${getStatusColor(activity.status)} mr-4 flex-shrink-0`}
                     >
                       {getActivityIcon(activity.type)}
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900">
                         {activity.message}
                       </p>
@@ -653,13 +662,16 @@ export default function AdminDashboard() {
                         {activity.time}
                       </p>
                     </div>
-                    {activity.status === "pending" && (
-                      <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
-                        Action Required
-                      </span>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      {activity.status === "pending" && (
+                        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                          Action Required
+                        </span>
+                      )}
+                      <ArrowRight className="w-4 h-4 text-gray-400" />
+                    </div>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
             <div className="p-6 border-t border-gray-200">
