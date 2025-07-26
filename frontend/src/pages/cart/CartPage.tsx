@@ -64,6 +64,16 @@ export default function CartPage() {
   } | null>(null);
 
   useEffect(() => {
+    // Debug cart contents first
+    console.log("🛒 CART DEBUG - Current cart contents:", cart);
+    if (cart?.items) {
+      console.log("🛒 CART PRODUCT IDS:", cart.items.map(item => ({
+        id: item.productId,
+        type: typeof item.productId,
+        name: item.name
+      })));
+    }
+
     // NUCLEAR RESET - Clear everything
     console.log("🚨 CART RESET - Clearing all cart data");
 
