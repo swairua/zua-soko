@@ -15,33 +15,18 @@ import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
 
 interface Product {
-  id: string | number;
+  id: number;
   name: string;
   category: string;
-  price_per_unit?: number;
-  pricePerUnit?: number;
+  price_per_unit: number;
   unit: string;
-  stock_quantity?: number;
-  stockQuantity?: number;
-  images?: string[];
   description: string;
-  is_featured?: boolean;
-  isFeatured?: boolean;
-  isAvailable?: boolean;
-  tags?: string[];
-  farmer?: {
-    id: string;
-    county: string;
-    user: {
-      firstName: string;
-      lastName: string;
-    };
-  };
+  stock_quantity: number;
+  quantity: number;
+  images: string[];
   farmer_name?: string;
   farmer_county?: string;
-  created_at?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  created_at: string;
 }
 
 interface Filters {
