@@ -156,13 +156,35 @@ export const useAppDownload = (): UseAppDownloadReturn => {
     }
   };
 
-  const downloadApp = () => {
-    if (isAvailable) {
+  const downloadApp = async () => {
+    console.log("📱 Download requested, availability:", isAvailable);
+
+    // Double-check availability if not already confirmed
+    if (!isAvailable) {
+      console.log("📱 Checking availability before download...");
+      setLoading(true);
+      const available = await checkAvailability();
+      setLoading(false);
+
+      if (!available) {
+        const event = new CustomEvent("show-toast", {
+          detail: {
+            message: "Mobile app is not available for download at this time.",
+            type: "error",
+          },
+        });
+        window.dispatchEvent(event);
+        return;
+      }
+    }
+
+    try {
       // Create temporary link for download
       const link = document.createElement("a");
       link.href = downloadUrl;
       link.download = "zuasoko-app.apk";
       link.target = "_blank";
+      link.rel = "noopener noreferrer";
 
       // Add to DOM, click, and remove
       document.body.appendChild(link);
@@ -183,6 +205,18 @@ export const useAppDownload = (): UseAppDownloadReturn => {
         detail: {
           message: "APK download started! Check your downloads folder.",
           type: "success",
+        },
+      });
+      window.dispatchEvent(event);
+
+      console.log("✅ Download initiated successfully");
+
+    } catch (error) {
+      console.error("❌ Download failed:", error);
+      const event = new CustomEvent("show-toast", {
+        detail: {
+          message: "Download failed. Please try again later.",
+          type: "error",
         },
       });
       window.dispatchEvent(event);
