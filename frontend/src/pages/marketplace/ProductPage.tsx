@@ -77,7 +77,7 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [showFarmerContact, setShowFarmerContact] = useState(false);
 
-  const { addToCart, isLoading: cartLoading } = useCart();
+  const { addToCart, isLoading: cartLoading } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
