@@ -262,8 +262,8 @@ export default function MarketplacePage() {
 
                 // Call API to reset products (if admin)
                 if (user?.role === 'ADMIN') {
-                  await axios.post('/api/admin/reset-products');
-                  toast.success("Products and cart reset successfully!");
+                  // Note: Reset endpoint not yet implemented
+                  toast.success("Cart reset successfully!");
                 } else {
                   toast.success("Cart reset successfully!");
                 }
