@@ -257,9 +257,53 @@ export const useCart = create<CartStore>()(
 
       refreshCart: async () => {
         const { cart } = get();
+
+        // First clean up any items with invalid product IDs
+        const validItems = cart.items.filter(item => {
+          const id = String(item.productId);
+
+          // Check for placeholder patterns
+          const placeholderPatterns = [
+            /^[c]{8}-[c]{4}-[c]{4}-[c]{4}-[c]{12}$/i,
+            /^[d]{8}-[d]{4}-[d]{4}-[d]{4}-[d]{12}$/i,
+            /^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/i,
+            /^[f]{8}-[f]{4}-[f]{4}-[f]{4}-[f]{12}$/i,
+            /^[1]{8}-[1]{4}-[1]{4}-[1]{4}-[1]{12}$/i,
+            /^example-/i,
+            /^test-/i,
+            /^placeholder/i
+          ];
+
+          const isPlaceholder = placeholderPatterns.some(pattern => pattern.test(id));
+          if (isPlaceholder) {
+            console.warn("🧹 Removing cart item with placeholder ID:", id, item.name);
+            return false;
+          }
+
+          // Check if ID is numeric (backend requirement)
+          const numericId = Number(id);
+          if (isNaN(numericId) || !Number.isInteger(numericId) || numericId <= 0) {
+            console.warn("🧹 Removing cart item with non-numeric ID:", id, item.name);
+            return false;
+          }
+
+          return true;
+        });
+
+        if (validItems.length !== cart.items.length) {
+          console.log(`🧹 Cart cleanup: Removed ${cart.items.length - validItems.length} items with invalid IDs`);
+          const totals = calculateTotals(validItems);
+          set({ cart: { items: validItems, ...totals } });
+
+          if (cart.items.length > validItems.length) {
+            toast.error(`Removed ${cart.items.length - validItems.length} invalid items from cart`);
+          }
+        }
+
         await get().validateCartItems();
-        const totals = calculateTotals(cart.items);
-        set({ cart: { ...cart, ...totals } });
+        const currentCart = get().cart;
+        const totals = calculateTotals(currentCart.items);
+        set({ cart: { ...currentCart, ...totals } });
       },
 
       validateCartItems: async () => {
