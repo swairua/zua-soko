@@ -135,25 +135,7 @@ export const apiService = {
       throw new Error('Invalid product ID: ID is empty or undefined');
     }
 
-    // Check for placeholder UUIDs that are commonly used in development
-    const placeholderPatterns = [
-      /^[c]{8}-[c]{4}-[c]{4}-[c]{4}-[c]{12}$/i, // cccccccc-cccc-cccc-cccc-cccccccccccc
-      /^[d]{8}-[d]{4}-[d]{4}-[d]{4}-[d]{12}$/i, // dddddddd-dddd-dddd-dddd-dddddddddddd
-      /^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/i, // 00000000-0000-0000-0000-000000000000
-      /^[f]{8}-[f]{4}-[f]{4}-[f]{4}-[f]{12}$/i, // ffffffff-ffff-ffff-ffff-ffffffffffff
-      /^[1]{8}-[1]{4}-[1]{4}-[1]{4}-[1]{12}$/i, // 11111111-1111-1111-1111-111111111111
-      /^example-/i, // example-*
-      /^test-/i,    // test-*
-      /^placeholder/i // placeholder*
-    ];
-
-    const isPlaceholder = placeholderPatterns.some(pattern => pattern.test(id));
-    if (isPlaceholder) {
-      throw new Error(`Invalid product ID: "${id}" appears to be a placeholder value`);
-    }
-
-    // Temporarily allow UUID-style IDs since products may have legitimate UUIDs
-    // TODO: Investigate ID format expectations with backend
+    // Products now use real integer IDs from the database
     console.log("🛍️ Fetching product with ID:", id, "Type:", typeof id);
 
     const response = await api.get(`/marketplace/products/${id}`);
