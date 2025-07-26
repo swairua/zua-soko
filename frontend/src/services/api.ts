@@ -33,14 +33,13 @@ api.interceptors.request.use((config) => {
 // Add response interceptor for enhanced logging - NO BYPASS SYSTEM
 api.interceptors.response.use(
   (response) => {
-    console.log(
-      "✅ API SUCCESS:",
-      response.config.url,
-      "Status:",
-      response.status,
-      "Data sample:",
-      response.data,
-    );
+    console.group("✅ API SUCCESS");
+    console.log("📍 URL:", response.config.url);
+    console.log("📊 Status:", `${response.status} ${response.statusText}`);
+    console.log("📦 Data:", response.data);
+    console.log("⏱️ Duration:", response.config.metadata?.startTime ?
+      `${Date.now() - response.config.metadata.startTime}ms` : 'Unknown');
+    console.groupEnd();
     return response;
   },
   (error) => {
