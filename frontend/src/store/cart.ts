@@ -60,13 +60,13 @@ export const useCart = create<CartStore>()(
           set({ isLoading: true });
 
           // Validate product ID - now expecting real integer IDs
-          if (!newItem.productId || newItem.productId === 'undefined' || newItem.productId === 'null') {
-            throw new Error("Invalid product ID");
-          }
+      if (!newItem.productId || isNaN(Number(newItem.productId))) {
+        throw new Error("Invalid product ID");
+      }
 
-          // Convert to string for API calls (backend expects string in URL)
-          const id = String(newItem.productId);
-          console.log("🛒 Adding to cart - Product ID:", id, "Type:", typeof newItem.productId);
+      // Ensure productId is a number
+      const productId = Number(newItem.productId);
+      console.log("🛒 Adding to cart - Product ID:", productId, "Type:", typeof productId);
 
           // Try to fetch latest product data from database
           let product;
