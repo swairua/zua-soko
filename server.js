@@ -447,7 +447,7 @@ app.get("/api/marketplace/products", async (req, res) => {
              p.farmer_name, p.farmer_county,
              p.created_at, p.images
       FROM products p
-      WHERE p.is_active = true
+      WHERE 1=1
     `;
 
     const params = [];
