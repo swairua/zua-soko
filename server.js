@@ -507,7 +507,7 @@ app.get("/api/marketplace/products", async (req, res) => {
     let countQuery = `
       SELECT COUNT(*) as total
       FROM products p
-      WHERE p.is_active = true
+      WHERE 1=1
     `;
     const countParams = [];
     let countParamCount = 0;
