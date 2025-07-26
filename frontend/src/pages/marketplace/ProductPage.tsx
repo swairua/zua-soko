@@ -95,20 +95,18 @@ export default function ProductPage() {
         throw new Error("Invalid product ID");
       }
 
-      const placeholderPatterns = [
-        /^[c]{8}-[c]{4}-[c]{4}-[c]{4}-[c]{12}$/i,
-        /^[d]{8}-[d]{4}-[d]{4}-[d]{4}-[d]{12}$/i,
-        /^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/i,
-        /^[f]{8}-[f]{4}-[f]{4}-[f]{4}-[f]{12}$/i,
-        /^[1]{8}-[1]{4}-[1]{4}-[1]{4}-[1]{12}$/i,
-        /^example-/i,
-        /^test-/i,
-        /^placeholder/i
-      ];
+      // Check if ID is a UUID (any UUID format) - our system now uses integer IDs
+      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const isUUID = uuidPattern.test(id);
 
-      const isPlaceholder = placeholderPatterns.some(pattern => pattern.test(id));
-      if (isPlaceholder) {
-        throw new Error(`Product ID "${id}" appears to be a placeholder value`);
+      // Check if ID is not a valid integer
+      const isValidInteger = /^\d+$/.test(id);
+
+      if (isUUID || !isValidInteger) {
+        console.log("🚫 Invalid product ID format detected:", id);
+        toast.error("This product link is outdated. Redirecting to marketplace...");
+        navigate("/marketplace");
+        return;
       }
 
       const response = await axios.get(`/api/marketplace/products/${id}`);
