@@ -66,14 +66,36 @@ export const useCart = create<CartStore>()(
 
           console.log("🛒 Adding to cart - Product ID:", newItem.productId, "Type:", typeof newItem.productId);
 
-          // Fetch latest product data from database to ensure accuracy
-          const productData = await apiService.getProduct(newItem.productId);
+          // Try to fetch latest product data from database
+          let product;
+          let fetchedFromApi = false;
 
-          if (!productData || !productData.product) {
-            throw new Error("Product not found in database");
+          try {
+            const productData = await apiService.getProduct(newItem.productId);
+            if (productData && productData.product) {
+              product = productData.product;
+              fetchedFromApi = true;
+              console.log("✅ Product data fetched from API successfully");
+            }
+          } catch (apiError) {
+            console.warn("⚠️ Could not fetch product from API, using provided data:", apiError);
           }
 
-          const product = productData.product;
+          // Fallback to using the provided item data if API fails
+          if (!product) {
+            product = {
+              id: newItem.productId,
+              name: newItem.name,
+              price_per_unit: newItem.pricePerUnit,
+              unit: newItem.unit,
+              stock_quantity: newItem.maxStock || 999,
+              images: newItem.images || [],
+              farmer_name: newItem.farmerName,
+              farmer_county: newItem.farmerCounty,
+              category: newItem.category
+            };
+            console.log("🔄 Using fallback product data:", product);
+          }
           
           // Validate stock availability
           if (product.stock_quantity <= 0) {
