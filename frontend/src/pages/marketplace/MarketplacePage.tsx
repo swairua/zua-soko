@@ -97,6 +97,11 @@ export default function MarketplacePage() {
       const data = await apiService.getProducts(params);
       console.log("🔍 PRODUCTS RESPONSE:", data);
 
+      // Debug product IDs
+      if (data.products) {
+        console.log("🔍 PRODUCT IDS:", data.products.map(p => ({ id: p.id, type: typeof p.id, name: p.name })));
+      }
+
       // Filter out products with invalid or placeholder IDs
       const rawProducts = data.products || data;
       const validProducts = Array.isArray(rawProducts) ? rawProducts.filter(product => {
