@@ -36,27 +36,82 @@ export const useAppDownload = (): UseAppDownloadReturn => {
 
   const checkAvailability = async (): Promise<boolean> => {
     try {
-      // Check if APK file exists
-      const apkResponse = await fetch(downloadUrl, { method: "HEAD" });
-      const apkExists = apkResponse.ok;
+      console.log("🔍 Checking APK availability at:", downloadUrl);
 
-      if (apkExists) {
-        // Try to fetch app metadata
-        try {
-          const infoResponse = await fetch("/downloads/app-info.json");
-          if (infoResponse.ok) {
-            const info = await infoResponse.json();
-            setAppInfo(info);
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+      try {
+        // Check if APK file exists with timeout
+        const apkResponse = await fetch(downloadUrl, {
+          method: "HEAD",
+          signal: controller.signal,
+          cache: "no-cache"
+        });
+
+        clearTimeout(timeoutId);
+        const apkExists = apkResponse.ok;
+
+        console.log("📱 APK availability check result:", {
+          url: downloadUrl,
+          status: apkResponse.status,
+          ok: apkResponse.ok,
+          exists: apkExists
+        });
+
+        if (apkExists) {
+          // Try to fetch app metadata with timeout
+          try {
+            const infoController = new AbortController();
+            const infoTimeoutId = setTimeout(() => infoController.abort(), 3000);
+
+            const infoResponse = await fetch("/downloads/app-info.json", {
+              signal: infoController.signal,
+              cache: "no-cache"
+            });
+
+            clearTimeout(infoTimeoutId);
+
+            if (infoResponse.ok) {
+              const info = await infoResponse.json();
+              setAppInfo(info);
+              console.log("✅ App info loaded successfully");
+            } else {
+              console.log("ℹ️ App info not found, using defaults");
+              setDefaultAppInfo();
+            }
+          } catch (infoError) {
+            console.log("ℹ️ App info fetch failed, using defaults:", infoError.name);
+            setDefaultAppInfo();
           }
-        } catch (error) {
-          console.log("App info not available, using defaults");
+        } else {
+          console.log("❌ APK file not found");
         }
+
+        setIsAvailable(apkExists);
+        return apkExists;
+
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+
+        if (fetchError.name === 'AbortError') {
+          console.log("⏱️ APK availability check timed out");
+        } else {
+          console.log("🌐 Network error during APK check:", fetchError.name);
+        }
+
+        throw fetchError;
       }
 
-      setIsAvailable(apkExists);
-      return apkExists;
     } catch (error) {
-      console.error("Error checking APK availability:", error);
+      console.log("❌ APK availability check failed:", {
+        error: error.name || 'Unknown',
+        message: error.message || 'No message',
+        url: downloadUrl
+      });
+
+      // Don't show error to user, just quietly disable download
       setIsAvailable(false);
       return false;
     }
