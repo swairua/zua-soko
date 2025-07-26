@@ -254,7 +254,7 @@ export const useAppDownload = (): UseAppDownloadReturn => {
     const isDevelopment = window.location.hostname.includes('localhost') ||
                          window.location.hostname.includes('127.0.0.1') ||
                          window.location.hostname.includes('dev') ||
-                         process.env.NODE_ENV === 'development';
+                         import.meta.env.DEV;
 
     const shouldCheck = !isDevelopment || window.location.search.includes('check-app');
 
