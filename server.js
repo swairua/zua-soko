@@ -77,11 +77,11 @@ pool.connect(async (err, client, release) => {
       if (parseInt(productCount.rows[0].count) === 0) {
         console.log("📦 Adding products with real integer IDs...");
         await client.query(`
-          INSERT INTO products (name, description, category, price_per_unit, unit, stock_quantity, images) VALUES
-          ('Fresh Tomatoes', 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.', 'Vegetables', 130.00, 'kg', 85, '{"https://images.unsplash.com/photo-1546470427-e212b9d56085"}'),
-          ('Sweet Potatoes', 'Fresh sweet potatoes, rich in nutrients and vitamins.', 'Root Vegetables', 80.00, 'kg', 45, '{"https://images.unsplash.com/photo-1518977676601-b53f82aba655"}'),
-          ('Fresh Spinach', 'Organic spinach leaves, perfect for healthy meals.', 'Leafy Greens', 120.00, 'kg', 30, '{"https://images.unsplash.com/photo-1576045057995-568f588f82fb"}'),
-          ('Green Beans', 'Tender green beans, freshly harvested.', 'Vegetables', 100.00, 'kg', 60, '{"https://images.unsplash.com/photo-1628773822503-930a7eaecf80"}')
+          INSERT INTO products (name, description, category, quantity, unit, price_per_unit, stock_quantity, is_active, images) VALUES
+          ('Fresh Tomatoes', 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.', 'Vegetables', 85, 'kg', 130.00, 85, true, '{"https://images.unsplash.com/photo-1546470427-e212b9d56085"}'),
+          ('Sweet Potatoes', 'Fresh sweet potatoes, rich in nutrients and vitamins.', 'Root Vegetables', 45, 'kg', 80.00, 45, true, '{"https://images.unsplash.com/photo-1518977676601-b53f82aba655"}'),
+          ('Fresh Spinach', 'Organic spinach leaves, perfect for healthy meals.', 'Leafy Greens', 30, 'kg', 120.00, 30, true, '{"https://images.unsplash.com/photo-1576045057995-568f588f82fb"}'),
+          ('Green Beans', 'Tender green beans, freshly harvested.', 'Vegetables', 60, 'kg', 100.00, 60, true, '{"https://images.unsplash.com/photo-1628773822503-930a7eaecf80"}')
         `);
 
         const newCount = await client.query("SELECT COUNT(*) FROM products");
@@ -654,7 +654,7 @@ app.get("/api/marketplace/counties", async (req, res) => {
       if (counties.length === 0) {
         // Return demo counties if none found
         const demoCounties = ["Nairobi", "Kiambu", "Nakuru", "Meru", "Nyeri"];
-        console.log(`��️ Using demo counties:`, demoCounties);
+        console.log(`🗺️ Using demo counties:`, demoCounties);
         return res.json({
           success: true,
           counties: demoCounties,
@@ -826,7 +826,7 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
 app.post("/api/admin/users/:id/approve", authenticateAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(`✅ Admin approving user: ${id}`);
+    console.log(`��� Admin approving user: ${id}`);
 
     const result = await pool.query(
       "UPDATE users SET verified = true WHERE id = $1 RETURNING *",
