@@ -102,44 +102,39 @@ export default function MarketplacePage() {
         console.log("🔍 PRODUCT IDS:", data.products.map(p => ({ id: p.id, type: typeof p.id, name: p.name })));
       }
 
-      // Filter out products with invalid or placeholder IDs
+      // Temporarily disable aggressive filtering to debug
       const rawProducts = data.products || data;
       console.log("🔍 RAW PRODUCTS DATA:", rawProducts);
 
+      // Only filter out obviously invalid products, but be more permissive
       const validProducts = Array.isArray(rawProducts) ? rawProducts.filter(product => {
-        console.log("🔍 Checking product:", { id: product?.id, name: product?.name, type: typeof product?.id });
+        console.log("🔍 Checking product:", {
+          id: product?.id,
+          name: product?.name,
+          type: typeof product?.id,
+          fullProduct: product
+        });
 
-        if (!product || !product.id) {
+        // Only filter out products that are clearly broken
+        if (!product) {
+          console.warn("⚠️ Filtering out null/undefined product");
+          return false;
+        }
+
+        if (!product.id && product.id !== 0) {
           console.warn("⚠️ Filtering out product with missing ID:", product);
           return false;
         }
 
-        const id = String(product.id);
-        const placeholderPatterns = [
-          /^[c]{8}-[c]{4}-[c]{4}-[c]{4}-[c]{12}$/i, // cccccccc-cccc-cccc-cccc-cccccccccccc
-          /^[d]{8}-[d]{4}-[d]{4}-[d]{4}-[d]{12}$/i, // dddddddd-dddd-dddd-dddd-dddddddddddd
-          /^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/i, // 00000000-0000-0000-0000-000000000000
-          /^[f]{8}-[f]{4}-[f]{4}-[f]{4}-[f]{12}$/i, // ffffffff-ffff-ffff-ffff-ffffffffffff
-          /^[1]{8}-[1]{4}-[1]{4}-[1]{4}-[1]{12}$/i, // 11111111-1111-1111-1111-111111111111
-          /^example-/i,
-          /^test-/i,
-          /^placeholder/i
-        ];
-
-        const isPlaceholder = placeholderPatterns.some(pattern => pattern.test(id));
-        if (isPlaceholder) {
-          console.warn("⚠️ Filtering out product with placeholder ID:", id, product);
-          return false;
-        }
-
-        console.log("✅ Product passed validation:", { id, name: product.name });
+        console.log("✅ Product accepted:", { id: product.id, name: product.name });
         return true;
       }) : [];
 
       console.log(`🔍 Product filtering results:`, {
         raw: rawProducts.length,
         valid: validProducts.length,
-        filtered: rawProducts.length - validProducts.length
+        filtered: rawProducts.length - validProducts.length,
+        validProducts: validProducts
       });
 
       setProducts(validProducts);
