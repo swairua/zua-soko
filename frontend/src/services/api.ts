@@ -42,16 +42,31 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error("❌ API ERROR:", {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message,
+    // Enhanced error logging with better formatting
+    const errorDetails = {
+      url: error.config?.url || 'Unknown URL',
+      method: (error.config?.method || 'Unknown').toUpperCase(),
+      status: error.response?.status || 'No Status',
+      statusText: error.response?.statusText || 'No Status Text',
+      data: error.response?.data || 'No Response Data',
+      message: error.message || 'No Error Message',
       hostname: window.location.hostname,
       timestamp: new Date().toISOString(),
-    });
+    };
+
+    console.group("❌ API ERROR DETAILS");
+    console.error("🌐 Request:", `${errorDetails.method} ${errorDetails.url}`);
+    console.error("📊 Status:", `${errorDetails.status} - ${errorDetails.statusText}`);
+    console.error("💬 Message:", errorDetails.message);
+    console.error("📦 Response Data:", errorDetails.data);
+    console.error("🕐 Timestamp:", errorDetails.timestamp);
+    console.error("🏠 Hostname:", errorDetails.hostname);
+    console.error("🔧 Full Error Object:", error);
+    console.groupEnd();
+
+    // Also log as a single formatted string for easy copying
+    const errorSummary = `API Error: ${errorDetails.method} ${errorDetails.url} - ${errorDetails.status} ${errorDetails.statusText} - ${errorDetails.message}`;
+    console.error("📋 Error Summary:", errorSummary);
 
     // NO BYPASS - Let all errors bubble up to force real database debugging
     return Promise.reject(error);
