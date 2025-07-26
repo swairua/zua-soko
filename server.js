@@ -60,7 +60,7 @@ pool.connect(async (err, client, release) => {
       const currentProducts = await client.query("SELECT id, name FROM products ORDER BY id");
       console.log(`📦 Found ${currentProducts.rows.length} existing products`);
 
-      // If we have products but they might be old placeholder ones, reset them
+      // Only reset if we have placeholder products
       if (currentProducts.rows.length > 0) {
         const firstProduct = currentProducts.rows[0];
         // Check if the first product has a string ID (indicating old placeholder data)
@@ -69,6 +69,9 @@ pool.connect(async (err, client, release) => {
 
           // Clear old products
           await client.query("DELETE FROM products");
+        } else {
+          console.log("✅ Products already have proper integer IDs, skipping reset");
+          return; // Exit early if products are already correct
         }
       }
 
