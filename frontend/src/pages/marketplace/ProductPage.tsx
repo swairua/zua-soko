@@ -89,6 +89,27 @@ export default function ProductPage() {
   const fetchProduct = async () => {
     try {
       setLoading(true);
+
+      // Validate product ID before making API call
+      if (!id || id === 'undefined' || id === 'null') {
+        throw new Error("Invalid product ID");
+      }
+
+      const placeholderPatterns = [
+        /^[c]{8}-[c]{4}-[c]{4}-[c]{4}-[c]{12}$/i,
+        /^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/i,
+        /^[f]{8}-[f]{4}-[f]{4}-[f]{4}-[f]{12}$/i,
+        /^[1]{8}-[1]{4}-[1]{4}-[1]{4}-[1]{12}$/i,
+        /^example-/i,
+        /^test-/i,
+        /^placeholder/i
+      ];
+
+      const isPlaceholder = placeholderPatterns.some(pattern => pattern.test(id));
+      if (isPlaceholder) {
+        throw new Error(`Product ID "${id}" appears to be a placeholder value`);
+      }
+
       const response = await axios.get(`/api/marketplace/products/${id}`);
       const productData = response.data.product || response.data;
       setProduct(productData);
