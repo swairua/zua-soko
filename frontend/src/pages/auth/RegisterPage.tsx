@@ -458,6 +458,9 @@ export default function RegisterPage() {
                       {errors.phone.message}
                     </p>
                   )}
+                  <p className="mt-1 text-xs text-gray-500">
+                    This phone number will be used for login and notifications
+                  </p>
                 </div>
 
                 <div>
