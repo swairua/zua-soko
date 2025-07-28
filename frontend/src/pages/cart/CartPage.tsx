@@ -349,13 +349,21 @@ export default function CartPage() {
             }
           </p>
           <LiveProductSuggestions onAddToCart={handleQuickAddToCart} />
-          <Link
-            to="/marketplace"
-            className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium inline-flex items-center"
-          >
-            <ShoppingBag className="w-5 h-5 mr-2" />
-            Browse Fresh Products
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={reconstructCart}
+              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium inline-flex items-center"
+            >
+              🔧 Refresh Cart
+            </button>
+            <Link
+              to="/marketplace"
+              className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium inline-flex items-center"
+            >
+              <ShoppingBag className="w-5 h-5 mr-2" />
+              Browse All Products
+            </Link>
+          </div>
         </div>
       </div>
     );
