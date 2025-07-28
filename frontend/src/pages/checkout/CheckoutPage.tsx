@@ -171,7 +171,7 @@ export default function CheckoutPage() {
         console.warn("🛒 CHECKOUT - Items with invalid prices found:", itemsWithInvalidPrices.length);
 
         // Show warning to user but don't remove items here - let user decide
-        toast.warning(`${itemsWithInvalidPrices.length} items have pricing issues. Please review your cart.`);
+        toast.error(`${itemsWithInvalidPrices.length} items have pricing issues. Please review your cart.`);
       }
 
       // Use local cart data from Zustand store
