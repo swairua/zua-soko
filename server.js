@@ -558,6 +558,13 @@ app.get("/api/marketplace/products", async (req, res) => {
 
     console.log(`🛍️ Found ${result.rows.length} products (${total} total)`);
 
+    // Debug: Show actual product IDs being returned
+    console.log("🔍 PRODUCT IDS BEING RETURNED:", result.rows.map(p => ({
+      id: p.id,
+      type: typeof p.id,
+      name: p.name
+    })));
+
     res.json({
       success: true,
       products: result.rows,
