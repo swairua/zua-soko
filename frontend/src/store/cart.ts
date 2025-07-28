@@ -426,11 +426,11 @@ export const useCartStore = () => {
       const cartItem = {
         productId: productIdNumber,
         name: product.name || "Unknown Product",
-        pricePerUnit: pricePerUnit,
+        pricePerUnit: finalPrice,
         quantity: Math.max(1, Number(quantity) || 1),
         unit: product.unit || "kg",
         images: Array.isArray(product.images) ? product.images : [],
-        maxStock: maxStock,
+        maxStock: finalStock,
         farmerName: product.farmer_name || product.farmerName || "Local Farmer",
         farmerCounty: product.farmer_county || product.farmerCounty || "Kenya",
         category: product.category || "General"
