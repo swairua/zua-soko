@@ -546,7 +546,7 @@ export default function MarketplacePage() {
                       <Eye className="w-4 h-4" />
                     </Link>
 
-                    {(product.stockQuantity || product.stock_quantity) > 0 ? (
+                    {product.stock_quantity > 0 ? (
                       <button
                         onClick={() => handleAddToCart(product)}
                         disabled={cartLoading}
