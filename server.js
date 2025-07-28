@@ -80,6 +80,14 @@ pool.connect(async (err, client, release) => {
           // Force clear ALL products
           await client.query("DELETE FROM products");
           console.log("✅ All UUID products deleted");
+
+          // Check the actual table schema to see column types
+          const schemaCheck = await client.query(`
+            SELECT column_name, data_type, column_default
+            FROM information_schema.columns
+            WHERE table_name = 'products' AND column_name = 'id'
+          `);
+          console.log("🔍 Products table ID column schema:", schemaCheck.rows[0]);
         } else if (typeof firstProduct.id === 'number') {
           console.log("✅ Products already have proper integer IDs, skipping reset");
           return; // Exit early if products are already correct
