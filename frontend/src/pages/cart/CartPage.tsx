@@ -207,6 +207,17 @@ export default function CartPage() {
     setConfirmAction(null);
   };
 
+  const handleQuickAddToCart = async (product: any) => {
+    try {
+      console.log("🛒 Quick adding product to cart:", product);
+      await addToCart(product, 1);
+      toast.success(`Added ${product.name} to cart`);
+    } catch (error) {
+      console.error("Failed to add product to cart:", error);
+      toast.error("Failed to add product to cart");
+    }
+  };
+
   const handleQuantityChange = async (itemId: string, newQuantity: number) => {
     if (newQuantity < 0) return;
 
