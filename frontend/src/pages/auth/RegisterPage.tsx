@@ -277,7 +277,6 @@ export default function RegisterPage() {
           setTimeout(() => {
             toast("👆 Click here to go to login page", {
               duration: 5000,
-              onClick: () => navigate('/login'),
               style: {
                 cursor: 'pointer',
                 backgroundColor: '#3B82F6',
