@@ -61,42 +61,41 @@ export const useCart = create<CartStore>()(
         try {
           set({ isLoading: true });
 
-          // Validate product ID - now expecting real integer IDs
-      console.log("🔍 Validating product ID:", newItem.productId, "Type:", typeof newItem.productId);
+          // Validate product ID - ONLY ACCEPT INTEGER IDs NOW
+          console.log("🔍 Validating product ID:", newItem.productId, "Type:", typeof newItem.productId);
 
-      // Handle different ID formats - accept both UUIDs and integers
-      let productId = newItem.productId;
+          let productId = newItem.productId;
 
-      if (!productId) {
-        console.error("❌ Missing product ID:", newItem);
-        throw new Error("Invalid product ID");
-      }
-
-      // Accept both UUID strings and integer IDs
-      if (typeof productId === 'string') {
-        // Check if it's a UUID format
-        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (uuidPattern.test(productId)) {
-          // It's a valid UUID, use as-is
-          console.log("✅ Using UUID product ID:", productId);
-        } else {
-          // Try to parse as integer
-          const intId = parseInt(productId, 10);
-          if (isNaN(intId) || intId <= 0) {
-            console.error("❌ Invalid string product ID:", productId);
+          if (!productId) {
+            console.error("❌ Missing product ID:", newItem);
             throw new Error("Invalid product ID");
           }
-          productId = intId;
-        }
-      } else if (typeof productId === 'number') {
-        if (isNaN(productId) || productId <= 0) {
-          console.error("❌ Invalid numeric product ID:", productId);
-          throw new Error("Invalid product ID");
-        }
-      } else {
-        console.error("❌ Invalid product ID type:", typeof productId, productId);
-        throw new Error("Invalid product ID");
-      }
+
+          // REJECT UUID FORMAT - Only accept integers
+          if (typeof productId === 'string') {
+            // Check if it's a UUID format - REJECT THESE
+            const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (uuidPattern.test(productId)) {
+              console.error("❌ REJECTED UUID product ID:", productId);
+              throw new Error("UUID product IDs are no longer supported. Please use the marketplace to add current products.");
+            }
+
+            // Try to parse as integer
+            const intId = parseInt(productId, 10);
+            if (isNaN(intId) || intId <= 0) {
+              console.error("❌ Invalid string product ID:", productId);
+              throw new Error("Invalid product ID");
+            }
+            productId = intId;
+          } else if (typeof productId === 'number') {
+            if (isNaN(productId) || productId <= 0) {
+              console.error("❌ Invalid numeric product ID:", productId);
+              throw new Error("Invalid product ID");
+            }
+          } else {
+            console.error("❌ Invalid product ID type:", typeof productId, productId);
+            throw new Error("Invalid product ID");
+          }
 
       // Use the validated productId
       console.log("🛒 Adding to cart - Product ID:", productId, "Type:", typeof productId);
@@ -281,7 +280,7 @@ export const useCart = create<CartStore>()(
 
           // Remove items with missing IDs
           if (!id && id !== 0) {
-            console.warn("🧹 Removing cart item with missing ID:", item.name);
+            console.warn("��� Removing cart item with missing ID:", item.name);
             return false;
           }
 
