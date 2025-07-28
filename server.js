@@ -335,6 +335,8 @@ app.get("/api/marketplace/products/:id", async (req, res) => {
 
     // Check if it's a UUID (old format)
     const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    console.log("🔍 Testing UUID pattern for:", productId, "Matches:", uuidPattern.test(productId));
+
     if (uuidPattern.test(productId)) {
       console.log("⚠️ Received UUID product ID (old format):", productId);
       return res.status(410).json({
@@ -410,7 +412,7 @@ app.get("/api/marketplace/products", async (req, res) => {
       `);
 
       const columns = tableCheck.rows.map((row) => row.column_name);
-      console.log("🔍 Products table columns:", columns);
+      console.log("���� Products table columns:", columns);
 
       if (columns.length === 0) {
         console.log(
