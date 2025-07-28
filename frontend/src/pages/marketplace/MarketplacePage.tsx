@@ -189,14 +189,7 @@ export default function MarketplacePage() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Force refresh every 5 seconds to debug API calls
-  useEffect(() => {
-    const interval = setInterval(() => {
-      console.log("🔄 Auto-refreshing products for debugging...");
-      fetchProducts(pagination.page);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [pagination.page]);
+
 
   const handleFilterChange = (key: keyof Filters, value: string | boolean) => {
     setFilters((prev) => ({
@@ -208,7 +201,7 @@ export default function MarketplacePage() {
   const handleAddToCart = async (product: Product) => {
     try {
       console.log("🛍️ Marketplace adding to cart:", product);
-      console.log("🛍️ Product ID details:", {
+      console.log("��️ Product ID details:", {
         id: product.id,
         type: typeof product.id,
         hasId: !!product.id,
