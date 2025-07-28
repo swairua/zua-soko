@@ -82,8 +82,7 @@ export const useCart = create<CartStore>()(
         throw new Error("Invalid product ID");
       }
 
-      // Ensure productId is a number
-      const productId = Number(newItem.productId);
+      // Use the validated productId
       console.log("🛒 Adding to cart - Product ID:", productId, "Type:", typeof productId);
 
           // Try to fetch latest product data from database
