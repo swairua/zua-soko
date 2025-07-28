@@ -6,8 +6,7 @@
   "installCommand": "npm install && cd frontend && npm install",
   "functions": {
     "api/*.js": {
-      "runtime": "nodejs18.x",
-      "maxDuration": 10
+      "runtime": "@vercel/node"
     }
   },
   "rewrites": [
