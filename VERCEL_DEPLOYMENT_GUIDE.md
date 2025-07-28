@@ -31,7 +31,7 @@ This guide will help you deploy your Zuasoko marketplace application (farmers-cu
 
 ---
 
-## 🛠️ Phase 2: Prepare Your Code
+## 🛠�� Phase 2: Prepare Your Code
 
 ### 1. Verify Project Structure
 Your project should have this structure:
@@ -110,7 +110,7 @@ vercel
 
 ---
 
-## 🔧 Phase 4: Configure Your Deployed App
+## �� Phase 4: Configure Your Deployed App
 
 ### 1. Initialize Database
 After successful deployment, your database needs to be initialized:
@@ -159,12 +159,19 @@ FRONTEND_URL=https://your-domain.vercel.app
 In your `vercel.json`, you can add:
 ```json
 {
-  "functions": {
-    "api/*.js": {
-      "runtime": "nodejs18.x",
-      "maxDuration": 10
+  "buildCommand": "cd frontend && npm install && npm run build:prod && cp -r dist/* ../",
+  "outputDirectory": ".",
+  "installCommand": "npm install && cd frontend && npm install",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  },
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
