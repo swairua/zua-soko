@@ -201,7 +201,7 @@ export default function ProductPage() {
         color: "text-red-600",
         bgColor: "bg-red-100",
       };
-    } else if (product.stockQuantity <= (product.minStockLevel || 5)) {
+    } else if (product.stock_quantity <= 5) {
       return {
         text: "Low Stock",
         color: "text-orange-600",
