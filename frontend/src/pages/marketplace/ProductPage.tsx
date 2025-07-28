@@ -464,7 +464,7 @@ export default function ProductPage() {
                     <button
                       onClick={() =>
                         setQuantity(
-                          Math.min(product.stockQuantity, quantity + 1),
+                          Math.min(product.stock_quantity, quantity + 1),
                         )
                       }
                       className="px-3 py-2 text-gray-600 hover:text-gray-900"
