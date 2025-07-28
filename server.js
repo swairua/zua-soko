@@ -65,12 +65,21 @@ pool.connect(async (err, client, release) => {
         const firstProduct = currentProducts.rows[0];
         console.log("📦 Current product sample:", JSON.stringify(firstProduct, null, 2));
 
-        // Check if the first product has a string ID (indicating old placeholder data)
-        if (typeof firstProduct.id === 'string' && firstProduct.id.includes('-')) {
-          console.log("🔄 Resetting products with UUID IDs to real integer IDs...");
+        // Check if ANY product has a string ID (indicating old placeholder data)
+        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const hasUUIDs = currentProducts.rows.some(product =>
+          typeof product.id === 'string' && uuidPattern.test(product.id)
+        );
 
-          // Clear old products
+        if (hasUUIDs) {
+          console.log("🔄 UUID products detected - forcing complete database reset...");
+          console.log("🗑️ UUID products found:", currentProducts.rows.filter(p =>
+            typeof p.id === 'string' && uuidPattern.test(p.id)
+          ).map(p => p.id));
+
+          // Force clear ALL products
           await client.query("DELETE FROM products");
+          console.log("✅ All UUID products deleted");
         } else if (typeof firstProduct.id === 'number') {
           console.log("✅ Products already have proper integer IDs, skipping reset");
           return; // Exit early if products are already correct
