@@ -115,6 +115,11 @@ export default function ProductPage() {
       if (error.response?.status === 404) {
         toast.error("Product not found");
         navigate("/marketplace");
+      } else if (error.response?.status === 410) {
+        // Handle outdated product links
+        const data = error.response?.data;
+        toast.error(data?.message || "This product link is outdated");
+        navigate("/marketplace");
       } else {
         toast.error("Failed to load product details");
       }
