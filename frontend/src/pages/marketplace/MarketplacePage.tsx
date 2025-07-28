@@ -475,12 +475,7 @@ export default function MarketplacePage() {
                   </div>
                 )}
 
-                {/* Featured Badge */}
-                {(product.isFeatured || product.is_featured) && (
-                  <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
-                    ⭐ Featured
-                  </div>
-                )}
+                {/* Featured Badge - No featured flag in DB yet */}
 
                 {/* Stock Badge */}
                 {(product.stockQuantity || product.stock_quantity) < 10 &&
