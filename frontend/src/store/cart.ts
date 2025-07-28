@@ -5,7 +5,7 @@ import { apiService } from "../services/api";
 
 export interface CartItem {
   id: string;
-  productId: number;
+  productId: string | number;
   name: string;
   pricePerUnit: number;
   quantity: number;
