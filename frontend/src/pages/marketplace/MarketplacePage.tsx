@@ -178,6 +178,14 @@ export default function MarketplacePage() {
     fetchProducts(1);
   }, [filters]);
 
+  // Add a small delay on mount to ensure database is ready
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchProducts(1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleFilterChange = (key: keyof Filters, value: string | boolean) => {
     setFilters((prev) => ({
       ...prev,
