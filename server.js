@@ -88,6 +88,41 @@ pool.connect(async (err, client, release) => {
             WHERE table_name = 'products' AND column_name = 'id'
           `);
           console.log("🔍 Products table ID column schema:", schemaCheck.rows[0]);
+
+          // If the ID column is UUID type, we need to recreate the table
+          if (schemaCheck.rows[0] && schemaCheck.rows[0].data_type === 'uuid') {
+            console.log("🔧 ID column is UUID type - recreating table with SERIAL integer IDs...");
+
+            // Drop and recreate the products table with proper SERIAL ID
+            await client.query("DROP TABLE IF EXISTS products CASCADE");
+
+            await client.query(`
+              CREATE TABLE products (
+                id SERIAL PRIMARY KEY,
+                consignment_id VARCHAR(255),
+                warehouse_id VARCHAR(255),
+                name VARCHAR(255) NOT NULL,
+                category VARCHAR(100) NOT NULL,
+                quantity INTEGER DEFAULT 0,
+                unit VARCHAR(20) DEFAULT 'kg',
+                price_per_unit DECIMAL(10,2) NOT NULL,
+                description TEXT,
+                images JSON DEFAULT '[]',
+                stock_quantity INTEGER DEFAULT 0,
+                is_featured BOOLEAN DEFAULT false,
+                is_available BOOLEAN DEFAULT true,
+                is_approved BOOLEAN DEFAULT true,
+                is_active BOOLEAN DEFAULT true,
+                tags TEXT[],
+                farmer_county VARCHAR(100),
+                farmer_name VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+              )
+            `);
+
+            console.log("✅ Products table recreated with SERIAL integer IDs");
+          }
         } else if (typeof firstProduct.id === 'number') {
           console.log("✅ Products already have proper integer IDs, skipping reset");
           return; // Exit early if products are already correct
