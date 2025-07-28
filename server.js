@@ -60,18 +60,23 @@ pool.connect(async (err, client, release) => {
       const currentProducts = await client.query("SELECT id, name FROM products ORDER BY id");
       console.log(`📦 Found ${currentProducts.rows.length} existing products`);
 
-      // Only reset if we have placeholder products
+      // Force reset products if they exist
       if (currentProducts.rows.length > 0) {
         const firstProduct = currentProducts.rows[0];
+        console.log("📦 Current product sample:", JSON.stringify(firstProduct, null, 2));
+
         // Check if the first product has a string ID (indicating old placeholder data)
         if (typeof firstProduct.id === 'string' && firstProduct.id.includes('-')) {
-          console.log("🔄 Resetting products with placeholder IDs to real integer IDs...");
+          console.log("🔄 Resetting products with UUID IDs to real integer IDs...");
 
           // Clear old products
           await client.query("DELETE FROM products");
-        } else {
+        } else if (typeof firstProduct.id === 'number') {
           console.log("✅ Products already have proper integer IDs, skipping reset");
           return; // Exit early if products are already correct
+        } else {
+          console.log("⚠️ Unknown product ID format, forcing reset");
+          await client.query("DELETE FROM products");
         }
       }
 
@@ -1785,7 +1790,7 @@ app.put("/api/admin/farmer-categories/:id", authenticateAdmin, async (req, res) 
   try {
     const categoryId = req.params.id;
     const { name, description, is_active } = req.body;
-    console.log("�� Admin updating farmer category:", { categoryId, name, description, is_active });
+    console.log("📂 Admin updating farmer category:", { categoryId, name, description, is_active });
 
     if (!name || !name.trim()) {
       return res.status(400).json({ message: "Category name is required" });
