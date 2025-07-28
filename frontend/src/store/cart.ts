@@ -516,5 +516,7 @@ export const useCartStore = () => {
     refreshCart: cartStore.refreshCart,
     repairCart: cartStore.validateCartItems,
     nuclearReset: cartStore.clearCart,
+    getSuggestedProducts: cartStore.getSuggestedProducts,
+    reconstructCart: cartStore.reconstructCart,
   };
 };
