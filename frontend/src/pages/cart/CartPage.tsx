@@ -12,7 +12,7 @@ import {
   Tag,
   AlertCircle,
 } from "lucide-react";
-import { useCart } from "../../store/cart";
+import { useCart, useCartStore } from "../../store/cart";
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
 
