@@ -85,7 +85,8 @@ export default function ProductPage() {
         return;
       }
 
-      const response = await axios.get(`/api/marketplace/products/${id}`);
+      // Add cache busting to ensure fresh data and prevent cached UUID responses
+      const response = await axios.get(`/api/marketplace/products/${id}?_t=${Date.now()}`);
       const productData = response.data.product || response.data;
 
       // Transform database response to match component interface
