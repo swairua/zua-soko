@@ -151,41 +151,30 @@ export default function CartPage() {
   } | null>(null);
 
   useEffect(() => {
-    // Debug cart contents first
+    // Check for invalid items and refresh cart on load
     console.log("🛒 CART DEBUG - Current cart contents:", cart);
     if (cart?.items) {
       console.log("🛒 CART PRODUCT IDS:", cart.items.map(item => ({
         id: item.productId,
         type: typeof item.productId,
-        name: item.name
+        name: item.name,
+        price: item.pricePerUnit
       })));
+
+      // Check for problematic items
+      const invalidPriceItems = cart.items.filter(item => !item.pricePerUnit || item.pricePerUnit <= 0);
+      const uuidItems = cart.items.filter(item =>
+        typeof item.productId === 'string' &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.productId)
+      );
+
+      if (invalidPriceItems.length > 0 || uuidItems.length > 0) {
+        console.log("⚠️ Found problematic items:", { invalidPriceItems: invalidPriceItems.length, uuidItems: uuidItems.length });
+      }
     }
 
-    // NUCLEAR RESET - Clear everything
-    console.log("🚨 CART RESET - Clearing all cart data");
-
-    // Clear all storage
-    try {
-      localStorage.removeItem('cart-storage');
-      localStorage.removeItem('cart');
-      sessionStorage.removeItem('cart-storage');
-      sessionStorage.removeItem('cart');
-    } catch (e) {
-      console.warn("Storage clear error:", e);
-    }
-
-    // Force clear cart
-    clearCart();
-
-    // Show success message
-    toast.success("Cart reset successfully! Add fresh products from marketplace.", {
-      duration: 4000,
-    });
-
-    // Refresh to ensure clean state
-    setTimeout(() => {
-      refreshCart();
-    }, 100);
+    // Refresh cart to validate items
+    refreshCart();
   }, []); // Only run once on mount
 
   // Modal functions
