@@ -82,6 +82,8 @@ api.interceptors.response.use(
       console.warn("💡 Common 403 causes: Insufficient permissions for this resource");
     } else if (errorDetails.status === 404) {
       console.warn("💡 Common 404 causes: Resource not found or incorrect URL");
+    } else if (errorDetails.status === 410) {
+      console.warn("💡 410 Gone: This resource uses an outdated format and is no longer available");
     } else if (errorDetails.status === 409) {
       console.warn("💡 Common 409 causes: Conflict with existing data (duplicate phone/email)");
     } else if (errorDetails.status === 500) {
