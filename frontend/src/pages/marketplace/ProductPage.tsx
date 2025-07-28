@@ -195,7 +195,7 @@ export default function ProductPage() {
   const getStockStatus = () => {
     if (!product) return null;
 
-    if (product.stockQuantity === 0) {
+    if (product.stock_quantity === 0) {
       return {
         text: "Out of Stock",
         color: "text-red-600",
