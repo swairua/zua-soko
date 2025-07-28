@@ -515,10 +515,7 @@ export default function MarketplacePage() {
                   </span>
                   <span className="mx-2">•</span>
                   <span>
-                    {product.farmer?.user?.firstName ||
-                      product.farmer_name ||
-                      "Farmer"}{" "}
-                    {product.farmer?.user?.lastName || ""}
+                    {product.farmer_name || "Local Farmer"}
                   </span>
                 </div>
 
