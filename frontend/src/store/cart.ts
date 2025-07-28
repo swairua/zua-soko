@@ -372,11 +372,12 @@ export const useCartStore = () => {
       console.log("🛒 Legacy addToCart called with:", { product, quantity });
 
       if (!product || !product.id) {
+        console.error("❌ Product validation failed:", product);
         toast.error("Invalid product - cannot add to cart");
         return;
       }
 
-      await cartStore.addToCart({
+      const cartItem = {
         productId: Number(product.id),
         name: product.name || "Unknown Product",
         pricePerUnit: Number(product.price_per_unit || product.pricePerUnit || 0),
@@ -387,7 +388,11 @@ export const useCartStore = () => {
         farmerName: product.farmer_name || product.farmerName || "Local Farmer",
         farmerCounty: product.farmer_county || product.farmerCounty || "Kenya",
         category: product.category || "General"
-      });
+      };
+
+      console.log("🛒 Prepared cart item:", cartItem);
+
+      await cartStore.addToCart(cartItem);
     },
     removeFromCart: cartStore.removeFromCart,
     updateQuantity: cartStore.updateQuantity,
