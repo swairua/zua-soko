@@ -373,5 +373,5 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Export for Vercel
+// Export handler for Vercel serverless functions
 module.exports = app;
