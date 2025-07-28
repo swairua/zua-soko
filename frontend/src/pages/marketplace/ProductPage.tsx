@@ -576,9 +576,7 @@ export default function ProductPage() {
                     {relatedProduct.name}
                   </h4>
                   <p className="text-xs text-gray-600 mb-2">
-                    {relatedProduct.farmer.county} •{" "}
-                    {relatedProduct.farmer.user.firstName}{" "}
-                    {relatedProduct.farmer.user.lastName}
+                    {relatedProduct.farmer_county || 'Kenya'} • {relatedProduct.farmer_name || 'Local Farmer'}
                   </p>
                   <div className="text-lg font-bold text-gray-900">
                     {formatPrice(relatedProduct.price_per_unit)}
