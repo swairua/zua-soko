@@ -284,7 +284,7 @@ export const useCart = create<CartStore>()(
           for (const item of cart.items) {
             try {
               // Fetch latest product data
-              const productData = await apiService.getProduct(item.productId);
+              const productData = await apiService.getProduct(String(item.productId));
               
               if (productData && productData.product) {
                 const product = productData.product;
