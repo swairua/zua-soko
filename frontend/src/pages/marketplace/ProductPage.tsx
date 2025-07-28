@@ -454,7 +454,7 @@ export default function ProductPage() {
                     <input
                       type="number"
                       min="1"
-                      max={product.stockQuantity}
+                      max={product.stock_quantity}
                       value={quantity}
                       onChange={(e) =>
                         setQuantity(Math.max(1, parseInt(e.target.value) || 1))
