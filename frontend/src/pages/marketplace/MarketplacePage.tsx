@@ -554,6 +554,7 @@ export default function MarketplacePage() {
                     <Link
                       to={`/marketplace/product/${product.id}`}
                       className="bg-gray-100 text-gray-700 px-2 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium flex items-center"
+                      onClick={() => console.log("🔗 Navigating to product:", product.id, "Type:", typeof product.id)}
                     >
                       <Eye className="w-4 h-4" />
                     </Link>
