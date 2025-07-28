@@ -60,7 +60,14 @@ export const useCart = create<CartStore>()(
           set({ isLoading: true });
 
           // Validate product ID - now expecting real integer IDs
+      console.log("🔍 Validating product ID:", newItem.productId, "Type:", typeof newItem.productId);
       if (!newItem.productId || isNaN(Number(newItem.productId))) {
+        console.error("❌ Invalid product ID validation failed:", {
+          productId: newItem.productId,
+          type: typeof newItem.productId,
+          isNaN: isNaN(Number(newItem.productId)),
+          numberValue: Number(newItem.productId)
+        });
         throw new Error("Invalid product ID");
       }
 
