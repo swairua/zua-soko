@@ -374,21 +374,11 @@ export default function ProductPage() {
             )}
           </div>
 
-          {/* Features/Badges */}
+          {/* Category Badge */}
           <div className="flex flex-wrap gap-2 mb-6">
-            {product.isFeatured && (
-              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
-                ⭐ Featured
-              </span>
-            )}
-            {product.tags.map((tag) => (
-              <span
-                key={tag}
-                className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
-              >
-                {tag}
-              </span>
-            ))}
+            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+              {product.category}
+            </span>
           </div>
 
           {/* Description */}
