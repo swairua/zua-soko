@@ -147,7 +147,7 @@ export default function CheckoutPage() {
     console.log("🚨 CHECKOUT RESET - Clearing all cart data immediately");
 
     // Nuclear reset
-    nuclearReset();
+    clearCart();
 
     // Redirect to marketplace immediately
     toast.error("Cart was reset due to invalid data. Redirecting to marketplace...");
