@@ -78,6 +78,8 @@ export default function MarketplacePage() {
         ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
         ...(filters.featured && { featured: "true" }),
         _t: Date.now().toString(), // Cache busting
+        refresh: "true",
+        nocache: Math.random().toString(),
       });
 
       const data = await apiService.getProducts(params);
