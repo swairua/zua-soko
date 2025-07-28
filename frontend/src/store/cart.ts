@@ -77,7 +77,8 @@ export const useCart = create<CartStore>()(
             const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
             if (uuidPattern.test(productId)) {
               console.error("❌ REJECTED UUID product ID:", productId);
-              throw new Error("UUID product IDs are no longer supported. Please use the marketplace to add current products.");
+              console.log("💡 The product data appears to be outdated. Please refresh the marketplace to get updated products.");
+              throw new Error("Product data is outdated. Please refresh the page and try again.");
             }
 
             // Try to parse as integer
