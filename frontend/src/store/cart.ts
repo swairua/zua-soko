@@ -32,6 +32,8 @@ interface CartStore {
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
   validateCartItems: () => Promise<void>;
+  getSuggestedProducts: () => Promise<any[]>;
+  reconstructCart: () => Promise<void>;
 }
 
 const initialCart: Cart = {
