@@ -329,20 +329,29 @@ export const useCart = create<CartStore>()(
         try {
           set({ isLoading: true });
           const { cart } = get();
-          
+
           if (cart.items.length === 0) return;
 
           const updatedItems: CartItem[] = [];
           let hasChanges = false;
+          let removedItems = 0;
 
           for (const item of cart.items) {
             try {
+              // Skip validation for UUID items - they'll be removed by refreshCart
+              if (typeof item.productId === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.productId)) {
+                console.log(`Skipping validation for UUID item: ${item.name}`);
+                removedItems++;
+                hasChanges = true;
+                continue;
+              }
+
               // Fetch latest product data
               const productData = await apiService.getProduct(String(item.productId));
-              
+
               if (productData && productData.product) {
                 const product = productData.product;
-                
+
                 // Update item with latest data
                 const updatedItem: CartItem = {
                   ...item,
@@ -371,12 +380,21 @@ export const useCart = create<CartStore>()(
               } else {
                 // Product no longer exists
                 hasChanges = true;
+                removedItems++;
                 console.log(`Product ${item.productId} no longer available`);
               }
-            } catch (error) {
-              // Keep original item if we can't fetch data
-              console.error(`Error validating item ${item.productId}:`, error);
-              updatedItems.push(item);
+            } catch (error: any) {
+              // Handle different types of errors
+              if (error.response?.status === 404 || error.response?.status === 410) {
+                // Product not found or outdated format
+                console.log(`Product ${item.productId} not found (${error.response?.status})`);
+                hasChanges = true;
+                removedItems++;
+              } else {
+                // Network error or other issue - keep item for now
+                console.warn(`Error validating item ${item.productId}, keeping in cart:`, error.message);
+                updatedItems.push(item);
+              }
             }
           }
 
@@ -387,10 +405,9 @@ export const useCart = create<CartStore>()(
               ...totals,
             };
             set({ cart: updatedCart });
-            
-            const removedCount = cart.items.length - updatedItems.length;
-            if (removedCount > 0) {
-              toast.error(`${removedCount} unavailable item(s) removed from cart`);
+
+            if (removedItems > 0) {
+              toast.error(`${removedItems} unavailable item(s) removed from cart`);
             }
           }
         } catch (error) {
