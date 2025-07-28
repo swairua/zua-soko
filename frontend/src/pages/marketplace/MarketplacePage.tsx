@@ -509,9 +509,7 @@ export default function MarketplacePage() {
                 <div className="flex items-center text-xs text-gray-500 mb-3">
                   <MapPin className="w-3 h-3 mr-1" />
                   <span>
-                    {product.farmer?.county ||
-                      product.farmer_county ||
-                      "Unknown"}
+                    {product.farmer_county || "Unknown"}
                   </span>
                   <span className="mx-2">•</span>
                   <span>
