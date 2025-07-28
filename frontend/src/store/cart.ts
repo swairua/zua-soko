@@ -393,12 +393,11 @@ export const useCartStore = () => {
       const productIdNumber = Number(product.id);
 
       if (isNaN(pricePerUnit) || isNaN(maxStock) || isNaN(productIdNumber)) {
-        console.error("❌ Invalid numeric values in product:", {
-          price: pricePerUnit,
-          stock: maxStock,
-          id: productIdNumber,
-          originalProduct: product
-        });
+        console.error("❌ Invalid numeric values in product:");
+        console.error("Price:", pricePerUnit, "Type:", typeof pricePerUnit);
+        console.error("Stock:", maxStock, "Type:", typeof maxStock);
+        console.error("ID:", productIdNumber, "Type:", typeof productIdNumber);
+        console.error("Original product:", JSON.stringify(product, null, 2));
         toast.error("Product data is invalid - cannot add to cart");
         return;
       }
