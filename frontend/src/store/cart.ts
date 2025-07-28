@@ -387,10 +387,21 @@ export const useCartStore = () => {
         return;
       }
 
-      // Ensure we have valid numeric values
-      const pricePerUnit = Number(product.price_per_unit || product.pricePerUnit || 0);
-      const maxStock = Number(product.stock_quantity || product.stockQuantity || 999);
-      const productIdNumber = Number(product.id);
+      // Ensure we have valid numeric values - handle various formats
+      const priceValue = product.price_per_unit || product.pricePerUnit || 0;
+      const stockValue = product.stock_quantity || product.stockQuantity || 999;
+      const idValue = product.id;
+
+      console.log("🔍 Extracting numeric values:", {
+        priceValue, stockValue, idValue,
+        priceType: typeof priceValue,
+        stockType: typeof stockValue,
+        idType: typeof idValue
+      });
+
+      const pricePerUnit = parseFloat(String(priceValue)) || 0;
+      const maxStock = parseInt(String(stockValue)) || 999;
+      const productIdNumber = parseInt(String(idValue)) || 0;
 
       if (isNaN(pricePerUnit) || isNaN(maxStock) || isNaN(productIdNumber)) {
         console.error("❌ Invalid numeric values in product:");
