@@ -403,14 +403,24 @@ export const useCartStore = () => {
       const maxStock = parseInt(String(stockValue)) || 999;
       const productIdNumber = parseInt(String(idValue)) || 0;
 
-      if (isNaN(pricePerUnit) || isNaN(maxStock) || isNaN(productIdNumber)) {
-        console.error("❌ Invalid numeric values in product:");
-        console.error("Price:", pricePerUnit, "Type:", typeof pricePerUnit);
-        console.error("Stock:", maxStock, "Type:", typeof maxStock);
+      // Only fail if the product ID is invalid (most critical)
+      if (isNaN(productIdNumber) || productIdNumber <= 0) {
+        console.error("❌ Invalid product ID - cannot add to cart:");
         console.error("ID:", productIdNumber, "Type:", typeof productIdNumber);
         console.error("Original product:", JSON.stringify(product, null, 2));
-        toast.error("Product data is invalid - cannot add to cart");
+        toast.error("Invalid product - cannot add to cart");
         return;
+      }
+
+      // Use defaults for other values if they're invalid
+      const finalPrice = isNaN(pricePerUnit) ? 0 : pricePerUnit;
+      const finalStock = isNaN(maxStock) ? 999 : maxStock;
+
+      if (finalPrice !== pricePerUnit || finalStock !== maxStock) {
+        console.warn("⚠️ Using default values for invalid numeric data:", {
+          originalPrice: pricePerUnit, finalPrice,
+          originalStock: maxStock, finalStock
+        });
       }
 
       const cartItem = {
