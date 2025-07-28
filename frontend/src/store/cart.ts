@@ -420,14 +420,32 @@ export const useCart = create<CartStore>()(
       getSuggestedProducts: async () => {
         try {
           console.log("🛒 Fetching suggested products for cart reconstruction");
+
+          // Force fresh data with aggressive cache busting
           const data = await apiService.getProducts(new URLSearchParams({
             limit: "8",
             _t: Date.now().toString(),
+            refresh: "true",
+            nocache: Math.random().toString(),
           }));
 
           const products = data.products || data || [];
           console.log("✅ Fetched suggested products:", products.length);
-          return Array.isArray(products) ? products : [];
+
+          // Validate that we got integer IDs
+          const validProducts = products.filter((product: any) => {
+            const hasValidId = typeof product.id === 'number' ||
+              (typeof product.id === 'string' && /^\d+$/.test(product.id));
+
+            if (!hasValidId) {
+              console.warn("⚠️ Filtering out product with invalid ID:", product.id, product.name);
+            }
+
+            return hasValidId;
+          });
+
+          console.log(`✅ Validated products: ${validProducts.length}/${products.length} have valid integer IDs`);
+          return Array.isArray(validProducts) ? validProducts : [];
         } catch (error) {
           console.error("❌ Failed to fetch suggested products:", error);
           return [];
