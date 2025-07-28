@@ -378,6 +378,47 @@ export const useCart = create<CartStore>()(
           set({ isLoading: false });
         }
       },
+
+      getSuggestedProducts: async () => {
+        try {
+          console.log("🛒 Fetching suggested products for cart reconstruction");
+          const data = await apiService.getProducts(new URLSearchParams({
+            limit: "8",
+            _t: Date.now().toString(),
+          }));
+
+          const products = data.products || data || [];
+          console.log("✅ Fetched suggested products:", products.length);
+          return Array.isArray(products) ? products : [];
+        } catch (error) {
+          console.error("❌ Failed to fetch suggested products:", error);
+          return [];
+        }
+      },
+
+      reconstructCart: async () => {
+        try {
+          console.log("🔧 Starting cart reconstruction with live data");
+          set({ isLoading: true });
+
+          // Clear any invalid items first
+          await get().refreshCart();
+
+          // If cart is still empty after cleanup, we're ready for reconstruction
+          const { cart } = get();
+          if (cart.items.length === 0) {
+            console.log("✅ Cart cleaned and ready for reconstruction");
+            toast.success("Cart updated! Browse fresh products below to rebuild your cart.");
+          } else {
+            console.log(`✅ Cart reconstruction complete. ${cart.items.length} valid items remaining.`);
+          }
+        } catch (error) {
+          console.error("❌ Cart reconstruction failed:", error);
+          toast.error("Failed to reconstruct cart. Please refresh the page.");
+        } finally {
+          set({ isLoading: false });
+        }
+      },
     }),
     {
       name: "cart-storage",
