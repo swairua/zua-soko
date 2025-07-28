@@ -148,7 +148,11 @@ export const apiService = {
       // Handle 410 specifically for outdated product links
       if (error.response?.status === 410) {
         const errorData = error.response.data;
-        console.log("🔄 410 Response - Outdated product link:", errorData);
+        console.log("✅ 410 Response handled gracefully - Outdated product link detected:", {
+          productId: id,
+          message: errorData.message,
+          redirect: errorData.redirect
+        });
 
         // For 410 responses, we want to handle this gracefully in the UI
         // rather than showing a generic error
