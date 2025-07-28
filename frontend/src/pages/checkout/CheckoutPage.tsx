@@ -473,7 +473,7 @@ export default function CheckoutPage() {
             <button
               onClick={() => {
                 console.log("🛒 FORCE FIX - Nuclear reset and redirecting");
-                nuclearReset();
+                clearCart();
                 toast.success("Cart completely reset! Redirecting to marketplace...");
                 setTimeout(() => {
                   window.location.href = '/marketplace'; // Force full page reload
