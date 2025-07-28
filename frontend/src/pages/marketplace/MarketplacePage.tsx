@@ -189,6 +189,15 @@ export default function MarketplacePage() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Force refresh every 5 seconds to debug API calls
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log("🔄 Auto-refreshing products for debugging...");
+      fetchProducts(pagination.page);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [pagination.page]);
+
   const handleFilterChange = (key: keyof Filters, value: string | boolean) => {
     setFilters((prev) => ({
       ...prev,
