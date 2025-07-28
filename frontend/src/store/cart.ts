@@ -406,7 +406,7 @@ export const useCartStore = () => {
       const stockValue = product.stock_quantity || product.stockQuantity || 999;
       const idValue = product.id;
 
-      console.log("🔍 Extracting numeric values:", {
+      console.log("🔍 Extracting values:", {
         priceValue, stockValue, idValue,
         priceType: typeof priceValue,
         stockType: typeof stockValue,
@@ -415,12 +415,25 @@ export const useCartStore = () => {
 
       const pricePerUnit = parseFloat(String(priceValue)) || 0;
       const maxStock = parseInt(String(stockValue)) || 999;
-      const productIdNumber = parseInt(String(idValue)) || 0;
 
-      // Only fail if the product ID is invalid (most critical)
-      if (isNaN(productIdNumber) || productIdNumber <= 0) {
+      // Handle product ID - accept both UUID and integer
+      let productIdValue = idValue;
+      if (typeof idValue === 'string') {
+        // Check if it's a UUID
+        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidPattern.test(idValue)) {
+          // Try to parse as integer
+          const intId = parseInt(idValue, 10);
+          if (!isNaN(intId) && intId > 0) {
+            productIdValue = intId;
+          }
+        }
+      }
+
+      // Validate that we have a valid product ID
+      if (!productIdValue) {
         console.error("❌ Invalid product ID - cannot add to cart:");
-        console.error("ID:", productIdNumber, "Type:", typeof productIdNumber);
+        console.error("ID:", productIdValue, "Type:", typeof productIdValue);
         console.error("Original product:", JSON.stringify(product, null, 2));
         toast.error("Invalid product - cannot add to cart");
         return;
