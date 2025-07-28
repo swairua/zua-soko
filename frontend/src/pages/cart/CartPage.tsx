@@ -132,7 +132,9 @@ export default function CartPage() {
     clearCart,
     isLoading,
     refreshCart,
+    reconstructCart,
   } = useCart();
+  const { addToCart } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
   const [updating, setUpdating] = useState<string | null>(null);
