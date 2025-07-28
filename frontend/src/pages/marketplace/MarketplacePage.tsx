@@ -529,9 +529,7 @@ export default function MarketplacePage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-lg font-bold text-gray-900">
-                      {formatPrice(
-                        product.pricePerUnit || product.price_per_unit,
-                      )}
+                      {formatPrice(product.price_per_unit)}
                     </div>
                     <div className="text-xs text-gray-500">
                       per {product.unit}
