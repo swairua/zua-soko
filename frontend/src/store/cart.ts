@@ -275,13 +275,25 @@ export const useCart = create<CartStore>()(
       refreshCart: async () => {
         const { cart } = get();
 
-        // Only remove items that are clearly broken (null/undefined IDs)
+        // Filter out clearly invalid items
         const validItems = cart.items.filter(item => {
           const id = item.productId;
 
-          // Only filter out clearly invalid items
+          // Remove items with missing IDs
           if (!id && id !== 0) {
             console.warn("🧹 Removing cart item with missing ID:", item.name);
+            return false;
+          }
+
+          // Remove items with zero/invalid prices
+          if (!item.pricePerUnit || item.pricePerUnit <= 0) {
+            console.warn("🧹 Removing cart item with invalid price:", item.name, "Price:", item.pricePerUnit);
+            return false;
+          }
+
+          // Check if item has UUID - these are from old system
+          if (typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+            console.warn("🧹 Removing cart item with UUID ID (outdated):", item.name, "ID:", id);
             return false;
           }
 
@@ -289,16 +301,25 @@ export const useCart = create<CartStore>()(
         });
 
         if (validItems.length !== cart.items.length) {
-          console.log(`🧹 Cart cleanup: Removed ${cart.items.length - validItems.length} items with invalid IDs`);
+          const removedCount = cart.items.length - validItems.length;
+          console.log(`🧹 Cart cleanup: Removed ${removedCount} invalid items`);
+
           const totals = calculateTotals(validItems);
           set({ cart: { items: validItems, ...totals } });
 
-          if (cart.items.length > validItems.length) {
-            toast.error(`Removed ${cart.items.length - validItems.length} invalid items from cart`);
+          if (removedCount > 0) {
+            toast.error(
+              `Removed ${removedCount} outdated item${removedCount > 1 ? 's' : ''} from cart. Please add fresh products from marketplace.`,
+              { duration: 5000 }
+            );
           }
         }
 
-        await get().validateCartItems();
+        // Only validate remaining items if we have any
+        if (validItems.length > 0) {
+          await get().validateCartItems();
+        }
+
         const currentCart = get().cart;
         const totals = calculateTotals(currentCart.items);
         set({ cart: { ...currentCart, ...totals } });
