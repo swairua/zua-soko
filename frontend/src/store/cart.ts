@@ -451,7 +451,7 @@ export const useCartStore = () => {
       }
 
       const cartItem = {
-        productId: productIdNumber,
+        productId: productIdValue,
         name: product.name || "Unknown Product",
         pricePerUnit: finalPrice,
         quantity: Math.max(1, Number(quantity) || 1),
