@@ -325,13 +325,27 @@ app.get("/api/marketplace/products/:id", async (req, res) => {
     const productId = req.params.id;
     console.log("🛍️ Marketplace product detail request received:", productId);
 
-    // Validate product ID is a number
+    // Handle different ID formats
     const productIdNum = parseInt(productId);
-    if (isNaN(productIdNum)) {
+
+    // Check if it's a UUID (old format)
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidPattern.test(productId)) {
+      console.log("⚠️ Received UUID product ID (old format):", productId);
+      return res.status(410).json({
+        success: false,
+        message: "This product link uses an outdated format. Please browse the marketplace for current products.",
+        code: "OUTDATED_PRODUCT_LINK",
+        redirect: "/marketplace"
+      });
+    }
+
+    if (isNaN(productIdNum) || productIdNum <= 0) {
       console.log("❌ Invalid product ID format:", productId);
       return res.status(400).json({
-        message: "Invalid product ID format. Product ID must be a number.",
-        details: `Received: ${productId}, Expected: numeric ID`
+        success: false,
+        message: "Invalid product ID format. Product ID must be a positive number.",
+        details: `Received: ${productId}, Expected: positive integer`
       });
     }
 
@@ -1771,7 +1785,7 @@ app.put("/api/admin/farmer-categories/:id", authenticateAdmin, async (req, res) 
   try {
     const categoryId = req.params.id;
     const { name, description, is_active } = req.body;
-    console.log("📂 Admin updating farmer category:", { categoryId, name, description, is_active });
+    console.log("�� Admin updating farmer category:", { categoryId, name, description, is_active });
 
     if (!name || !name.trim()) {
       return res.status(400).json({ message: "Category name is required" });
