@@ -61,12 +61,23 @@ export const useCart = create<CartStore>()(
 
           // Validate product ID - now expecting real integer IDs
       console.log("🔍 Validating product ID:", newItem.productId, "Type:", typeof newItem.productId);
-      if (!newItem.productId || isNaN(Number(newItem.productId))) {
+
+      // Handle different ID formats
+      let productId;
+      if (typeof newItem.productId === 'number') {
+        productId = newItem.productId;
+      } else if (typeof newItem.productId === 'string') {
+        productId = parseInt(newItem.productId, 10);
+      } else {
+        productId = NaN;
+      }
+
+      if (!productId || isNaN(productId) || productId <= 0) {
         console.error("❌ Invalid product ID validation failed:", {
-          productId: newItem.productId,
+          originalId: newItem.productId,
           type: typeof newItem.productId,
-          isNaN: isNaN(Number(newItem.productId)),
-          numberValue: Number(newItem.productId)
+          parsedId: productId,
+          isNaN: isNaN(productId)
         });
         throw new Error("Invalid product ID");
       }
