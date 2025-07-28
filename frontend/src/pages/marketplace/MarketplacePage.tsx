@@ -188,9 +188,17 @@ export default function MarketplacePage() {
   const handleAddToCart = async (product: Product) => {
     try {
       console.log("🛍️ Marketplace adding to cart:", product);
+      console.log("🛍️ Product ID details:", {
+        id: product.id,
+        type: typeof product.id,
+        hasId: !!product.id,
+        isNumber: typeof product.id === 'number',
+        isValidNumber: !isNaN(Number(product.id))
+      });
 
       // Validate product data before adding
       if (!product || !product.id) {
+        console.error("❌ Product validation failed:", { product, hasProduct: !!product, hasId: !!(product?.id) });
         toast.error("Invalid product - cannot add to cart");
         return;
       }
