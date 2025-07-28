@@ -179,7 +179,7 @@ export default function CheckoutPage() {
       }
 
       // Repair cart to remove invalid items and recalculate
-      repairCart();
+      validateCartItems();
 
       // Double-check: if cart still has zero total but has items, clear everything
       if (cart.items.length > 0 && cart.totalAmount === 0) {
