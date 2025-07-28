@@ -151,8 +151,9 @@ export default function CartPage() {
   } | null>(null);
 
   useEffect(() => {
-    // Check for invalid items and refresh cart on load
-    console.log("🛒 CART DEBUG - Current cart contents:", cart);
+    // FORCE COMPLETE UUID CLEANUP
+    console.log("🚨 CART UUID CLEANUP - Checking cart contents:", cart);
+
     if (cart?.items) {
       console.log("🛒 CART PRODUCT IDS:", cart.items.map(item => ({
         id: item.productId,
@@ -161,19 +162,49 @@ export default function CartPage() {
         price: item.pricePerUnit
       })));
 
-      // Check for problematic items
-      const invalidPriceItems = cart.items.filter(item => !item.pricePerUnit || item.pricePerUnit <= 0);
+      // Find all UUID items
       const uuidItems = cart.items.filter(item =>
         typeof item.productId === 'string' &&
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.productId)
       );
 
-      if (invalidPriceItems.length > 0 || uuidItems.length > 0) {
-        console.log("⚠️ Found problematic items:", { invalidPriceItems: invalidPriceItems.length, uuidItems: uuidItems.length });
+      if (uuidItems.length > 0) {
+        console.log("🗑️ REMOVING UUID ITEMS:", uuidItems.map(item => item.productId));
+
+        // Remove UUID items immediately
+        uuidItems.forEach(item => {
+          removeFromCart(item.id);
+        });
+
+        toast.error(`Removed ${uuidItems.length} outdated items. Please add fresh products from marketplace.`, {
+          duration: 4000
+        });
       }
     }
 
-    // Refresh cart to validate items
+    // Clear any UUID-based localStorage entries
+    try {
+      const cartStorage = localStorage.getItem('cart-storage');
+      if (cartStorage) {
+        const parsed = JSON.parse(cartStorage);
+        if (parsed?.state?.cart?.items) {
+          const hasUuids = parsed.state.cart.items.some((item: any) =>
+            typeof item.productId === 'string' &&
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.productId)
+          );
+
+          if (hasUuids) {
+            console.log("🗑️ CLEARING UUID-contaminated localStorage");
+            localStorage.removeItem('cart-storage');
+            clearCart();
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Storage cleanup error:", e);
+    }
+
+    // Refresh cart to validate remaining items
     refreshCart();
   }, []); // Only run once on mount
 
