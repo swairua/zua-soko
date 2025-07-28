@@ -1,67 +1,67 @@
-# Include ONLY what we need for Vercel
-# Exclude everything else to prevent framework detection
+# Files and folders to exclude from Vercel deployment
 
-# Keep only these directories:
-# - frontend/ (our React app)
-# - api/ (our serverless functions)
-
-# Exclude all other directories
-backend/
-node_modules/
-.git/
-database/
-scripts/
-
-# Exclude all config files that could cause detection
-*.config.js
-*.config.ts
-next.config.js
-next-env.d.ts
-nuxt.config.js
-vue.config.js
-angular.json
-svelte.config.js
-remix.config.js
-gatsby-config.js
-
-# Exclude all TypeScript configs
-tsconfig*.json
-
-# Exclude all build/dev files
-build.sh
-vercel-build.js
-build-static.js
-check-clean.js
-dev-server.js
-verify-build.js
-docker-compose.yml
-ecosystem.config.js
-nginx.conf
-health-check.sh
-setup-local.sh
-migrate_to_database.sh
-test-mpesa-integration.js
-
-# Exclude docs and examples
-README*.md
-CHANGELOG.md
-CONTRIBUTING.md
-DATABASE_SETUP.md
-DEPLOYMENT.md
-GITHUB_UPDATE_STEPS.md
-VERCEL_SETUP.md
-LICENSE
+# Development files
 *.md
 !README.md
+!VERCEL_DEPLOYMENT_GUIDE.md
+!QUICK_DEPLOY.md
+.env.local
+.env.development
 
-# Exclude environment files
-.env*
-!.env.example
+# Backend folder (we use api/ for serverless functions)
+backend/
+server.js
+minimal-server.js
 
-# Exclude package files
-frontend-package.json
-package-lock.json
-all-files.txt
-.nvmrc
-.eslintrc.json
-setup-neon-db.sql
+# Build artifacts
+frontend/dist/
+frontend/.next/
+frontend/node_modules/
+
+# Development scripts
+dev-server.js
+dev-server-combined.js
+*localhost*
+*development*
+
+# Database scripts (run separately)
+deploy-database.js
+setup-database*.js
+*-db.js
+migrate_to_database.sh
+
+# Documentation (keep essential ones)
+DATABASE_*.md
+LOCALHOST_*.md
+EMERGENCY_*.md
+EXPRESS_*.md
+RENDER_*.md
+LOGIN_*.md
+UNIVERSAL_*.md
+PRODUCTION_*.md
+
+# Git and IDE files
+.git/
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js
+
+# Build scripts not needed in production
+build.sh
+*.config.js
+!vercel.json
+!package.json
+!frontend/package.json
+
+# Asset files (these will be in dist)
+assets/
+!api/
