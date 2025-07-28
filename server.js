@@ -138,10 +138,10 @@ pool.connect(async (err, client, release) => {
         console.log("📦 Adding products with real integer IDs...");
         await client.query(`
           INSERT INTO products (name, description, category, quantity, unit, price_per_unit, stock_quantity, images) VALUES
-          ('Fresh Tomatoes', 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.', 'Vegetables', 85, 'kg', 130.00, 85, '{"https://images.unsplash.com/photo-1546470427-e212b9d56085"}'),
-          ('Sweet Potatoes', 'Fresh sweet potatoes, rich in nutrients and vitamins.', 'Root Vegetables', 45, 'kg', 80.00, 45, '{"https://images.unsplash.com/photo-1518977676601-b53f82aba655"}'),
-          ('Fresh Spinach', 'Organic spinach leaves, perfect for healthy meals.', 'Leafy Greens', 30, 'kg', 120.00, 30, '{"https://images.unsplash.com/photo-1576045057995-568f588f82fb"}'),
-          ('Green Beans', 'Tender green beans, freshly harvested.', 'Vegetables', 60, 'kg', 100.00, 60, '{"https://images.unsplash.com/photo-1628773822503-930a7eaecf80"}')
+          ('Fresh Tomatoes', 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.', 'Vegetables', 85, 'kg', 130.00, 85, '["https://images.unsplash.com/photo-1546470427-e212b9d56085"]'),
+          ('Sweet Potatoes', 'Fresh sweet potatoes, rich in nutrients and vitamins.', 'Root Vegetables', 45, 'kg', 80.00, 45, '["https://images.unsplash.com/photo-1518977676601-b53f82aba655"]'),
+          ('Fresh Spinach', 'Organic spinach leaves, perfect for healthy meals.', 'Leafy Greens', 30, 'kg', 120.00, 30, '["https://images.unsplash.com/photo-1576045057995-568f588f82fb"]'),
+          ('Green Beans', 'Tender green beans, freshly harvested.', 'Vegetables', 60, 'kg', 100.00, 60, '["https://images.unsplash.com/photo-1628773822503-930a7eaecf80"]')
         `);
 
         const newCount = await client.query("SELECT COUNT(*) FROM products");
@@ -2234,7 +2234,7 @@ app.post("/api/admin/reset-products", authenticateAdmin, async (req, res) => {
 // GET /api/admin/products - Get all products for admin management
 app.get("/api/admin/products", authenticateAdmin, async (req, res) => {
   try {
-    console.log("📦 Admin products request received");
+    console.log("���� Admin products request received");
 
     const result = await pool.query(`
       SELECT
