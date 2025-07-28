@@ -438,7 +438,7 @@ export default function ProductPage() {
           {/* Add to Cart */}
           {isAuthenticated &&
             user?.role === "CUSTOMER" &&
-            product.stockQuantity > 0 && (
+            product.stock_quantity > 0 && (
               <div className="mb-6">
                 <div className="flex items-center space-x-4 mb-4">
                   <label className="text-sm font-medium text-gray-700">
