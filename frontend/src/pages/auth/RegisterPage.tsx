@@ -244,7 +244,53 @@ export default function RegisterPage() {
       navigate("/login");
     } catch (error: any) {
       console.error("Registration error:", error);
-      const message = error.response?.data?.error || "Registration failed";
+      console.log("Error response data:", error.response?.data);
+      console.log("Error status:", error.response?.status);
+      console.log("Error headers:", error.response?.headers);
+
+      // Enhanced error handling for different response formats
+      let message = "Registration failed";
+
+      if (error.response?.data) {
+        const data = error.response.data;
+        console.log("Full error data object:", data);
+
+        // Try different possible error message fields
+        message = data.message || data.error || data.details || data.msg || message;
+
+        // Special handling for 409 conflict errors
+        if (error.response.status === 409) {
+          if (message.toLowerCase().includes("phone")) {
+            message = "This phone number is already registered. Please use a different phone number or try logging in.";
+          } else if (message.toLowerCase().includes("email")) {
+            message = "This email address is already registered. Please use a different email or try logging in.";
+          } else if (message.toLowerCase().includes("user") || message.toLowerCase().includes("exist")) {
+            message = "An account with these details already exists. Please try logging in or use different credentials.";
+          } else {
+            message = `Registration conflict: ${message}`;
+          }
+
+          // Show error message with extra duration for 409 conflicts
+          toast.error(message, { duration: 8000 });
+
+          // Add a follow-up toast with login suggestion
+          setTimeout(() => {
+            toast("👆 Click here to go to login page", {
+              duration: 5000,
+              style: {
+                cursor: 'pointer',
+                backgroundColor: '#3B82F6',
+                color: 'white',
+              }
+            });
+          }, 2000);
+          return; // Exit early to avoid duplicate toast
+        }
+      } else if (error.message) {
+        message = error.message;
+      }
+
+      console.log("Processed error message:", message);
       toast.error(message);
     } finally {
       setLoading(false);
@@ -276,12 +322,12 @@ export default function RegisterPage() {
           Create your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Or{" "}
+          Already have an account?{" "}
           <Link
             to="/login"
             className="font-medium text-primary-600 hover:text-primary-500"
           >
-            sign in to your existing account
+            Sign in here
           </Link>
         </p>
       </div>
@@ -433,6 +479,9 @@ export default function RegisterPage() {
                       {errors.phone.message}
                     </p>
                   )}
+                  <p className="mt-1 text-xs text-gray-500">
+                    This phone number will be used for login and notifications
+                  </p>
                 </div>
 
                 <div>
@@ -447,6 +496,7 @@ export default function RegisterPage() {
                       },
                     })}
                     type="email"
+                    placeholder="your@email.com (optional)"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                   {errors.email && (
@@ -454,6 +504,9 @@ export default function RegisterPage() {
                       {errors.email.message}
                     </p>
                   )}
+                  <p className="mt-1 text-xs text-gray-500">
+                    Optional - used for account recovery and important updates
+                  </p>
                 </div>
 
                 <div>
@@ -901,6 +954,30 @@ export default function RegisterPage() {
                     </p>
                   </div>
                 )}
+
+                {/* Account conflict notice */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-blue-800">
+                        Account Check
+                      </h3>
+                      <div className="mt-2 text-sm text-blue-700">
+                        <p>
+                          If you get an error about existing account, it means this phone number or email is already registered.{" "}
+                          <Link to="/login" className="font-medium underline hover:text-blue-900">
+                            Try logging in instead
+                          </Link>.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 <button
                   type="submit"

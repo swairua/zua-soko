@@ -12,7 +12,7 @@ import {
   Tag,
   AlertCircle,
 } from "lucide-react";
-import { useCart } from "../../store/cart";
+import { useCart, useCartStore } from "../../store/cart";
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
 
@@ -39,6 +39,91 @@ interface CartItemData {
   };
 }
 
+// Component for live product suggestions
+const LiveProductSuggestions: React.FC<{ onAddToCart: (product: any) => void }> = ({ onAddToCart }) => {
+  const [suggestedProducts, setSuggestedProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { getSuggestedProducts } = useCart();
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      try {
+        setLoading(true);
+        const products = await getSuggestedProducts();
+        setSuggestedProducts(products.slice(0, 4)); // Show top 4
+      } catch (error) {
+        console.error("Failed to fetch suggestions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, [getSuggestedProducts]);
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("en-KE", {
+      style: "currency",
+      currency: "KES",
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-2xl mx-auto">
+        <h3 className="text-sm font-medium text-green-800 mb-3">🌱 Loading Fresh Products...</h3>
+        <div className="grid grid-cols-2 gap-2">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="h-4 bg-green-200 rounded w-full mb-1"></div>
+              <div className="h-3 bg-green-100 rounded w-2/3"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (suggestedProducts.length === 0) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
+        <h3 className="text-sm font-medium text-green-800 mb-2">🌱 Fresh Products Available:</h3>
+        <p className="text-sm text-green-700">
+          Browse our marketplace for fresh, local produce from verified farmers.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-2xl mx-auto">
+      <h3 className="text-sm font-medium text-green-800 mb-3">🌱 Fresh Products Available:</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+        {suggestedProducts.map((product) => (
+          <div key={product.id} className="flex items-center justify-between bg-white rounded-md p-2 border border-green-100">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-green-900">{product.name}</p>
+              <p className="text-xs text-green-600">
+                {formatPrice(product.price_per_unit)}/{product.unit} • {product.category}
+              </p>
+            </div>
+            <button
+              onClick={() => onAddToCart(product)}
+              className="ml-2 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 transition-colors"
+            >
+              Add
+            </button>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-green-600 text-center">
+        Click "Add" to quickly add products to your cart, or browse all products below.
+      </p>
+    </div>
+  );
+};
+
 export default function CartPage() {
   const {
     cart,
@@ -47,7 +132,9 @@ export default function CartPage() {
     clearCart,
     isLoading,
     refreshCart,
+    reconstructCart,
   } = useCart();
+  const { addToCart } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
   const [updating, setUpdating] = useState<string | null>(null);
@@ -64,31 +151,61 @@ export default function CartPage() {
   } | null>(null);
 
   useEffect(() => {
-    // NUCLEAR RESET - Clear everything
-    console.log("🚨 CART RESET - Clearing all cart data");
+    // FORCE COMPLETE UUID CLEANUP
+    console.log("🚨 CART UUID CLEANUP - Checking cart contents:", cart);
 
-    // Clear all storage
-    try {
-      localStorage.removeItem('cart-storage');
-      localStorage.removeItem('cart');
-      sessionStorage.removeItem('cart-storage');
-      sessionStorage.removeItem('cart');
-    } catch (e) {
-      console.warn("Storage clear error:", e);
+    if (cart?.items) {
+      console.log("🛒 CART PRODUCT IDS:", cart.items.map(item => ({
+        id: item.productId,
+        type: typeof item.productId,
+        name: item.name,
+        price: item.pricePerUnit
+      })));
+
+      // Find all UUID items
+      const uuidItems = cart.items.filter(item =>
+        typeof item.productId === 'string' &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.productId)
+      );
+
+      if (uuidItems.length > 0) {
+        console.log("🗑️ REMOVING UUID ITEMS:", uuidItems.map(item => item.productId));
+
+        // Remove UUID items immediately
+        uuidItems.forEach(item => {
+          removeFromCart(item.id);
+        });
+
+        toast.error(`Removed ${uuidItems.length} outdated items. Please add fresh products from marketplace.`, {
+          duration: 4000
+        });
+      }
     }
 
-    // Force clear cart
-    clearCart();
+    // Clear any UUID-based localStorage entries
+    try {
+      const cartStorage = localStorage.getItem('cart-storage');
+      if (cartStorage) {
+        const parsed = JSON.parse(cartStorage);
+        if (parsed?.state?.cart?.items) {
+          const hasUuids = parsed.state.cart.items.some((item: any) =>
+            typeof item.productId === 'string' &&
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.productId)
+          );
 
-    // Show success message
-    toast.success("Cart reset successfully! Add fresh products from marketplace.", {
-      duration: 4000,
-    });
+          if (hasUuids) {
+            console.log("🗑️ CLEARING UUID-contaminated localStorage");
+            localStorage.removeItem('cart-storage');
+            clearCart();
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Storage cleanup error:", e);
+    }
 
-    // Refresh to ensure clean state
-    setTimeout(() => {
-      refreshCart();
-    }, 100);
+    // Refresh cart to validate remaining items
+    refreshCart();
   }, []); // Only run once on mount
 
   // Modal functions
@@ -108,6 +225,17 @@ export default function CartPage() {
   const handleCancel = () => {
     setShowConfirmModal(false);
     setConfirmAction(null);
+  };
+
+  const handleQuickAddToCart = async (product: any) => {
+    try {
+      console.log("🛒 Quick adding product to cart:", product);
+      await addToCart(product, 1);
+      toast.success(`Added ${product.name} to cart`);
+    } catch (error) {
+      console.error("Failed to add product to cart:", error);
+      toast.error("Failed to add product to cart");
+    }
   };
 
   const handleQuantityChange = async (itemId: string, newQuantity: number) => {
@@ -240,19 +368,22 @@ export default function CartPage() {
               "Looks like you haven't added any items to your cart yet."
             }
           </p>
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
-            <h3 className="text-sm font-medium text-green-800 mb-2">🌱 Available Fresh Products:</h3>
-            <p className="text-sm text-green-700">
-              Fresh Tomatoes (Ksh 85/kg) • Fresh Spinach (Ksh 120/kg) • More varieties available
-            </p>
+          <LiveProductSuggestions onAddToCart={handleQuickAddToCart} />
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={reconstructCart}
+              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium inline-flex items-center"
+            >
+              🔧 Refresh Cart
+            </button>
+            <Link
+              to="/marketplace"
+              className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium inline-flex items-center"
+            >
+              <ShoppingBag className="w-5 h-5 mr-2" />
+              Browse All Products
+            </Link>
           </div>
-          <Link
-            to="/marketplace"
-            className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium inline-flex items-center"
-          >
-            <ShoppingBag className="w-5 h-5 mr-2" />
-            Browse Fresh Products
-          </Link>
         </div>
       </div>
     );

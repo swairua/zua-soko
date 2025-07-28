@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UUID Cart Cleanup</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        button { background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #c82333; }
+        .success { color: #28a745; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ UUID Cart Cleanup</h1>
+        <p>This page will help you remove any outdated UUID-based cart data from your browser storage.</p>
+        
+        <button onclick="checkStorage()">Check Storage</button>
+        <button onclick="clearUUIDs()">Clear UUID Data</button>
+        <button onclick="clearAll()">Clear All Cart Data</button>
+        
+        <div id="output"></div>
+        
+        <script>
+            function log(message, type = 'info') {
+                const output = document.getElementById('output');
+                const div = document.createElement('div');
+                div.className = type;
+                div.innerHTML = message;
+                output.appendChild(div);
+            }
+            
+            function checkStorage() {
+                document.getElementById('output').innerHTML = '<h3>Storage Check Results:</h3>';
+                
+                const keys = ['cart-storage', 'cart', 'cartItems', 'cart-data'];
+                let foundUUIDs = false;
+                
+                keys.forEach(key => {
+                    const data = localStorage.getItem(key);
+                    if (data) {
+                        log(`Found localStorage: ${key}`);
+                        try {
+                            const parsed = JSON.parse(data);
+                            const jsonStr = JSON.stringify(parsed, null, 2);
+                            
+                            // Check for UUID patterns
+                            const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+                            const uuids = jsonStr.match(uuidRegex);
+                            
+                            if (uuids) {
+                                foundUUIDs = true;
+                                log(`⚠️ Found UUIDs in ${key}: ${uuids.join(', ')}`, 'warning');
+                            }
+                            
+                            log(`<pre>${jsonStr}</pre>`);
+                        } catch (e) {
+                            log(`Data: ${data}`);
+                        }
+                    }
+                });
+                
+                if (!foundUUIDs) {
+                    log('✅ No UUIDs found in storage!', 'success');
+                }
+            }
+            
+            function clearUUIDs() {
+                document.getElementById('output').innerHTML = '<h3>UUID Cleanup Results:</h3>';
+                
+                const keys = ['cart-storage', 'cart', 'cartItems', 'cart-data'];
+                let cleared = 0;
+                
+                keys.forEach(key => {
+                    const data = localStorage.getItem(key);
+                    if (data) {
+                        const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+                        if (uuidRegex.test(data)) {
+                            localStorage.removeItem(key);
+                            log(`🗑️ Cleared ${key} (contained UUIDs)`, 'success');
+                            cleared++;
+                        }
+                    }
+                });
+                
+                if (cleared === 0) {
+                    log('✅ No UUID-contaminated storage found!', 'success');
+                } else {
+                    log(`✅ Cleared ${cleared} storage entries containing UUIDs`, 'success');
+                    log('🔄 Please refresh the main application to see changes', 'warning');
+                }
+            }
+            
+            function clearAll() {
+                document.getElementById('output').innerHTML = '<h3>Complete Cart Clear Results:</h3>';
+                
+                const keys = ['cart-storage', 'cart', 'cartItems', 'cart-data'];
+                let cleared = 0;
+                
+                keys.forEach(key => {
+                    if (localStorage.getItem(key)) {
+                        localStorage.removeItem(key);
+                        cleared++;
+                        log(`🗑️ Cleared ${key}`, 'success');
+                    }
+                    if (sessionStorage.getItem(key)) {
+                        sessionStorage.removeItem(key);
+                        cleared++;
+                        log(`🗑️ Cleared sessionStorage ${key}`, 'success');
+                    }
+                });
+                
+                if (cleared === 0) {
+                    log('ℹ️ No cart storage found to clear', 'warning');
+                } else {
+                    log(`✅ Cleared ${cleared} total storage entries`, 'success');
+                    log('🔄 Please refresh the main application to see clean cart', 'warning');
+                }
+            }
+            
+            // Auto-check on load
+            window.onload = () => checkStorage();
+        </script>
+    </div>
+</body>
+</html>

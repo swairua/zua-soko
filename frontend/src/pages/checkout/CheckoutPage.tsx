@@ -110,7 +110,8 @@ const kenyanCounties = [
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { cart, clearCart, refreshCart, removeFromCart, repairCart, nuclearReset } = useCart();
+  const cartStore = useCart();
+  const { cart, clearCart, refreshCart, removeFromCart, validateCartItems } = cartStore;
   const { user, isAuthenticated, loginWithData } = useAuthStore();
   const [cartSummary, setCartSummary] = useState<CartSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -142,17 +143,8 @@ export default function CheckoutPage() {
   const watchCreateAccount = watch("createAccount");
 
   useEffect(() => {
-    // IMMEDIATE CART RESET - No tolerance for invalid items
-    console.log("🚨 CHECKOUT RESET - Clearing all cart data immediately");
-
-    // Nuclear reset
-    nuclearReset();
-
-    // Redirect to marketplace immediately
-    toast.error("Cart was reset due to invalid data. Redirecting to marketplace...");
-    setTimeout(() => {
-      navigate('/marketplace');
-    }, 1500);
+    // Check cart validity and fetch summary
+    fetchCartSummary();
   }, []); // Only run once on mount
 
   const fetchCartSummary = async () => {
@@ -162,35 +154,25 @@ export default function CheckoutPage() {
       console.log("🛒 CHECKOUT - Current cart state:", cart);
       console.log("🛒 CHECKOUT - Cart items detail:", cart.items);
 
-      // Check if items have valid prices
-      const itemsWithInvalidPrices = cart.items.filter(item => !item.pricePerUnit || item.pricePerUnit <= 0);
-      if (itemsWithInvalidPrices.length > 0) {
-        console.error("🛒 CHECKOUT - Items with invalid prices:", itemsWithInvalidPrices);
+      // Validate cart first
+      await validateCartItems();
 
-        // Force clear invalid items immediately
-        itemsWithInvalidPrices.forEach(item => {
-          console.log("🛒 CHECKOUT - Removing invalid item:", item);
-          removeFromCart(item.id);
-        });
-
-        // Show warning to user
-        toast.error(`Removed ${itemsWithInvalidPrices.length} invalid items from cart. Please re-add products.`);
-      }
-
-      // Repair cart to remove invalid items and recalculate
-      repairCart();
-
-      // Double-check: if cart still has zero total but has items, clear everything
-      if (cart.items.length > 0 && cart.totalAmount === 0) {
-        console.warn("🛒 CHECKOUT - Cart has items but zero total, clearing all items");
-        clearCart();
-        toast.error("Cart had invalid data and was cleared. Please re-add products from the marketplace.");
+      // Check if cart is empty after validation
+      if (cart.items.length === 0) {
+        console.log("🛒 CHECKOUT - Cart is empty, redirecting to marketplace");
+        toast.error("Your cart is empty. Please add items from the marketplace.");
         navigate("/marketplace");
         return;
       }
 
-      // Force refresh after repair
-      refreshCart();
+      // Check if items have valid prices
+      const itemsWithInvalidPrices = cart.items.filter(item => !item.pricePerUnit || item.pricePerUnit <= 0);
+      if (itemsWithInvalidPrices.length > 0) {
+        console.warn("🛒 CHECKOUT - Items with invalid prices found:", itemsWithInvalidPrices.length);
+
+        // Show warning to user but don't remove items here - let user decide
+        toast.warning(`${itemsWithInvalidPrices.length} items have pricing issues. Please review your cart.`);
+      }
 
       // Use local cart data from Zustand store
       const deliveryFee = cart.totalAmount > 2000 ? 0 : 300;
@@ -472,7 +454,7 @@ export default function CheckoutPage() {
             <button
               onClick={() => {
                 console.log("🛒 FORCE FIX - Nuclear reset and redirecting");
-                nuclearReset();
+                clearCart();
                 toast.success("Cart completely reset! Redirecting to marketplace...");
                 setTimeout(() => {
                   window.location.href = '/marketplace'; // Force full page reload

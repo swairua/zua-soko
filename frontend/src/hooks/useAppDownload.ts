@@ -34,41 +34,165 @@ export const useAppDownload = (): UseAppDownloadReturn => {
 
   const downloadUrl = "/downloads/zuasoko-app.apk";
 
+  const setDefaultAppInfo = () => {
+    setAppInfo({
+      version: "1.0.0",
+      versionCode: 1,
+      size: "25 MB",
+      releaseDate: new Date().toISOString().split('T')[0],
+      releaseNotes: [
+        "Browse fresh produce from local farmers",
+        "Secure mobile payments with M-Pesa",
+        "Real-time order tracking",
+        "Direct farmer-to-consumer marketplace"
+      ],
+      features: [
+        "Marketplace browsing",
+        "Cart management",
+        "Secure checkout",
+        "Order history",
+        "User profiles"
+      ],
+      minAndroidVersion: "5.0",
+      targetAndroidVersion: "14.0",
+      permissions: [
+        "Internet access",
+        "Camera (for profile photos)",
+        "Storage (for app data)"
+      ],
+      screenshots: [
+        "/images/app-screen-1.jpg",
+        "/images/app-screen-2.jpg",
+        "/images/app-screen-3.jpg"
+      ],
+      requirements: {
+        ram: "2 GB",
+        storage: "100 MB",
+        android: "5.0+"
+      }
+    });
+  };
+
   const checkAvailability = async (): Promise<boolean> => {
     try {
-      // Check if APK file exists
-      const apkResponse = await fetch(downloadUrl, { method: "HEAD" });
-      const apkExists = apkResponse.ok;
+      console.log("🔍 Checking APK availability at:", downloadUrl);
 
-      if (apkExists) {
-        // Try to fetch app metadata
-        try {
-          const infoResponse = await fetch("/downloads/app-info.json");
-          if (infoResponse.ok) {
-            const info = await infoResponse.json();
-            setAppInfo(info);
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // Reduced to 3 second timeout
+
+      try {
+        // Check if APK file exists with timeout and error handling
+        const apkResponse = await fetch(downloadUrl, {
+          method: "HEAD",
+          signal: controller.signal,
+          cache: "no-cache",
+          mode: "cors"
+        }).catch((fetchError) => {
+          // Handle fetch-specific errors
+          console.log("🌐 Fetch error for APK check:", fetchError.name);
+          throw fetchError;
+        });
+
+        clearTimeout(timeoutId);
+        const apkExists = apkResponse.ok;
+
+        console.log("📱 APK availability check result:", {
+          url: downloadUrl,
+          status: apkResponse.status,
+          ok: apkResponse.ok,
+          exists: apkExists
+        });
+
+        if (apkExists) {
+          // Try to fetch app metadata with timeout
+          try {
+            const infoController = new AbortController();
+            const infoTimeoutId = setTimeout(() => infoController.abort(), 3000);
+
+            const infoResponse = await fetch("/downloads/app-info.json", {
+              signal: infoController.signal,
+              cache: "no-cache"
+            });
+
+            clearTimeout(infoTimeoutId);
+
+            if (infoResponse.ok) {
+              const info = await infoResponse.json();
+              setAppInfo(info);
+              console.log("✅ App info loaded successfully");
+            } else {
+              console.log("ℹ️ App info not found, using defaults");
+              setDefaultAppInfo();
+            }
+          } catch (infoError) {
+            console.log("ℹ️ App info fetch failed, using defaults:", infoError.name);
+            setDefaultAppInfo();
           }
-        } catch (error) {
-          console.log("App info not available, using defaults");
+        } else {
+          console.log("❌ APK file not found");
         }
+
+        setIsAvailable(apkExists);
+        return apkExists;
+
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+
+        if (fetchError.name === 'AbortError') {
+          console.log("⏱️ APK availability check timed out");
+        } else {
+          console.log("🌐 Network error during APK check:", fetchError.name);
+        }
+
+        throw fetchError;
       }
 
-      setIsAvailable(apkExists);
-      return apkExists;
     } catch (error) {
-      console.error("Error checking APK availability:", error);
+      console.log("❌ APK availability check failed:", {
+        error: error.name || 'Unknown',
+        message: error.message || 'No message',
+        url: downloadUrl
+      });
+
+      // Set default app info for UI display even if APK doesn't exist
+      setDefaultAppInfo();
+
+      // Don't show error to user, just quietly disable download
       setIsAvailable(false);
       return false;
     }
   };
 
-  const downloadApp = () => {
-    if (isAvailable) {
+  const downloadApp = async () => {
+    console.log("📱 Download requested, availability:", isAvailable);
+
+    // Double-check availability if not already confirmed
+    if (!isAvailable) {
+      console.log("📱 Checking availability before download...");
+      setLoading(true);
+      const available = await checkAvailability();
+      setLoading(false);
+
+      if (!available) {
+        const event = new CustomEvent("show-toast", {
+          detail: {
+            message: "Mobile app is not available for download at this time.",
+            type: "error",
+          },
+        });
+        window.dispatchEvent(event);
+        return;
+      }
+    }
+
+    try {
       // Create temporary link for download
       const link = document.createElement("a");
       link.href = downloadUrl;
       link.download = "zuasoko-app.apk";
       link.target = "_blank";
+      link.rel = "noopener noreferrer";
 
       // Add to DOM, click, and remove
       document.body.appendChild(link);
@@ -92,17 +216,61 @@ export const useAppDownload = (): UseAppDownloadReturn => {
         },
       });
       window.dispatchEvent(event);
+
+      console.log("✅ Download initiated successfully");
+
+    } catch (error) {
+      console.error("❌ Download failed:", error);
+      const event = new CustomEvent("show-toast", {
+        detail: {
+          message: "Download failed. Please try again later.",
+          type: "error",
+        },
+      });
+      window.dispatchEvent(event);
     }
   };
 
   useEffect(() => {
     const initCheck = async () => {
       setLoading(true);
-      await checkAvailability();
-      setLoading(false);
+
+      // Add a small delay to avoid immediate network requests on page load
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      try {
+        await checkAvailability();
+      } catch (error) {
+        console.log("🔄 Initial availability check failed, will retry on user interaction");
+        // Set default app info even if check fails
+        setDefaultAppInfo();
+        setIsAvailable(false);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    initCheck();
+    // Enhanced development environment detection
+    const isDevelopment = window.location.hostname.includes('localhost') ||
+                         window.location.hostname.includes('127.0.0.1') ||
+                         window.location.hostname.includes('dev') ||
+                         import.meta.env.DEV;
+
+    const shouldCheck = !isDevelopment || window.location.search.includes('check-app');
+
+    if (shouldCheck) {
+      initCheck().catch((error) => {
+        console.log("🔄 Failed to initialize app download check:", error.name);
+        setLoading(false);
+        setIsAvailable(false);
+        setDefaultAppInfo();
+      });
+    } else {
+      console.log("🔄 Skipping app availability check in development");
+      setLoading(false);
+      setIsAvailable(false);
+      setDefaultAppInfo();
+    }
   }, []);
 
   return {
@@ -127,13 +295,33 @@ export const formatFileSize = (bytes: number): string => {
 // Helper function to get file size
 export const getApkFileSize = async (url: string): Promise<string> => {
   try {
-    const response = await fetch(url, { method: "HEAD" });
-    const contentLength = response.headers.get("content-length");
-    if (contentLength) {
-      return formatFileSize(parseInt(contentLength));
+    console.log("📏 Checking file size for:", url);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const response = await fetch(url, {
+      method: "HEAD",
+      signal: controller.signal,
+      cache: "no-cache"
+    });
+
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const contentLength = response.headers.get("content-length");
+      if (contentLength) {
+        const size = formatFileSize(parseInt(contentLength));
+        console.log("📏 File size determined:", size);
+        return size;
+      }
     }
-    return "Unknown size";
+
+    console.log("📏 Could not determine file size");
+    return "~25 MB"; // Reasonable default for mobile apps
+
   } catch (error) {
-    return "Unknown size";
+    console.log("📏 File size check failed:", error.name);
+    return "~25 MB"; // Reasonable default
   }
 };

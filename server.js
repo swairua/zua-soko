@@ -36,14 +36,123 @@ function verifyPassword(password, hash) {
   return hashPassword(password) === hash;
 }
 
-// Test database connection
-pool.connect((err, client, release) => {
+// Test database connection and initialize products
+pool.connect(async (err, client, release) => {
   if (err) {
     console.error("❌ Database connection error:", err);
-  } else {
-    console.log("✅ Connected to PostgreSQL database");
-    release();
+    return;
   }
+
+  console.log("✅ Connected to PostgreSQL database");
+
+  try {
+    // Check if products table exists and initialize with real integer IDs
+    const tableCheck = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name = 'products'
+      );
+    `);
+
+    if (tableCheck.rows[0].exists) {
+      // Check current products
+      const currentProducts = await client.query("SELECT id, name FROM products ORDER BY id");
+      console.log(`📦 Found ${currentProducts.rows.length} existing products`);
+
+      // Force reset products if they exist
+      if (currentProducts.rows.length > 0) {
+        const firstProduct = currentProducts.rows[0];
+        console.log("📦 Current product sample:", JSON.stringify(firstProduct, null, 2));
+
+        // Check if ANY product has a string ID (indicating old placeholder data)
+        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const hasUUIDs = currentProducts.rows.some(product =>
+          typeof product.id === 'string' && uuidPattern.test(product.id)
+        );
+
+        if (hasUUIDs) {
+          console.log("🔄 UUID products detected - forcing complete database reset...");
+          console.log("🗑️ UUID products found:", currentProducts.rows.filter(p =>
+            typeof p.id === 'string' && uuidPattern.test(p.id)
+          ).map(p => p.id));
+
+          // Force clear ALL products
+          await client.query("DELETE FROM products");
+          console.log("✅ All UUID products deleted");
+
+          // Check the actual table schema to see column types
+          const schemaCheck = await client.query(`
+            SELECT column_name, data_type, column_default
+            FROM information_schema.columns
+            WHERE table_name = 'products' AND column_name = 'id'
+          `);
+          console.log("🔍 Products table ID column schema:", schemaCheck.rows[0]);
+
+          // If the ID column is UUID type, we need to recreate the table
+          if (schemaCheck.rows[0] && schemaCheck.rows[0].data_type === 'uuid') {
+            console.log("🔧 ID column is UUID type - recreating table with SERIAL integer IDs...");
+
+            // Drop and recreate the products table with proper SERIAL ID
+            await client.query("DROP TABLE IF EXISTS products CASCADE");
+
+            await client.query(`
+              CREATE TABLE products (
+                id SERIAL PRIMARY KEY,
+                consignment_id VARCHAR(255),
+                warehouse_id VARCHAR(255),
+                name VARCHAR(255) NOT NULL,
+                category VARCHAR(100) NOT NULL,
+                quantity INTEGER DEFAULT 0,
+                unit VARCHAR(20) DEFAULT 'kg',
+                price_per_unit DECIMAL(10,2) NOT NULL,
+                description TEXT,
+                images JSON DEFAULT '[]',
+                stock_quantity INTEGER DEFAULT 0,
+                is_featured BOOLEAN DEFAULT false,
+                is_available BOOLEAN DEFAULT true,
+                is_approved BOOLEAN DEFAULT true,
+                is_active BOOLEAN DEFAULT true,
+                tags TEXT[],
+                farmer_county VARCHAR(100),
+                farmer_name VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+              )
+            `);
+
+            console.log("✅ Products table recreated with SERIAL integer IDs");
+          }
+        } else if (typeof firstProduct.id === 'number') {
+          console.log("✅ Products already have proper integer IDs, skipping reset");
+          return; // Exit early if products are already correct
+        } else {
+          console.log("⚠️ Unknown product ID format, forcing reset");
+          await client.query("DELETE FROM products");
+        }
+      }
+
+      // Ensure we have some products
+      const productCount = await client.query("SELECT COUNT(*) FROM products");
+      if (parseInt(productCount.rows[0].count) === 0) {
+        console.log("📦 Adding products with real integer IDs...");
+        await client.query(`
+          INSERT INTO products (name, description, category, quantity, unit, price_per_unit, stock_quantity, images) VALUES
+          ('Fresh Tomatoes', 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.', 'Vegetables', 85, 'kg', 130.00, 85, '["https://images.unsplash.com/photo-1546470427-e212b9d56085"]'),
+          ('Sweet Potatoes', 'Fresh sweet potatoes, rich in nutrients and vitamins.', 'Root Vegetables', 45, 'kg', 80.00, 45, '["https://images.unsplash.com/photo-1518977676601-b53f82aba655"]'),
+          ('Fresh Spinach', 'Organic spinach leaves, perfect for healthy meals.', 'Leafy Greens', 30, 'kg', 120.00, 30, '["https://images.unsplash.com/photo-1576045057995-568f588f82fb"]'),
+          ('Green Beans', 'Tender green beans, freshly harvested.', 'Vegetables', 60, 'kg', 100.00, 60, '["https://images.unsplash.com/photo-1628773822503-930a7eaecf80"]')
+        `);
+
+        const newCount = await client.query("SELECT COUNT(*) FROM products");
+        console.log(`✅ Added ${newCount.rows[0].count} products with real integer IDs`);
+      }
+    }
+  } catch (initError) {
+    console.error("⚠️ Error initializing products:", initError.message);
+  }
+
+  release();
 });
 
 // =================================================
@@ -76,7 +185,7 @@ app.post("/api/auth/login", async (req, res) => {
     const { phone, password } = req.body;
 
     if (!phone || !password) {
-      console.log("❌ Missing credentials");
+      console.log("�� Missing credentials");
       return res
         .status(400)
         .json({ message: "Phone and password are required" });
@@ -163,25 +272,10 @@ app.get("/api/products", async (req, res) => {
     });
   } catch (err) {
     console.error("Products error:", err);
-
-    // Fallback demo products
-    res.json({
-      success: true,
-      products: [
-        {
-          id: 1,
-          name: "Fresh Tomatoes",
-          category: "Vegetables",
-          price_per_unit: 130,
-          unit: "kg",
-          description: "Organic red tomatoes, Grade A quality",
-          stock_quantity: 85,
-          is_featured: true,
-          farmer_name: "Demo Farmer",
-          farmer_county: "Nakuru",
-          created_at: new Date().toISOString(),
-        },
-      ],
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch products from database",
+      details: err.message,
     });
   }
 });
@@ -288,13 +382,29 @@ app.get("/api/marketplace/products/:id", async (req, res) => {
     const productId = req.params.id;
     console.log("🛍️ Marketplace product detail request received:", productId);
 
-    // Validate product ID is a number
+    // Handle different ID formats
     const productIdNum = parseInt(productId);
-    if (isNaN(productIdNum)) {
+
+    // Check if it's a UUID (old format)
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    console.log("🔍 Testing UUID pattern for:", productId, "Matches:", uuidPattern.test(productId));
+
+    if (uuidPattern.test(productId)) {
+      console.log("⚠️ Received UUID product ID (old format):", productId);
+      return res.status(410).json({
+        success: false,
+        message: "This product link uses an outdated format. Please browse the marketplace for current products.",
+        code: "OUTDATED_PRODUCT_LINK",
+        redirect: "/marketplace"
+      });
+    }
+
+    if (isNaN(productIdNum) || productIdNum <= 0) {
       console.log("❌ Invalid product ID format:", productId);
       return res.status(400).json({
-        message: "Invalid product ID format. Product ID must be a number.",
-        details: `Received: ${productId}, Expected: numeric ID`
+        success: false,
+        message: "Invalid product ID format. Product ID must be a positive number.",
+        details: `Received: ${productId}, Expected: positive integer`
       });
     }
 
@@ -304,7 +414,7 @@ app.get("/api/marketplace/products/:id", async (req, res) => {
              'Demo Farmer' as farmer_name,
              'Central' as farmer_county
       FROM products
-      WHERE id = $1 AND is_active = true
+      WHERE id = $1
     `, [productIdNum]);
 
     if (result.rows.length === 0) {
@@ -354,7 +464,7 @@ app.get("/api/marketplace/products", async (req, res) => {
       `);
 
       const columns = tableCheck.rows.map((row) => row.column_name);
-      console.log("🔍 Products table columns:", columns);
+      console.log("���� Products table columns:", columns);
 
       if (columns.length === 0) {
         console.log(
@@ -393,11 +503,9 @@ app.get("/api/marketplace/products", async (req, res) => {
 
     let query = `
       SELECT p.id, p.name, p.category, p.price_per_unit, p.unit, p.description,
-             p.stock_quantity,
-             COALESCE(p.is_featured, false) as is_featured,
-             p.farmer_name, p.farmer_county,
-             p.created_at, p.images
+             p.stock_quantity, p.quantity, p.images, p.created_at
       FROM products p
+      WHERE 1=1
     `;
 
     const params = [];
@@ -501,6 +609,8 @@ app.get("/api/marketplace/products", async (req, res) => {
     const totalPages = Math.ceil(total / parseInt(limit));
 
     console.log(`🛍️ Found ${result.rows.length} products (${total} total)`);
+
+
 
     res.json({
       success: true,

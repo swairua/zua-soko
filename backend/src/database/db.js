@@ -237,46 +237,23 @@ async function initializeDemoData() {
       );
     }
 
-    // Create marketplace products from approved consignments
+    // Create marketplace products with auto-incrementing integer IDs
     await pool.query(
       `
-      INSERT INTO products (id, consignment_id, warehouse_id, name, category, quantity, unit, price_per_unit, images, stock_quantity)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      ON CONFLICT (id) DO NOTHING
-    `,
-      [
-        "product-1",
-        "consignment-1",
-        "warehouse-1",
-        "Fresh Tomatoes",
-        "Vegetables",
-        500,
-        "kg",
-        85,
-        ["https://images.unsplash.com/photo-1546470427-e212b9d56085"],
-        500,
-      ],
-    );
+      INSERT INTO products (name, description, category, quantity, unit, price_per_unit, images, stock_quantity, is_active)
+      VALUES
+        ('Fresh Tomatoes', 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.', 'Vegetables', 500, 'kg', 85.00, '{"https://images.unsplash.com/photo-1546470427-e212b9d56085"}', 500, true),
+        ('Green Beans', 'Tender green beans, freshly harvested and ready for pickup.', 'Vegetables', 200, 'kg', 95.00, '{"https://images.unsplash.com/photo-1628773822503-930a7eaecf80"}', 200, true),
+        ('Sweet Potatoes', 'Fresh sweet potatoes, rich in nutrients and vitamins.', 'Root Vegetables', 300, 'kg', 80.00, '{"https://images.unsplash.com/photo-1518977676601-b53f82aba655"}', 300, true),
+        ('Fresh Spinach', 'Organic spinach leaves, perfect for healthy meals.', 'Leafy Greens', 150, 'kg', 120.00, '{"https://images.unsplash.com/photo-1576045057995-568f588f82fb"}', 150, true),
+        ('White Maize', 'High quality white maize, perfect for ugali and other meals.', 'Grains', 400, 'kg', 60.00, '{"https://images.unsplash.com/photo-1551782450-a2132b4ba21d"}', 400, true),
+        ('Fresh Carrots', 'Organic carrots, crisp and sweet, freshly harvested.', 'Root Vegetables', 250, 'kg', 90.00, '{"https://images.unsplash.com/photo-1598170845058-32b9d6a5da37"}', 250, true),
+        ('Red Onions', 'Quality red onions for cooking and seasoning.', 'Vegetables', 180, 'kg', 110.00, '{"https://images.unsplash.com/photo-1518977676601-b53f82aba655"}', 180, true),
+        ('Fresh Kale', 'Nutritious kale leaves, locally grown and organic.', 'Leafy Greens', 120, 'kg', 140.00, '{"https://images.unsplash.com/photo-1515516969-d4008cc6241a"}', 120, true)
+      ON CONFLICT DO NOTHING
+    `);
 
-    await pool.query(
-      `
-      INSERT INTO products (id, consignment_id, warehouse_id, name, category, quantity, unit, price_per_unit, images, stock_quantity)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      ON CONFLICT (id) DO NOTHING
-    `,
-      [
-        "product-3",
-        "consignment-3",
-        "warehouse-1",
-        "Green Beans",
-        "Vegetables",
-        200,
-        "kg",
-        95,
-        ["https://images.unsplash.com/photo-1628773822503-930a7eaecf80"],
-        200,
-      ],
-    );
+    console.log("✅ Marketplace products created with real integer IDs");
 
     // Create demo farmer categories
     const categories = [
@@ -345,7 +322,7 @@ async function initializeDemoData() {
     console.log("   Customer: +254756789012 / password123");
     console.log("   Driver: +254778901234 / password123");
   } catch (error) {
-    console.error("❌ Error initializing demo data:", error);
+    console.error("�� Error initializing demo data:", error);
     throw error;
   }
 }

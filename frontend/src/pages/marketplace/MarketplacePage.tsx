@@ -10,38 +10,23 @@ import {
   Heart,
   Eye,
 } from "lucide-react";
-import { useCart } from "../../store/cart";
+import { useCartStore } from "../../store/cart";
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
 
 interface Product {
-  id: string | number;
+  id: number;
   name: string;
   category: string;
-  price_per_unit?: number;
-  pricePerUnit?: number;
+  price_per_unit: number;
   unit: string;
-  stock_quantity?: number;
-  stockQuantity?: number;
-  images?: string[];
   description: string;
-  is_featured?: boolean;
-  isFeatured?: boolean;
-  isAvailable?: boolean;
-  tags?: string[];
-  farmer?: {
-    id: string;
-    county: string;
-    user: {
-      firstName: string;
-      lastName: string;
-    };
-  };
+  stock_quantity: number;
+  quantity: number;
+  images: string[];
   farmer_name?: string;
   farmer_county?: string;
-  created_at?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  created_at: string;
 }
 
 interface Filters {
@@ -74,7 +59,7 @@ export default function MarketplacePage() {
     totalPages: 0,
   });
 
-  const { addToCart, isLoading: cartLoading } = useCart();
+  const { addToCart, isLoading: cartLoading } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
 
   // Fetch products from real database
@@ -92,12 +77,55 @@ export default function MarketplacePage() {
         ...(filters.minPrice && { minPrice: filters.minPrice }),
         ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
         ...(filters.featured && { featured: "true" }),
+        _t: Date.now().toString(), // Cache busting
+        refresh: "true",
+        nocache: Math.random().toString(),
       });
 
       const data = await apiService.getProducts(params);
       console.log("🔍 PRODUCTS RESPONSE:", data);
 
-      setProducts(data.products || data);
+      // Debug product IDs
+      if (data.products) {
+        console.log("🔍 PRODUCT IDS:", data.products.map(p => ({ id: p.id, type: typeof p.id, name: p.name })));
+      }
+
+      // Temporarily disable aggressive filtering to debug
+      const rawProducts = data.products || data;
+      console.log("🔍 RAW PRODUCTS DATA:", rawProducts);
+
+      // Only filter out obviously invalid products, but be more permissive
+      const validProducts = Array.isArray(rawProducts) ? rawProducts.filter(product => {
+        console.log("🔍 Checking product:", {
+          id: product?.id,
+          name: product?.name,
+          type: typeof product?.id,
+          fullProduct: product
+        });
+
+        // Only filter out products that are clearly broken
+        if (!product) {
+          console.warn("⚠️ Filtering out null/undefined product");
+          return false;
+        }
+
+        if (!product.id && product.id !== 0) {
+          console.warn("⚠️ Filtering out product with missing ID:", product);
+          return false;
+        }
+
+        console.log("✅ Product accepted:", { id: product.id, name: product.name });
+        return true;
+      }) : [];
+
+      console.log(`🔍 Product filtering results:`, {
+        raw: rawProducts.length,
+        valid: validProducts.length,
+        filtered: rawProducts.length - validProducts.length,
+        validProducts: validProducts
+      });
+
+      setProducts(validProducts);
 
       if (data.pagination) {
         setPagination((prev) => ({
@@ -153,6 +181,16 @@ export default function MarketplacePage() {
     fetchProducts(1);
   }, [filters]);
 
+  // Add a small delay on mount to ensure database is ready
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchProducts(1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+
+
   const handleFilterChange = (key: keyof Filters, value: string | boolean) => {
     setFilters((prev) => ({
       ...prev,
@@ -160,10 +198,26 @@ export default function MarketplacePage() {
     }));
   };
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = async (product: Product) => {
     try {
+      console.log("🛍️ Marketplace adding to cart:", product);
+      console.log("��️ Product ID details:", {
+        id: product.id,
+        type: typeof product.id,
+        hasId: !!product.id,
+        isNumber: typeof product.id === 'number',
+        isValidNumber: !isNaN(Number(product.id))
+      });
+
+      // Validate product data before adding
+      if (!product || !product.id) {
+        console.error("❌ Product validation failed:", { product, hasProduct: !!product, hasId: !!(product?.id) });
+        toast.error("Invalid product - cannot add to cart");
+        return;
+      }
+
       // Allow all users (including guests) to add to cart
-      addToCart(product, 1);
+      await addToCart(product, 1);
       toast.success(`Added ${product.name} to cart`);
     } catch (error) {
       console.error("Failed to add to cart:", error);
@@ -214,8 +268,8 @@ export default function MarketplacePage() {
 
                 // Call API to reset products (if admin)
                 if (user?.role === 'ADMIN') {
-                  await axios.post('/api/admin/reset-products');
-                  toast.success("Products and cart reset successfully!");
+                  // Note: Reset endpoint not yet implemented
+                  toast.success("Cart reset successfully!");
                 } else {
                   toast.success("Cart reset successfully!");
                 }
@@ -442,22 +496,16 @@ export default function MarketplacePage() {
                   </div>
                 )}
 
-                {/* Featured Badge */}
-                {(product.isFeatured || product.is_featured) && (
-                  <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
-                    ⭐ Featured
-                  </div>
-                )}
+                {/* Featured Badge - No featured flag in DB yet */}
 
                 {/* Stock Badge */}
-                {(product.stockQuantity || product.stock_quantity) < 10 &&
-                  (product.stockQuantity || product.stock_quantity) > 0 && (
+                {product.stock_quantity < 10 && product.stock_quantity > 0 && (
                     <div className="absolute top-2 right-2 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
                       Low Stock
                     </div>
                   )}
 
-                {(product.stockQuantity || product.stock_quantity) === 0 && (
+                {product.stock_quantity === 0 && (
                   <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                     <span className="text-white font-medium">Out of Stock</span>
                   </div>
@@ -482,39 +530,25 @@ export default function MarketplacePage() {
                 <div className="flex items-center text-xs text-gray-500 mb-3">
                   <MapPin className="w-3 h-3 mr-1" />
                   <span>
-                    {product.farmer?.county ||
-                      product.farmer_county ||
-                      "Unknown"}
+                    {product.farmer_county || "Unknown"}
                   </span>
                   <span className="mx-2">•</span>
                   <span>
-                    {product.farmer?.user?.firstName ||
-                      product.farmer_name ||
-                      "Farmer"}{" "}
-                    {product.farmer?.user?.lastName || ""}
+                    {product.farmer_name || "Local Farmer"}
                   </span>
                 </div>
 
-                {/* Tags */}
-                {product.tags && product.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {(Array.isArray(product.tags) ? product.tags : []).slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {/* Category */}
+                <div className="flex flex-wrap gap-1 mb-3">
+                  <span className="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">
+                    {product.category}
+                  </span>
+                </div>
 
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-lg font-bold text-gray-900">
-                      {formatPrice(
-                        product.pricePerUnit || product.price_per_unit,
-                      )}
+                      {formatPrice(product.price_per_unit)}
                     </div>
                     <div className="text-xs text-gray-500">
                       per {product.unit}
@@ -525,11 +559,12 @@ export default function MarketplacePage() {
                     <Link
                       to={`/marketplace/product/${product.id}`}
                       className="bg-gray-100 text-gray-700 px-2 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium flex items-center"
+                      onClick={() => console.log("🔗 Navigating to product:", product.id, "Type:", typeof product.id)}
                     >
                       <Eye className="w-4 h-4" />
                     </Link>
 
-                    {(product.stockQuantity || product.stock_quantity) > 0 ? (
+                    {product.stock_quantity > 0 ? (
                       <button
                         onClick={() => handleAddToCart(product)}
                         disabled={cartLoading}
