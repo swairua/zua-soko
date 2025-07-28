@@ -143,17 +143,8 @@ export default function CheckoutPage() {
   const watchCreateAccount = watch("createAccount");
 
   useEffect(() => {
-    // IMMEDIATE CART RESET - No tolerance for invalid items
-    console.log("🚨 CHECKOUT RESET - Clearing all cart data immediately");
-
-    // Nuclear reset
-    clearCart();
-
-    // Redirect to marketplace immediately
-    toast.error("Cart was reset due to invalid data. Redirecting to marketplace...");
-    setTimeout(() => {
-      navigate('/marketplace');
-    }, 1500);
+    // Check cart validity and fetch summary
+    fetchCartSummary();
   }, []); // Only run once on mount
 
   const fetchCartSummary = async () => {
