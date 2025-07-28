@@ -393,26 +393,7 @@ export default function ProductPage() {
 
           {/* Product Details */}
           <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-            {product.harvestDate && (
-              <div>
-                <span className="text-sm font-medium text-gray-600">
-                  Harvest Date
-                </span>
-                <p className="text-gray-900">
-                  {formatDate(product.harvestDate)}
-                </p>
-              </div>
-            )}
-            {product.expiryDate && (
-              <div>
-                <span className="text-sm font-medium text-gray-600">
-                  Best Before
-                </span>
-                <p className="text-gray-900">
-                  {formatDate(product.expiryDate)}
-                </p>
-              </div>
-            )}
+
             <div>
               <span className="text-sm font-medium text-gray-600">
                 Category
