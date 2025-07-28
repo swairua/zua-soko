@@ -110,7 +110,8 @@ const kenyanCounties = [
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { cart, clearCart, refreshCart, removeFromCart, repairCart, nuclearReset } = useCart();
+  const cartStore = useCart();
+  const { cart, clearCart, refreshCart, removeFromCart, validateCartItems } = cartStore;
   const { user, isAuthenticated, loginWithData } = useAuthStore();
   const [cartSummary, setCartSummary] = useState<CartSummary | null>(null);
   const [loading, setLoading] = useState(true);
