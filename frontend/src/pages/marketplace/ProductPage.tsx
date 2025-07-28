@@ -516,80 +516,24 @@ export default function ProductPage() {
           About the Farmer
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <div className="flex items-center mb-3">
-              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mr-4">
-                <span className="text-primary-600 font-semibold text-lg">
-                  {product.farmer.user.firstName[0]}
-                  {product.farmer.user.lastName[0]}
-                </span>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-900">
-                  {product.farmer.user.firstName} {product.farmer.user.lastName}
-                </h4>
-                {product.farmer.farmName && (
-                  <p className="text-gray-600 text-sm">
-                    {product.farmer.farmName}
-                  </p>
-                )}
-              </div>
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mr-4">
+              <span className="text-primary-600 font-semibold text-lg">
+                🌾
+              </span>
             </div>
-
-            <div className="space-y-2 text-sm">
+            <div>
+              <h4 className="font-semibold text-gray-900">
+                {product.farmer_name || 'Local Farmer'}
+              </h4>
               <div className="flex items-center">
                 <MapPin className="w-4 h-4 text-gray-400 mr-2" />
                 <span className="text-gray-600">
-                  {product.farmer.subCounty
-                    ? `${product.farmer.subCounty}, `
-                    : ""}
-                  {product.farmer.county}
+                  {product.farmer_county || 'Kenya'}
                 </span>
               </div>
-
-              {product.farmer.farmSize && (
-                <div>
-                  <span className="text-gray-600">
-                    Farm Size: {product.farmer.farmSize} acres
-                  </span>
-                </div>
-              )}
             </div>
-          </div>
-
-          <div>
-            <button
-              onClick={() => setShowFarmerContact(!showFarmerContact)}
-              className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium mb-4"
-            >
-              Contact Farmer
-            </button>
-
-            {showFarmerContact && (
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center">
-                  <Phone className="w-4 h-4 text-gray-400 mr-2" />
-                  <a
-                    href={`tel:${product.farmer.user.phone}`}
-                    className="text-primary-600 hover:text-primary-700"
-                  >
-                    {product.farmer.user.phone}
-                  </a>
-                </div>
-                {product.farmer.user.email && (
-                  <div className="flex items-center">
-                    <Mail className="w-4 h-4 text-gray-400 mr-2" />
-                    <a
-                      href={`mailto:${product.farmer.user.email}`}
-                      className="text-primary-600 hover:text-primary-700"
-                    >
-                      {product.farmer.user.email}
-                    </a>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>
