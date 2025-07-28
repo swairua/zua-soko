@@ -77,6 +77,7 @@ export default function MarketplacePage() {
         ...(filters.minPrice && { minPrice: filters.minPrice }),
         ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
         ...(filters.featured && { featured: "true" }),
+        _t: Date.now().toString(), // Cache busting
       });
 
       const data = await apiService.getProducts(params);
