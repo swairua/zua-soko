@@ -519,19 +519,12 @@ export default function MarketplacePage() {
                   </span>
                 </div>
 
-                {/* Tags */}
-                {product.tags && product.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {(Array.isArray(product.tags) ? product.tags : []).slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {/* Category */}
+                <div className="flex flex-wrap gap-1 mb-3">
+                  <span className="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">
+                    {product.category}
+                  </span>
+                </div>
 
                 <div className="flex items-center justify-between">
                   <div>
