@@ -140,9 +140,24 @@ export const apiService = {
     // Products now use real integer IDs from the database
     console.log("🛍️ Fetching product with ID:", id, "Type:", typeof id);
 
-    const response = await api.get(`/marketplace/products/${id}`);
-    console.log("🛍️ SINGLE PRODUCT SUCCESS:", response.data);
-    return response.data;
+    try {
+      const response = await api.get(`/marketplace/products/${id}`);
+      console.log("🛍️ SINGLE PRODUCT SUCCESS:", response.data);
+      return response.data;
+    } catch (error: any) {
+      // Handle 410 specifically for outdated product links
+      if (error.response?.status === 410) {
+        const errorData = error.response.data;
+        console.log("🔄 410 Response - Outdated product link:", errorData);
+
+        // For 410 responses, we want to handle this gracefully in the UI
+        // rather than showing a generic error
+        throw new Error("OUTDATED_PRODUCT_LINK");
+      }
+
+      // Re-throw other errors normally
+      throw error;
+    }
   },
 
   // Marketplace metadata - Real database only
