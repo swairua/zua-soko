@@ -368,7 +368,7 @@ export default function ProductPage() {
                   {stockStatus.text}
                 </span>
                 <span className="text-gray-600 text-sm">
-                  {product.stockQuantity} {product.unit} available
+                  {product.stock_quantity} {product.unit} available
                 </span>
               </div>
             )}
