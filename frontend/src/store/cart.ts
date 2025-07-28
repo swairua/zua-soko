@@ -387,14 +387,30 @@ export const useCartStore = () => {
         return;
       }
 
+      // Ensure we have valid numeric values
+      const pricePerUnit = Number(product.price_per_unit || product.pricePerUnit || 0);
+      const maxStock = Number(product.stock_quantity || product.stockQuantity || 999);
+      const productIdNumber = Number(product.id);
+
+      if (isNaN(pricePerUnit) || isNaN(maxStock) || isNaN(productIdNumber)) {
+        console.error("❌ Invalid numeric values in product:", {
+          price: pricePerUnit,
+          stock: maxStock,
+          id: productIdNumber,
+          originalProduct: product
+        });
+        toast.error("Product data is invalid - cannot add to cart");
+        return;
+      }
+
       const cartItem = {
-        productId: Number(product.id),
+        productId: productIdNumber,
         name: product.name || "Unknown Product",
-        pricePerUnit: Number(product.price_per_unit || product.pricePerUnit || 0),
+        pricePerUnit: pricePerUnit,
         quantity: Math.max(1, Number(quantity) || 1),
         unit: product.unit || "kg",
         images: Array.isArray(product.images) ? product.images : [],
-        maxStock: Number(product.stock_quantity || product.stockQuantity || 999),
+        maxStock: maxStock,
         farmerName: product.farmer_name || product.farmerName || "Local Farmer",
         farmerCounty: product.farmer_county || product.farmerCounty || "Kenya",
         category: product.category || "General"
