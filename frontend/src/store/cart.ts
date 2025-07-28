@@ -62,23 +62,37 @@ export const useCart = create<CartStore>()(
           // Validate product ID - now expecting real integer IDs
       console.log("🔍 Validating product ID:", newItem.productId, "Type:", typeof newItem.productId);
 
-      // Handle different ID formats
-      let productId;
-      if (typeof newItem.productId === 'number') {
-        productId = newItem.productId;
-      } else if (typeof newItem.productId === 'string') {
-        productId = parseInt(newItem.productId, 10);
-      } else {
-        productId = NaN;
+      // Handle different ID formats - accept both UUIDs and integers
+      let productId = newItem.productId;
+
+      if (!productId) {
+        console.error("❌ Missing product ID:", newItem);
+        throw new Error("Invalid product ID");
       }
 
-      if (!productId || isNaN(productId) || productId <= 0) {
-        console.error("❌ Invalid product ID validation failed:", {
-          originalId: newItem.productId,
-          type: typeof newItem.productId,
-          parsedId: productId,
-          isNaN: isNaN(productId)
-        });
+      // Accept both UUID strings and integer IDs
+      if (typeof productId === 'string') {
+        // Check if it's a UUID format
+        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidPattern.test(productId)) {
+          // It's a valid UUID, use as-is
+          console.log("✅ Using UUID product ID:", productId);
+        } else {
+          // Try to parse as integer
+          const intId = parseInt(productId, 10);
+          if (isNaN(intId) || intId <= 0) {
+            console.error("❌ Invalid string product ID:", productId);
+            throw new Error("Invalid product ID");
+          }
+          productId = intId;
+        }
+      } else if (typeof productId === 'number') {
+        if (isNaN(productId) || productId <= 0) {
+          console.error("❌ Invalid numeric product ID:", productId);
+          throw new Error("Invalid product ID");
+        }
+      } else {
+        console.error("❌ Invalid product ID type:", typeof productId, productId);
         throw new Error("Invalid product ID");
       }
 
