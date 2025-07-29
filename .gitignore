@@ -5,8 +5,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Lock files (let Vercel generate fresh ones)
-package-lock.json
+# Lock files - keep package-lock.json for Vercel npm ci
 yarn.lock
 pnpm-lock.yaml
 
