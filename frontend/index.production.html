@@ -7,27 +7,17 @@
     <meta name="theme-color" content="#22c55e" />
     <title>Zuasoko - Agricultural Platform</title>
 
-    <!-- Production build - no HMR client -->
+    <!-- Production optimizations -->
     <script>
-      // Block any HMR attempts in production
-      if (
-        window.location.hostname !== "localhost" &&
-        window.location.hostname !== "127.0.0.1"
-      ) {
-        window.__vite_is_modern_browser = true;
-        window.import =
-          window.import ||
-          function () {
-            return Promise.resolve({});
-          };
+      // Completely disable Vite client in production
+      window.__vite_is_modern_browser = true;
 
-        // Override WebSocket to prevent HMR connections
-        const OriginalWebSocket = window.WebSocket;
-        window.WebSocket = function (url, protocols) {
-          if (
-            typeof url === "string" &&
-            (url.includes("vite") || url.includes("hmr"))
-          ) {
+      // Block HMR WebSocket connections
+      if (typeof WebSocket !== 'undefined') {
+        const OriginalWebSocket = WebSocket;
+        WebSocket = function(url, protocols) {
+          if (typeof url === 'string' && (url.includes('vite') || url.includes('hmr') || url.includes('@vite'))) {
+            console.log('Blocked HMR WebSocket connection:', url);
             return {
               close: () => {},
               send: () => {},
@@ -35,23 +25,35 @@
               removeEventListener: () => {},
               readyState: 3,
               CLOSED: 3,
+              CONNECTING: 0,
+              OPEN: 1,
+              CLOSING: 2
             };
           }
           return new OriginalWebSocket(url, protocols);
         };
+      }
 
-        // Override fetch to prevent HMR requests
-        const originalFetch = window.fetch;
-        window.fetch = function (url, options) {
-          if (
-            typeof url === "string" &&
-            (url.includes("@vite") || url.includes("hmr"))
-          ) {
-            return Promise.resolve(new Response("{}", { status: 200 }));
+      // Block HMR fetch requests
+      if (typeof fetch !== 'undefined') {
+        const originalFetch = fetch;
+        fetch = function(url, options) {
+          if (typeof url === 'string' && (url.includes('@vite') || url.includes('vite/client') || url.includes('hmr'))) {
+            console.log('Blocked HMR fetch request:', url);
+            return Promise.resolve(new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } }));
           }
           return originalFetch.call(this, url, options);
         };
       }
+
+      // Disable console HMR messages
+      const originalLog = console.log;
+      console.log = function(...args) {
+        if (args.length > 0 && typeof args[0] === 'string' && args[0].includes('vite')) {
+          return;
+        }
+        originalLog.apply(console, args);
+      };
     </script>
   </head>
   <body>

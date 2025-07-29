@@ -29,31 +29,19 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
       sourcemap: false,
       rollupOptions: {
-        ...(isProduction
-          ? {
-              input: {
-                main: path.resolve(__dirname, "index.html"),
-              },
-              output: {
-                entryFileNames: "assets/[name]-[hash].js",
-                chunkFileNames: "assets/[name]-[hash].js",
-                assetFileNames: "assets/[name]-[hash].[ext]",
-                manualChunks: {
-                  vendor: ["react", "react-dom"],
-                  router: ["react-router-dom"],
-                  ui: ["lucide-react", "react-hot-toast"],
-                },
-              },
-            }
-          : {
-              output: {
-                manualChunks: {
-                  vendor: ["react", "react-dom"],
-                  router: ["react-router-dom"],
-                  ui: ["lucide-react", "react-hot-toast"],
-                },
-              },
-            }),
+        input: isProduction
+          ? path.resolve(__dirname, "index.production.html")
+          : path.resolve(__dirname, "index.html"),
+        output: {
+          entryFileNames: "assets/[name]-[hash].js",
+          chunkFileNames: "assets/[name]-[hash].js",
+          assetFileNames: "assets/[name]-[hash].[ext]",
+          manualChunks: {
+            vendor: ["react", "react-dom"],
+            router: ["react-router-dom"],
+            ui: ["lucide-react", "react-hot-toast"],
+          },
+        },
         external: isProduction
           ? ["/@vite/client", "@vite/client", "vite/client", "/vite/client"]
           : [],
