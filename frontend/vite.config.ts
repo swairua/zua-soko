@@ -2,6 +2,49 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
+// Plugin to inject HMR blocking script in production
+const injectProductionScript = () => {
+  return {
+    name: 'inject-production-script',
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html, ctx) {
+        if (ctx.bundle) { // Only in production builds
+          const script = `
+    <script>
+      // Production optimizations - Block Vite HMR client
+      if (typeof WebSocket !== 'undefined') {
+        const OriginalWebSocket = WebSocket;
+        WebSocket = function(url, protocols) {
+          if (typeof url === 'string' && (url.includes('vite') || url.includes('hmr') || url.includes('@vite'))) {
+            console.log('Blocked HMR WebSocket connection:', url);
+            return {
+              close: () => {}, send: () => {}, addEventListener: () => {}, removeEventListener: () => {},
+              readyState: 3, CLOSED: 3, CONNECTING: 0, OPEN: 1, CLOSING: 2
+            };
+          }
+          return new OriginalWebSocket(url, protocols);
+        };
+      }
+      if (typeof fetch !== 'undefined') {
+        const originalFetch = fetch;
+        fetch = function(url, options) {
+          if (typeof url === 'string' && (url.includes('@vite') || url.includes('vite/client') || url.includes('hmr'))) {
+            console.log('Blocked HMR fetch request:', url);
+            return Promise.resolve(new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } }));
+          }
+          return originalFetch.call(this, url, options);
+        };
+      }
+    </script>`;
+          return html.replace('<head>', `<head>${script}`);
+        }
+        return html;
+      }
+    }
+  };
+};
+
 export default defineConfig(({ mode }) => {
   const isProduction = mode === "production";
 
@@ -18,6 +61,7 @@ export default defineConfig(({ mode }) => {
               jsxRuntime: "automatic",
             }),
       }),
+      ...(isProduction ? [injectProductionScript()] : []),
     ],
     resolve: {
       alias: {
@@ -29,9 +73,7 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
       sourcemap: false,
       rollupOptions: {
-        input: isProduction
-          ? path.resolve(__dirname, "index.production.html")
-          : path.resolve(__dirname, "index.html"),
+        input: path.resolve(__dirname, "index.html"),
         output: {
           entryFileNames: "assets/[name]-[hash].js",
           chunkFileNames: "assets/[name]-[hash].js",
