@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd frontend && npm install && npm run build:prod && (test -f dist/index.production.html && mv dist/index.production.html dist/index.html || echo 'Using default index.html') && cp -r dist/* ../",
+  "buildCommand": "cd frontend && npm install && npm run build:prod && cp -r dist/* ../",
   "outputDirectory": ".",
   "installCommand": "npm install && cd frontend && npm install",
   "rewrites": [
