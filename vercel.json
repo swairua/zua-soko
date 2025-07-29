@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cd frontend && npm ci && npm run build:prod && cp -r dist/* ../",
-  "outputDirectory": ".",
-  "installCommand": "npm ci && cd frontend && npm ci",
+  "buildCommand": "cd frontend && npm install && npm run build:prod",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "npm install && cd frontend && npm install",
   "functions": {
     "api/index.js": {
       "maxDuration": 10
