@@ -1,4 +1,7 @@
 {
+  "buildCommand": "cd frontend && npm install && npm run build:prod && mv dist/index.production.html dist/index.html && cp -r dist/* ../",
+  "outputDirectory": ".",
+  "installCommand": "npm install && cd frontend && npm install",
   "rewrites": [
     {
       "source": "/api/(.*)",
