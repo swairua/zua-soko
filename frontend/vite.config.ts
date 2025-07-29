@@ -7,8 +7,8 @@ const injectProductionScript = () => {
   return {
     name: 'inject-production-script',
     transformIndexHtml: {
-      enforce: 'pre',
-      transform(html, ctx) {
+      order: 'pre',
+      handler(html, ctx) {
         if (ctx.bundle) { // Only in production builds
           const script = `
     <script>
