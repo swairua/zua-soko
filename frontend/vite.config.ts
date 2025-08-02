@@ -114,6 +114,12 @@ export default defineConfig(({ mode }) => {
       ),
       "process.env.NODE_ENV": JSON.stringify(mode),
     },
+    ...(isProduction ? {
+      // Completely disable client injection in production
+      optimizeDeps: {
+        exclude: ['@vite/client'],
+      },
+    } : {}),
     server: {
       port: 3000,
       host: true,
