@@ -141,7 +141,7 @@ console.log('Config:', getEnvironmentConfig());
 npm run build 2>&1 | grep -i env
 
 # Test API connectivity
-curl -X GET https://zuasoko.vercel.app/api/health
+curl -X GET https://zuasoko.vercel.com/api/health
 
 # Validate local environment
 cd frontend && npm run type-check
