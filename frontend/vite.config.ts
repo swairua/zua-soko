@@ -6,10 +6,14 @@ import path from "path";
 const renameIndexPlugin = () => {
   return {
     name: 'rename-index',
-    generateBundle(options, bundle) {
-      if (bundle['index.production.html']) {
-        bundle['index.html'] = bundle['index.production.html'];
-        delete bundle['index.production.html'];
+    writeBundle(options, bundle) {
+      const fs = require('fs');
+      const path = require('path');
+      const prodFile = path.join(options.dir, 'index.production.html');
+      const indexFile = path.join(options.dir, 'index.html');
+
+      if (fs.existsSync(prodFile)) {
+        fs.renameSync(prodFile, indexFile);
       }
     }
   };
