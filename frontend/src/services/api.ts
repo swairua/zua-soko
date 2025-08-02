@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Configure axios for both development and production
-const API_BASE_URL = import.meta.env.PROD ? "/api" : "/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "/api" : "/api");
 
 const api = axios.create({
   baseURL: API_BASE_URL,
