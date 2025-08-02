@@ -2,6 +2,19 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
+// Plugin to rename index.production.html to index.html
+const renameIndexPlugin = () => {
+  return {
+    name: 'rename-index',
+    generateBundle(options, bundle) {
+      if (bundle['index.production.html']) {
+        bundle['index.html'] = bundle['index.production.html'];
+        delete bundle['index.production.html'];
+      }
+    }
+  };
+};
+
 export default defineConfig(({ mode }) => {
   const isProduction = mode === "production";
 
@@ -18,6 +31,7 @@ export default defineConfig(({ mode }) => {
               jsxRuntime: "automatic",
             }),
       }),
+      ...(isProduction ? [renameIndexPlugin()] : []),
     ],
     resolve: {
       alias: {
