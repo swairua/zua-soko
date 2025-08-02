@@ -6,54 +6,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#22c55e" />
     <title>Zuasoko - Agricultural Platform</title>
-
-    <!-- Production optimizations -->
     <script>
-      // Completely disable Vite client in production
-      window.__vite_is_modern_browser = true;
-
-      // Block HMR WebSocket connections
+      // Block all Vite HMR functionality in production
+      window.__vite_is_modern_browser = false;
+      window.__vite_plugin_checker_runtime_config = null;
+      
+      // Block WebSocket connections to Vite dev server
       if (typeof WebSocket !== 'undefined') {
         const OriginalWebSocket = WebSocket;
-        WebSocket = function(url, protocols) {
-          if (typeof url === 'string' && (url.includes('vite') || url.includes('hmr') || url.includes('@vite'))) {
-            console.log('Blocked HMR WebSocket connection:', url);
+        window.WebSocket = function(url, protocols) {
+          if (typeof url === 'string' && (url.includes('vite') || url.includes('hmr') || url.includes('@vite') || url.includes('ws:') || url.includes('wss:'))) {
+            console.log('🚫 Blocked Vite HMR WebSocket connection in production:', url);
             return {
-              close: () => {},
-              send: () => {},
-              addEventListener: () => {},
-              removeEventListener: () => {},
-              readyState: 3,
-              CLOSED: 3,
-              CONNECTING: 0,
-              OPEN: 1,
-              CLOSING: 2
+              close: () => {}, send: () => {}, addEventListener: () => {}, removeEventListener: () => {},
+              readyState: 3, CLOSED: 3, CONNECTING: 0, OPEN: 1, CLOSING: 2,
+              onopen: null, onclose: null, onmessage: null, onerror: null
             };
           }
           return new OriginalWebSocket(url, protocols);
         };
       }
-
-      // Block HMR fetch requests
+      
+      // Block fetch requests to Vite endpoints
       if (typeof fetch !== 'undefined') {
         const originalFetch = fetch;
-        fetch = function(url, options) {
-          if (typeof url === 'string' && (url.includes('@vite') || url.includes('vite/client') || url.includes('hmr'))) {
-            console.log('Blocked HMR fetch request:', url);
-            return Promise.resolve(new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } }));
+        window.fetch = function(url, options) {
+          if (typeof url === 'string' && (url.includes('@vite') || url.includes('vite/client') || url.includes('hmr') || url.includes('ping'))) {
+            console.log('🚫 Blocked Vite HMR fetch request in production:', url);
+            return Promise.resolve(new Response('{"ok": true}', { 
+              status: 200, 
+              statusText: 'OK',
+              headers: { 'Content-Type': 'application/json' } 
+            }));
           }
           return originalFetch.call(this, url, options);
         };
       }
-
-      // Disable console HMR messages
-      const originalLog = console.log;
-      console.log = function(...args) {
-        if (args.length > 0 && typeof args[0] === 'string' && args[0].includes('vite')) {
-          return;
-        }
-        originalLog.apply(console, args);
-      };
+      
+      // Disable any remaining Vite client functionality
+      if (typeof window !== 'undefined') {
+        window.__vite_ping = () => Promise.resolve();
+      }
     </script>
   </head>
   <body>
