@@ -43,13 +43,13 @@ All frontend environment variables must start with `VITE_` to be exposed to the 
 #### Required
 | Variable | Description | Development | Production |
 |----------|-------------|-------------|------------|
-| `VITE_API_URL` | API base URL | `http://localhost:5002/api` | `https://zuasoko.vercel.app/api` |
+| `VITE_API_URL` | API base URL | `http://localhost:5002/api` | `https://zuasoko.vercel.com/api` |
 
 #### Optional
 | Variable | Description | Default | Example |
 |----------|-------------|---------|---------|
 | `VITE_APP_NAME` | Application name | `Zuasoko` | `Zuasoko (Dev)` |
-| `VITE_FRONTEND_URL` | Frontend URL | Auto-detected | `https://zuasoko.vercel.app` |
+| `VITE_FRONTEND_URL` | Frontend URL | Auto-detected | `https://zuasoko.vercel.com` |
 | `VITE_DEBUG` | Enable debug mode | `true` in dev | `false` |
 
 ### Backend Variables
