@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx tsc && vite build",
-    "build:prod": "npx tsc && vite build --mode production",
+    "build": "npx --package=typescript tsc && vite build",
+    "build:prod": "npx --package=typescript tsc && vite build --mode production",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "type-check": "npx tsc --noEmit",
+    "type-check": "npx --package=typescript tsc --noEmit",
     "vercel-build": "npm run build:prod"
   },
   "dependencies": {
@@ -40,7 +40,7 @@
     "eslint-plugin-react-refresh": "^0.4.4",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.3.5",
-    "typescript": "^5.2.2",
+    "typescript": "^5.9.2",
     "vite": "^5.0.0"
   }
 }
