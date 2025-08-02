@@ -7,8 +7,8 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://zuasoko.vercel.app', process.env.FRONTEND_URL]
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://zuasoko.vercel.com', process.env.FRONTEND_URL]
     : ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true
 }));

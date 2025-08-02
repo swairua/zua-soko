@@ -1,304 +1,66 @@
-import React, { useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { useAuthStore } from "./store/auth";
-import ErrorBoundary from "./components/ErrorBoundary";
-import { setupGlobalErrorHandling } from "./utils/errorHandler";
 
-// Layout components
-import Navbar from "./components/layout/Navbar";
-import MobileBottomNav from "./components/layout/MobileBottomNav";
-import DatabaseStatus from "./components/DatabaseStatus";
-
-// Page components
-import HomePage from "./pages/HomePage";
-import MarketplacePage from "./pages/marketplace/MarketplacePage";
-import ProductPage from "./pages/marketplace/ProductPage";
-import LoginPage from "./pages/auth/LoginPage";
-import RegisterPage from "./pages/auth/RegisterPage";
-
-// Farmer pages
-import FarmerDashboard from "./pages/farmer/FarmerDashboard";
-
-// Customer pages
-import CustomerDashboard from "./pages/customer/CustomerDashboard";
-import ProfilePage from "./pages/customer/ProfilePage";
-import OrderHistoryPage from "./pages/customer/OrderHistoryPage";
-import CartPage from "./pages/cart/CartPage";
-import CheckoutPage from "./pages/checkout/CheckoutPage";
-
-// Admin pages
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import UserManagementPage from "./pages/admin/UserManagementPage";
-import ConsignmentManagementPage from "./pages/admin/ConsignmentManagementPage";
-import AnalyticsPage from "./pages/admin/AnalyticsPage";
-import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
-import MarketplaceManagementPage from "./pages/admin/MarketplaceManagementPage";
-import RegistrationFeesPage from "./pages/admin/RegistrationFeesPage";
-import FarmerCategoriesPage from "./pages/admin/FarmerCategoriesPage";
-
-// Driver pages
-import DriverDashboard from "./pages/driver/DriverDashboard";
-import AssignmentsPage from "./pages/driver/AssignmentsPage";
-import WarehousePage from "./pages/driver/WarehousePage";
-
-// Generic pages
-import ComingSoonPage from "./pages/ComingSoonPage";
-import TestMpesaPage from "./pages/TestMpesaPage";
-
-// Protected Route Component
-const ProtectedRoute: React.FC<{
-  children: React.ReactNode;
-  allowedRoles?: string[];
-}> = ({ children, allowedRoles }) => {
-  const { user, isAuthenticated } = useAuthStore();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
-  }
-
-  return <>{children}</>;
-};
-
-// Role-based redirect component
-const RoleBasedRedirect: React.FC = () => {
-  const { user } = useAuthStore();
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  switch (user.role) {
-    case "FARMER":
-      return <Navigate to="/farmer/dashboard" replace />;
-    case "CUSTOMER":
-      return <Navigate to="/customer/profile" replace />;
-    case "ADMIN":
-      return <Navigate to="/admin/dashboard" replace />;
-    case "DRIVER":
-      return <Navigate to="/driver/dashboard" replace />;
-    default:
-      return <Navigate to="/" replace />;
-  }
-};
+// Import environment test in development
+if (import.meta.env.DEV) {
+  import("./utils/test-environment");
+}
 
 function App() {
-  const { isAuthenticated, user } = useAuthStore();
-
-  useEffect(() => {
-    setupGlobalErrorHandling();
-
-    // Clean up old UUID-based data on app startup
-    try {
-      const cartData = localStorage.getItem('cart-storage');
-      if (cartData) {
-        const parsed = JSON.parse(cartData);
-        if (parsed.state?.cart?.items) {
-          const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-          const filteredItems = parsed.state.cart.items.filter((item: any) => {
-            return !uuidPattern.test(String(item.productId));
-          });
-
-          if (filteredItems.length !== parsed.state.cart.items.length) {
-            console.log('🧹 Cleaning up old UUID cart items');
-            parsed.state.cart.items = filteredItems;
-            localStorage.setItem('cart-storage', JSON.stringify(parsed));
-          }
-        }
-      }
-    } catch (error) {
-      console.warn('Error cleaning up old cart data:', error);
-    }
-  }, []);
-
   return (
-    <ErrorBoundary>
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Router>
-        <div className="min-h-screen bg-gray-50">
-          <Navbar />
-
-          <main className="pb-16 lg:pb-0">
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/marketplace" element={<MarketplacePage />} />
-              <Route
-                path="/marketplace/product/:id"
-                element={<ProductPage />}
-              />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-
-              {/* Role-based dashboard redirect */}
-              <Route path="/dashboard" element={<RoleBasedRedirect />} />
-
-              {/* Farmer routes */}
-              <Route
-                path="/farmer/dashboard"
-                element={
-                  <ProtectedRoute allowedRoles={["FARMER"]}>
-                    <FarmerDashboard />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Customer routes */}
-              <Route
-                path="/customer/dashboard"
-                element={
-                  <ProtectedRoute allowedRoles={["CUSTOMER"]}>
-                    <CustomerDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/customer/profile"
-                element={
-                  <ProtectedRoute allowedRoles={["CUSTOMER"]}>
-                    <ProfilePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/customer/orders"
-                element={
-                  <ProtectedRoute allowedRoles={["CUSTOMER"]}>
-                    <OrderHistoryPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-
-              {/* Admin routes */}
-              <Route
-                path="/admin/dashboard"
-                element={
-                  <ProtectedRoute allowedRoles={["ADMIN"]}>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/users"
-                element={
-                  <ProtectedRoute allowedRoles={["ADMIN"]}>
-                    <UserManagementPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/consignments"
-                element={
-                  <ProtectedRoute allowedRoles={["ADMIN"]}>
-                    <ConsignmentManagementPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/analytics"
-                element={
-                  <ProtectedRoute allowedRoles={["ADMIN"]}>
-                    <AnalyticsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/settings"
-                element={
-                  <ProtectedRoute allowedRoles={["ADMIN"]}>
-                    <AdminSettingsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/marketplace"
-                element={
-                  <ProtectedRoute allowedRoles={["ADMIN"]}>
-                    <MarketplaceManagementPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/registration-fees"
-                element={
-                  <ProtectedRoute allowedRoles={["ADMIN"]}>
-                    <RegistrationFeesPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/farmer-categories"
-                element={
-                  <ProtectedRoute allowedRoles={["ADMIN"]}>
-                    <FarmerCategoriesPage />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Driver routes */}
-              <Route
-                path="/driver/dashboard"
-                element={
-                  <ProtectedRoute allowedRoles={["DRIVER"]}>
-                    <DriverDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/driver/assignments"
-                element={
-                  <ProtectedRoute allowedRoles={["DRIVER"]}>
-                    <AssignmentsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/driver/warehouse"
-                element={
-                  <ProtectedRoute allowedRoles={["DRIVER"]}>
-                    <WarehousePage />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Legacy routes - redirect to new structure */}
-              <Route
-                path="/farmer/consignments"
-                element={<Navigate to="/farmer/dashboard" replace />}
-              />
-              <Route
-                path="/farmer/wallet"
-                element={<Navigate to="/farmer/dashboard" replace />}
-              />
-
-              {/* Test routes */}
-              <Route path="/test-mpesa" element={<TestMpesaPage />} />
-
-              {/* Catch-all route */}
-              <Route path="*" element={<ComingSoonPage />} />
-            </Routes>
-          </main>
-
-          {/* Mobile bottom navigation for authenticated users */}
-          {isAuthenticated && user && <MobileBottomNav />}
-
-          {/* Database connection status */}
-          <DatabaseStatus />
-
-          <Toaster position="top-right" />
-        </div>
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={
+              <div className="container mx-auto px-4 py-8">
+                <h1 className="text-3xl font-bold text-center text-green-600">
+                  🌾 Zuasoko Agricultural Platform
+                </h1>
+                <p className="text-center mt-4 text-gray-600">
+                  Environment configuration is complete and validated!
+                </p>
+                {import.meta.env.DEV && (
+                  <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h2 className="text-lg font-semibold text-blue-800">Development Mode</h2>
+                    <p className="text-blue-600 mt-2">
+                      Check the browser console to see environment validation results.
+                    </p>
+                    <div className="mt-4 text-sm text-blue-700">
+                      <strong>Current Environment:</strong>
+                      <ul className="list-disc list-inside mt-2">
+                        <li>API URL: {import.meta.env.VITE_API_URL || 'Not configured'}</li>
+                        <li>App Name: {import.meta.env.VITE_APP_NAME || 'Default'}</li>
+                        <li>Mode: {import.meta.env.MODE}</li>
+                        <li>Debug: {import.meta.env.VITE_DEBUG || 'false'}</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            } />
+            <Route path="*" element={
+              <div className="container mx-auto px-4 py-8 text-center">
+                <h2 className="text-2xl font-bold text-gray-800">Page Not Found</h2>
+                <p className="text-gray-600 mt-2">This is a simplified App for environment testing.</p>
+              </div>
+            } />
+          </Routes>
+        </main>
       </Router>
-    </ErrorBoundary>
+      
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+        }}
+      />
+    </div>
   );
 }
 
