@@ -3,6 +3,10 @@ import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "react-query";
 import App from "./App.tsx";
 import "./index.css";
+import { validateEnvironment } from "./utils/env";
+
+// Validate environment variables before starting the app
+validateEnvironment();
 
 // Global error handler for array operation failures
 window.addEventListener("error", (event) => {
