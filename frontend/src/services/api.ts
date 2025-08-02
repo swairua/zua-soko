@@ -1,7 +1,12 @@
 import axios from "axios";
+import { getApiUrl, getDebugMode, getEnvironmentConfig } from "../utils/env";
 
-// Configure axios for both development and production
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "/api" : "/api");
+// Get configuration from environment
+const config = getEnvironmentConfig();
+const API_BASE_URL = config.apiUrl;
+const DEBUG_MODE = config.debugMode;
+
+console.log(`🔗 API Service initialized with base URL: ${API_BASE_URL}`);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -13,15 +18,17 @@ const api = axios.create({
 
 // Add request interceptor for auth token and enhanced logging
 api.interceptors.request.use((config) => {
-  console.group("🚀 API REQUEST");
-  console.log("📍 URL:", config.url);
-  console.log("🔧 Method:", config.method?.toUpperCase());
-  console.log("📦 Data:", config.data);
-  console.log("🔑 Headers:", {
-    'Content-Type': config.headers['Content-Type'],
-    'Authorization': config.headers['Authorization'] ? '[TOKEN PRESENT]' : '[NO TOKEN]'
-  });
-  console.groupEnd();
+  if (DEBUG_MODE) {
+    console.group("🚀 API REQUEST");
+    console.log("📍 URL:", config.url);
+    console.log("🔧 Method:", config.method?.toUpperCase());
+    console.log("📦 Data:", config.data);
+    console.log("🔑 Headers:", {
+      'Content-Type': config.headers['Content-Type'],
+      'Authorization': config.headers['Authorization'] ? '[TOKEN PRESENT]' : '[NO TOKEN]'
+    });
+    console.groupEnd();
+  }
 
   const token = localStorage.getItem("authToken") || localStorage.getItem("token");
   if (token) {
@@ -34,16 +41,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Add response interceptor for enhanced logging - NO BYPASS SYSTEM
+// Add response interceptor for enhanced logging
 api.interceptors.response.use(
   (response) => {
-    console.group("✅ API SUCCESS");
-    console.log("📍 URL:", response.config.url);
-    console.log("📊 Status:", `${response.status} ${response.statusText}`);
-    console.log("📦 Data:", response.data);
-    console.log("⏱️ Duration:", (response.config as any).metadata?.startTime ?
-      `${Date.now() - (response.config as any).metadata.startTime}ms` : 'Unknown');
-    console.groupEnd();
+    if (DEBUG_MODE) {
+      console.group("✅ API SUCCESS");
+      console.log("📍 URL:", response.config.url);
+      console.log("📊 Status:", `${response.status} ${response.statusText}`);
+      console.log("📦 Data:", response.data);
+      console.log("⏱️ Duration:", (response.config as any).metadata?.startTime ?
+        `${Date.now() - (response.config as any).metadata.startTime}ms` : 'Unknown');
+      console.groupEnd();
+    }
     return response;
   },
   (error) => {
@@ -57,6 +66,8 @@ api.interceptors.response.use(
       message: error.message || 'No Error Message',
       hostname: window.location.hostname,
       timestamp: new Date().toISOString(),
+      baseURL: API_BASE_URL,
+      environment: config.isProduction ? 'production' : 'development'
     };
 
     console.group("❌ API ERROR DETAILS");
@@ -66,7 +77,11 @@ api.interceptors.response.use(
     console.error("📦 Response Data:", errorDetails.data);
     console.error("🕐 Timestamp:", errorDetails.timestamp);
     console.error("🏠 Hostname:", errorDetails.hostname);
-    console.error("🔧 Full Error Object:", error);
+    console.error("🔗 Base URL:", errorDetails.baseURL);
+    console.error("🌍 Environment:", errorDetails.environment);
+    if (DEBUG_MODE) {
+      console.error("🔧 Full Error Object:", error);
+    }
     console.groupEnd();
 
     // Also log as a single formatted string for easy copying
@@ -90,9 +105,9 @@ api.interceptors.response.use(
       console.warn("💡 Common 500 causes: Server-side error, database connection issues");
     } else if (error.code === 'NETWORK_ERROR' || !errorDetails.status) {
       console.warn("💡 Network issues: Check internet connection and server availability");
+      console.warn("💡 Current API URL:", API_BASE_URL);
     }
 
-    // NO BYPASS - Let all errors bubble up to force real database debugging
     return Promise.reject(error);
   },
 );
@@ -226,4 +241,12 @@ export const apiService = {
   },
 };
 
+// Export the configured API instance for direct use
 export default api;
+
+// Export configuration info for debugging
+export const apiConfig = {
+  baseURL: API_BASE_URL,
+  debugMode: DEBUG_MODE,
+  environment: config.isProduction ? 'production' : 'development'
+};
