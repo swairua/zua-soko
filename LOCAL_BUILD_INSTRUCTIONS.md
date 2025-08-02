@@ -55,24 +55,40 @@ ls -la frontend/dist/
 # Should show: index.html, assets/, and other files
 ```
 
-### 5. Deploy to Vercel
+### 5. Prepare for Deployment
+
+**Copy built files to root (Vercel expects them there):**
+```bash
+# Copy all built files to root directory
+cp -r frontend/dist/* ./
+```
+
+**Verify files are in place:**
+```bash
+ls -la
+# Should show: index.html, assets/, and other built files in root
+```
+
+### 6. Deploy to Vercel
 
 **Option A: Vercel CLI**
 ```bash
 # Install Vercel CLI if not already installed
 npm install -g vercel
 
-# Deploy
+# Deploy (Vercel will detect static files + API)
 vercel --prod
 ```
 
 **Option B: Git Push**
 ```bash
-# Commit and push changes
+# Commit all files including built assets in root
 git add .
-git commit -m "Production build ready"
+git commit -m "Production build ready with static files"
 git push origin main
 ```
+
+**Important:** The built `index.html` and `assets/` folder must be in the project root for Vercel to serve them correctly.
 
 ## Important Notes
 

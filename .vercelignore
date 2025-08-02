@@ -1,67 +1,46 @@
-# Files and folders to exclude from Vercel deployment
+# Ignore source files to prevent auto-detection and building
+frontend/src/
+frontend/node_modules/
+frontend/package.json
+frontend/package-lock.json
+frontend/vite.config.ts
+frontend/tsconfig.json
+frontend/tailwind.config.js
+frontend/postcss.config.js
+frontend/index.html
+frontend/index.production.html
+
+# Only include built files for deployment
+!frontend/dist/
 
 # Development files
-*.md
-!README.md
-!VERCEL_DEPLOYMENT_GUIDE.md
-!QUICK_DEPLOY.md
-.env.local
+.env.localhost
 .env.development
-
-# Backend folder (we use api/ for serverless functions)
-backend/
-server.js
-minimal-server.js
-
-# Build artifacts
-frontend/dist/
-frontend/.next/
-frontend/node_modules/
-
-# Development scripts
-dev-server.js
-dev-server-combined.js
-*localhost*
-*development*
-
-# Database scripts (run separately)
-deploy-database.js
-setup-database*.js
-*-db.js
-migrate_to_database.sh
-
-# Documentation (keep essential ones)
-DATABASE_*.md
-LOCALHOST_*.md
-EMERGENCY_*.md
-EXPRESS_*.md
-RENDER_*.md
-LOGIN_*.md
-UNIVERSAL_*.md
-PRODUCTION_*.md
-
-# Git and IDE files
-.git/
+.env.example
+*.log
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Logs
-*.log
-logs/
+# Documentation (not needed for deployment)
+*.md
+docs/
+scripts/
 
 # Test files
-test/
-tests/
-*.test.js
-*.spec.js
+**/__tests__/
+**/*.test.*
+**/*.spec.*
 
-# Build scripts not needed in production
-build.sh
-*.config.js
-!vercel.json
-!package.json
-!frontend/package.json
+# Development configs
+.eslintrc.*
+.prettierrc.*
+.gitignore
 
-# Asset files (these will be in dist)
-assets/
-!api/
+# Temporary files
+.tmp/
+.cache/
+dist/
+build/
+coverage/
