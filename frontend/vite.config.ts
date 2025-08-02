@@ -71,6 +71,7 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: "dist",
       sourcemap: false,
+      minify: isProduction ? "esbuild" : false,
       rollupOptions: {
         input: path.resolve(__dirname, "index.html"),
         output: {
@@ -88,7 +89,6 @@ export default defineConfig(({ mode }) => {
           : [],
       },
       target: "esnext",
-      minify: isProduction ? "esbuild" : false,
     },
     define: {
       __APP_VERSION__: JSON.stringify(
