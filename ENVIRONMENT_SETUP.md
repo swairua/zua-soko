@@ -26,14 +26,14 @@ This guide covers all environment variable configuration for both development an
 Add these environment variables in your Vercel dashboard:
 
 **Required Variables:**
-- `VITE_API_URL` = `https://zuasoko.vercel.app/api`
+- `VITE_API_URL` = `https://zuasoko.vercel.com/api`
 - `DATABASE_URL` = `postgresql://...` (your Neon database URL)
 - `JWT_SECRET` = `your-secure-jwt-secret`
 - `NODE_ENV` = `production`
 
 **Optional Variables:**
 - `VITE_APP_NAME` = `Zuasoko`
-- `VITE_FRONTEND_URL` = `https://zuasoko.vercel.app`
+- `VITE_FRONTEND_URL` = `https://zuasoko.vercel.com`
 
 ## Environment Variables Reference
 
