@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => {
       sourcemap: false,
       minify: isProduction ? "esbuild" : false,
       rollupOptions: {
-        input: path.resolve(__dirname, "index.html"),
+        input: path.resolve(__dirname, isProduction ? "index.production.html" : "index.html"),
         output: {
           entryFileNames: "assets/[name]-[hash].js",
           chunkFileNames: "assets/[name]-[hash].js",
