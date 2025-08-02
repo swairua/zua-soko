@@ -4,12 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npx vite",
-    "build": "npx --package=typescript tsc && npx vite build",
-    "build:prod": "npx --package=typescript tsc && npx vite build --mode production",
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:prod": "tsc && vite build --mode production",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "npx vite preview",
-    "type-check": "npx --package=typescript tsc --noEmit",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
     "vercel-build": "npm run build:prod"
   },
   "dependencies": {
