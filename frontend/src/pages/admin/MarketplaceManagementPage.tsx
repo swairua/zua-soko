@@ -107,6 +107,14 @@ export default function MarketplaceManagementPage() {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
 
+  // Utility function to check if error is due to missing endpoint
+  const isEndpointMissingError = (error: any): boolean => {
+    const status = error.response?.status;
+    const data = error.response?.data;
+    const isHtmlError = typeof data === 'string' && data.includes('<!DOCTYPE html>');
+    return status === 404 || isHtmlError || error.isEndpointMissing;
+  };
+
   // Stats
   const [stats, setStats] = useState({
     totalProducts: 0,
