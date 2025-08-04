@@ -1090,11 +1090,15 @@ export default function MarketplaceManagementPage() {
                       className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                     >
                       <div className="h-48 bg-gray-100 flex items-center justify-center">
-                        {product.images && product.images.length > 0 ? (
+                        {product.images && product.images.length > 0 && product.images[0] ? (
                           <img
                             src={product.images[0]}
                             alt={product.name}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              console.log("Image failed to load:", product.images[0]);
+                              e.currentTarget.style.display = 'none';
+                            }}
                           />
                         ) : (
                           <div className="text-center">
