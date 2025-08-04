@@ -597,6 +597,23 @@ export default function MarketplaceManagementPage() {
     }
   };
 
+  const refreshDatabaseProducts = async () => {
+    try {
+      console.log("🔄 Refreshing database with sample products");
+
+      const response = await apiService.post("/admin/refresh-products", {});
+      if (response.data.success) {
+        toast.success(`Database refreshed with ${response.data.count} premium products!`);
+        await fetchProducts(); // Reload the products
+      } else {
+        toast.error(response.data.message || "Failed to refresh database");
+      }
+    } catch (error: any) {
+      console.error("❌ Error refreshing database:", error);
+      toast.error("Failed to refresh database with sample products");
+    }
+  };
+
   const activateAllProducts = async () => {
     try {
       console.log("🔄 Activating all products");
