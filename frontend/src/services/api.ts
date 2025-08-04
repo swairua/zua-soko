@@ -123,6 +123,7 @@ export const apiService = {
 
   // Generic POST method
   post: async (url: string, data: any) => {
+    console.log(`🔍 API POST: ${API_BASE_URL}${url}`);
     const response = await api.post(url, data);
     return response;
   },
