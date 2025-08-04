@@ -184,8 +184,15 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error("❌ Error fetching analytics stats:", error);
-      // Keep default values as fallback
-      toast.error("Failed to fetch analytics data");
+      // Set fallback analytics data
+      setStats((prev) => ({
+        ...prev,
+        totalUsers: 5,
+        pendingApprovals: 2,
+        activeConsignments: 8,
+        monthlyRevenue: 45000,
+      }));
+      toast.error("Using demo analytics data - API unavailable");
     }
   };
 
