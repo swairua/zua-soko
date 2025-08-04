@@ -387,24 +387,12 @@ export default function MarketplaceManagementPage() {
             }
           }
         } else {
-          // Try to create new product using API (fallback to local if not available)
-          console.log("➕ Attempting to create new product");
+          console.log("➕ Creating new product");
 
-          try {
-            response = await apiService.post("/products", productData);
-            if (response.data.success) {
-              setProducts(prev => [...prev, response.data.product]);
-              toast.success("Product created successfully in database!");
-            }
-          } catch (apiError: any) {
-            if (isEndpointMissingError(apiError)) {
-              console.log("⚠️ POST /products endpoint not available, using local creation");
-            } else {
-              console.log("⚠️ API error during product creation, using local fallback");
-              console.error("Creation error:", apiError);
-            }
-
-            // Fallback to local state creation for any API error
+          // Check if we know the endpoint is unavailable
+          if (endpointAvailability.createProduct === false) {
+            console.log("⚠️ POST /products endpoint known to be unavailable, using local creation");
+            // Direct local creation - no API call
             const newProduct = {
               id: Date.now(),
               ...productData,
@@ -414,6 +402,35 @@ export default function MarketplaceManagementPage() {
             setProducts(prev => [...prev, newProduct]);
             toast.success("Product created locally (server endpoint not available)");
             response = { data: { success: true } };
+          } else {
+            // Try API call if endpoint availability is unknown or known to be available
+            try {
+              response = await apiService.post("/products", productData);
+              if (response.data.success) {
+                markEndpointAvailable('createProduct');
+                setProducts(prev => [...prev, response.data.product]);
+                toast.success("Product created successfully in database!");
+              }
+            } catch (apiError: any) {
+              if (isEndpointMissingError(apiError)) {
+                console.log("⚠️ POST /products endpoint not available, marking as unavailable");
+                markEndpointUnavailable('createProduct');
+              } else {
+                console.log("⚠️ API error during product creation, using local fallback");
+                console.error("Creation error:", apiError);
+              }
+
+              // Fallback to local state creation
+              const newProduct = {
+                id: Date.now(),
+                ...productData,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              };
+              setProducts(prev => [...prev, newProduct]);
+              toast.success("Product created locally (server endpoint not available)");
+              response = { data: { success: true } };
+            }
           }
         }
       } catch (error) {
