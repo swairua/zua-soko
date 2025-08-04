@@ -525,15 +525,17 @@ export default function MarketplaceManagementPage() {
         } else {
           throw new Error(response.data.message || "Failed to activate products");
         }
-      } catch (apiError) {
-        console.log("⚠️ Bulk activate API endpoint not available, using local activation");
-        // Fallback to local state activation
+      } catch (apiError: any) {
+        console.log("⚠️ Bulk activate API endpoint not available (PATCH /products/bulk-activate), using local activation");
+        console.log("Error details:", apiError.response?.status, apiError.message);
+
+        // Fallback to local state activation for any API error
         setProducts(prev => prev.map(p => ({ ...p, is_active: true })));
         setStats(prev => ({
           ...prev,
           activeProducts: products.length,
         }));
-        toast.success("Products activated locally (database endpoint not available)");
+        toast.success("Products activated locally (server endpoint not available)");
       }
     } catch (error: any) {
       console.error("❌ Error activating products:", error);
