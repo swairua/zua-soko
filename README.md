@@ -33,8 +33,8 @@ Zuasoko is a comprehensive agricultural marketplace platform that connects farme
 
 ### Prerequisites
 - Node.js 18+
-- PostgreSQL database
-- npm or yarn
+- PostgreSQL database (Neon DB recommended)
+- npm
 
 ### Installation
 
@@ -53,16 +53,22 @@ Zuasoko is a comprehensive agricultural marketplace platform that connects farme
    ```bash
    cp .env.example .env
    ```
-   Update the `.env` file with your database credentials and other configuration.
+   Update the `.env` file with your database credentials.
 
-4. **Start Development Server**
+4. **Start Production Server**
    ```bash
-   npm run dev
+   npm start
    ```
 
-   This will start:
+   This starts the unified server on http://localhost:3000 with:
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:3000/api
+   - Admin Dashboard: http://localhost:3000/admin.html
+
+5. **Development Mode**
+   ```bash
+   npm run dev:frontend & npm run dev:server
+   ```
 
 ### Available Scripts
 
