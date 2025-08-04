@@ -1018,7 +1018,7 @@ app.get("/api/data/everything", async (req, res) => {
       database: "neon_postgresql",
     });
   } catch (err) {
-    console.error("��� Error fetching everything:", err);
+    console.error("❌ Error fetching everything:", err);
     res.status(500).json({
       success: false,
       error: "Failed to fetch everything",
@@ -1718,6 +1718,10 @@ app.use("/api/*", (req, res) => {
       "GET /api/marketplace/products",
       "GET /api/marketplace/categories",
       "GET /api/marketplace/counties",
+      "GET /api/admin/settings",
+      "GET /api/admin/users",
+      "GET /api/admin/analytics/stats",
+      "GET /api/admin/activity",
       "GET /api/status",
     ],
   });
