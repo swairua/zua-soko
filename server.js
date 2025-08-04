@@ -8,6 +8,11 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Set NODE_ENV to production if not set
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'production';
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
