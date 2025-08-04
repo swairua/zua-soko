@@ -1743,6 +1743,10 @@ app.listen(PORT, () => {
   console.log("  GET  /api/marketplace/products");
   console.log("  GET  /api/marketplace/categories");
   console.log("  GET  /api/marketplace/counties");
+  console.log("  GET  /api/admin/settings");
+  console.log("  GET  /api/admin/users");
+  console.log("  GET  /api/admin/analytics/stats");
+  console.log("  GET  /api/admin/activity");
   console.log("  GET  /api/status");
 });
 
