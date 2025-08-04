@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node server.js",
+    "start": "node start-production.js",
     "start:minimal": "node minimal-server.js",
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm install && npm run build:prod && cp -r frontend/dist/* .",
