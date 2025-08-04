@@ -1149,7 +1149,11 @@ app.get("*", (req, res) => {
       "GET /api/status",
       "GET /api/admin/users",
       "GET /api/admin/analytics/stats",
-      "GET /api/admin/activity"
+      "GET /api/admin/activity",
+      "GET /api/admin/products",
+      "POST /api/products",
+      "PUT /api/products/:id",
+      "DELETE /api/products/:id"
     ]
   });
 });
