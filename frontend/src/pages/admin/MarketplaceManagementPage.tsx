@@ -725,7 +725,18 @@ export default function MarketplaceManagementPage() {
       }
     } catch (error: any) {
       console.error("❌ Error activating products:", error);
-      toast.error(error.message || "Failed to activate products");
+
+      // Get user-friendly error message
+      let errorMessage = "Failed to activate products";
+      if (error.friendlyMessage) {
+        errorMessage = error.friendlyMessage;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message && error.message !== "[object Object]") {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     }
   };
 
