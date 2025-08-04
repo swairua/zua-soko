@@ -3,13 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "cd frontend && npm run dev",
+    "start": "node server.js",
+    "start:minimal": "node minimal-server.js",
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm install && npm run build:prod && mv dist/index.production.html dist/index.html && cp -r dist/* ../ && cd ../api && npm install",
-    "deploy:vercel": "vercel --prod",
+    "build": "cd frontend && npm install && npm run build:prod && cp -r dist/* ../",
+    "deploy-db": "node deploy-database.js",
+    "setup": "npm install && cd frontend && npm install",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:server": "node server.js",
-    "setup": "npm install && cd frontend && npm install"
+    "vercel-build": "cd frontend && npm install && npm run build:prod && cp -r dist/* ../",
+    "vercel-dev": "vercel dev",
+    "deploy": "vercel --prod",
+    "deploy-preview": "vercel",
+    "type-check": "cd frontend && npm run type-check"
   },
   "engines": {
     "node": ">=18"
