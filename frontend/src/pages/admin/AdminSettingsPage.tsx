@@ -371,7 +371,7 @@ export default function AdminSettingsPage() {
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={settings.payments.bankTransferEnabled}
+                            checked={settings.payments?.bankTransferEnabled || false}
                             onChange={(e) =>
                               updateSettings(
                                 "payments",
