@@ -150,6 +150,13 @@ app.get("/api/routes", (req, res) => {
     "GET /api/marketplace/counties",
     "GET /api/data/everything",
     "GET /api/data/stats",
+    "GET /api/data/users",
+    "GET /api/data/recent",
+    "GET /api/admin/settings",
+    "PUT /api/admin/settings",
+    "GET /api/admin/users",
+    "GET /api/admin/analytics/stats",
+    "GET /api/admin/activity",
     "GET /api/status",
     "GET /api/debug",
     "POST /api/debug"
