@@ -166,12 +166,12 @@ export default function AnalyticsPage() {
     setTimeout(() => setLoading(false), 1000);
   }, [timeRange]);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined) => {
     return new Intl.NumberFormat("en-KE", {
       style: "currency",
       currency: "KES",
       minimumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount || 0);
   };
 
   const getActivityIcon = (type: string) => {
