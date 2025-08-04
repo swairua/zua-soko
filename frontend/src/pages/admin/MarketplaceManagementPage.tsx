@@ -137,7 +137,7 @@ export default function MarketplaceManagementPage() {
   const fetchProducts = async () => {
     try {
       console.log("🛍️ Fetching marketplace products (refresh)");
-      const response = await apiService.get("/admin/marketplace/products");
+      const response = await apiService.get("/marketplace/products");
 
       if (response.data.success) {
         const productData = response.data.products;
