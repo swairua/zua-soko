@@ -305,7 +305,7 @@ export default function AdminSettingsPage() {
                         </label>
                         <input
                           type="tel"
-                          value={settings.platform.supportPhone}
+                          value={settings.platform?.supportPhone || ""}
                           onChange={(e) =>
                             updateSettings(
                               "platform",
