@@ -254,7 +254,7 @@ export default function AdminSettingsPage() {
                       </label>
                       <input
                         type="text"
-                        value={settings.platform.name}
+                        value={settings.platform?.name || ""}
                         onChange={(e) =>
                           updateSettings("platform", "name", e.target.value)
                         }
