@@ -825,9 +825,9 @@ export default function AdminSettingsPage() {
                           <input
                             type="checkbox"
                             checked={
-                              settings.features[
+                              settings.features?.[
                                 item.key as keyof typeof settings.features
-                              ]
+                              ] || false
                             }
                             onChange={(e) =>
                               updateSettings(
