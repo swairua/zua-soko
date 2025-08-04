@@ -267,7 +267,7 @@ export default function AdminSettingsPage() {
                         Platform Description
                       </label>
                       <textarea
-                        value={settings.platform.description}
+                        value={settings.platform?.description || ""}
                         onChange={(e) =>
                           updateSettings(
                             "platform",
