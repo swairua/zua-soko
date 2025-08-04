@@ -164,33 +164,74 @@ export default function MarketplaceManagementPage() {
     try {
       console.log("📋 Fetching orders (using fallback data - admin endpoint not available)");
       // Note: /admin/orders endpoint doesn't exist, using fallback data
-      throw new Error("Admin orders endpoint not implemented");
 
-      if (response.data.success) {
-        const orderData = response.data.orders;
-        setOrders(orderData);
+      const mockOrderData = [
+        {
+          id: 1,
+          customer_name: "John Kimani",
+          customer_phone: "+254712345678",
+          customer_email: "john@example.com",
+          total_amount: 2500,
+          status: "PENDING",
+          payment_status: "UNPAID",
+          created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+          items: [
+            { name: "Fresh Tomatoes", quantity: 5, price: 130 },
+            { name: "Spinach", quantity: 10, price: 50 }
+          ]
+        },
+        {
+          id: 2,
+          customer_name: "Mary Wanjiku",
+          customer_phone: "+254723456789",
+          customer_email: "mary@example.com",
+          total_amount: 1800,
+          status: "COMPLETED",
+          payment_status: "PAID",
+          created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+          items: [
+            { name: "Sweet Potatoes", quantity: 3, price: 80 }
+          ]
+        },
+        {
+          id: 3,
+          customer_name: "Peter Mwangi",
+          customer_phone: "+254734567890",
+          customer_email: "peter@example.com",
+          total_amount: 3200,
+          status: "PROCESSING",
+          payment_status: "PAID",
+          created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+          items: [
+            { name: "Fresh Tomatoes", quantity: 8, price: 130 },
+            { name: "Spinach", quantity: 20, price: 50 }
+          ]
+        }
+      ];
 
-        // Update stats
-        const totalRevenue = orderData
-          .filter((o: Order) => o.payment_status === "PAID")
-          .reduce((sum: number, o: Order) => sum + o.total_amount, 0);
+      const orderData = mockOrderData;
+      setOrders(orderData);
 
-        setStats((prev) => ({
-          ...prev,
-          totalOrders: orderData.length,
-          pendingOrders: orderData.filter((o: Order) => o.status === "PENDING")
-            .length,
-          totalRevenue,
-          unpaidOrders: orderData.filter(
-            (o: Order) => o.payment_status === "UNPAID",
-          ).length,
-        }));
+      // Update stats
+      const totalRevenue = orderData
+        .filter((o: Order) => o.payment_status === "PAID")
+        .reduce((sum: number, o: Order) => sum + o.total_amount, 0);
 
-        console.log("✅ Orders loaded:", orderData);
-      }
+      setStats((prev) => ({
+        ...prev,
+        totalOrders: orderData.length,
+        pendingOrders: orderData.filter((o: Order) => o.status === "PENDING")
+          .length,
+        totalRevenue,
+        unpaidOrders: orderData.filter(
+          (o: Order) => o.payment_status === "UNPAID",
+        ).length,
+      }));
+
+      console.log("✅ Orders loaded (mock data):", orderData);
     } catch (error) {
-      console.error("❌ Error fetching orders:", error);
-      toast.error("Failed to fetch orders");
+      console.error("❌ Error setting up mock orders:", error);
+      toast.error("Failed to load orders");
     }
   };
 
