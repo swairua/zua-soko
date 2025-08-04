@@ -1110,12 +1110,17 @@ app.get("*", (req, res) => {
         "GET /api/admin/analytics/stats",
         "GET /api/admin/activity",
         "GET /api/admin/settings",
+        "GET /api/admin/products",
         "GET /api/admin/registration-fees/unpaid",
         "POST /api/admin/registration-fees/stk-push",
         "GET /api/admin/registration-fees/settings",
         "POST /api/auth/login",
         "POST /api/auth/register",
         "GET /api/products",
+        "POST /api/products",
+        "PUT /api/products/:id",
+        "DELETE /api/products/:id",
+        "PATCH /api/products/bulk-activate",
         "GET /api/marketplace/products"
       ]
     });
