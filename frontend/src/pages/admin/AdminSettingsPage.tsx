@@ -287,7 +287,7 @@ export default function AdminSettingsPage() {
                         </label>
                         <input
                           type="email"
-                          value={settings.platform.supportEmail}
+                          value={settings.platform?.supportEmail || ""}
                           onChange={(e) =>
                             updateSettings(
                               "platform",
