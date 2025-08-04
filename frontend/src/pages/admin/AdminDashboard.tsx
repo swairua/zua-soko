@@ -109,7 +109,7 @@ export default function AdminDashboard() {
   const fetchRecentActivity = async () => {
     try {
       console.log("🔄 Fetching recent activity from database");
-      const response = await apiService.get("/api/admin/activity");
+      const response = await apiService.get("/admin/activity");
 
       if (response.data.success) {
         const activities = response.data.activities.map((activity: any) => ({
@@ -168,7 +168,7 @@ export default function AdminDashboard() {
   const fetchAnalyticsStats = async () => {
     try {
       console.log("📊 Fetching analytics stats from database");
-      const response = await apiService.get("/api/admin/analytics/stats");
+      const response = await apiService.get("/admin/analytics/stats");
 
       if (response.data.success) {
         const analyticsStats = response.data.stats;
