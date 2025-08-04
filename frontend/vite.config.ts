@@ -71,18 +71,22 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       host: true,
       allowedHosts: ["zua-soko.onrender.com", "localhost"],
-      // Disable proxy in development, use fallback API endpoints
-      ...(false
-        ? {
-            proxy: {
-              "/api": {
-                target: "http://localhost:5002",
-                changeOrigin: true,
-                secure: false,
-              },
-            },
-          }
-        : {}),
+      // Enable proxy in development to connect to backend
+      proxy: {
+        "/api": {
+          target: "http://localhost:5002",
+          changeOrigin: true,
+          secure: false,
+          configure: (proxy, _options) => {
+            proxy.on('error', (err, _req, _res) => {
+              console.log('Proxy error:', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, _res) => {
+              console.log('Proxying request:', req.method, req.url);
+            });
+          },
+        },
+      },
     },
   };
 });
