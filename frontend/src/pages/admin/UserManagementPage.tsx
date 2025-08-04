@@ -328,7 +328,7 @@ export default function UserManagementPage() {
           <div
             onClick={() => {
               setRoleFilter("ALL");
-              setStatusFilter("BLOCKED");
+              setStatusFilter("SUSPENDED");
               setSearch("");
             }}
             className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-red-300 transition-all duration-200 cursor-pointer group"
