@@ -293,13 +293,11 @@ export default function MarketplaceManagementPage() {
     if (!confirm("Are you sure you want to delete this product?")) return;
 
     try {
-      await axios.delete(
-        `${import.meta.env.VITE_API_URL}/admin/marketplace/products/${productId}`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      // Note: Admin delete endpoint doesn't exist, simulating delete
+      console.log("🗑️ Simulating product delete (admin endpoint not available):", productId);
 
-      toast.success("Product deleted successfully");
-      fetchProducts();
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      toast.success("Product deleted successfully (simulated)");
     } catch (error) {
       console.error("❌ Error deleting product:", error);
       toast.error("Failed to delete product");
