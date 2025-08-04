@@ -246,17 +246,15 @@ export default function MarketplaceManagementPage() {
 
       let response;
       if (editingProduct) {
-        response = await axios.put(
-          `${import.meta.env.VITE_API_URL}/admin/marketplace/products/${editingProduct.id}`,
-          productData,
-          { headers: { Authorization: `Bearer ${token}` } },
+        response = await apiService.post(
+          `/admin/marketplace/products/${editingProduct.id}`,
+          productData
         );
         toast.success("Product updated successfully");
       } else {
-        response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/admin/marketplace/products`,
-          productData,
-          { headers: { Authorization: `Bearer ${token}` } },
+        response = await apiService.post(
+          "/admin/marketplace/products",
+          productData
         );
         toast.success("Product created successfully");
       }
