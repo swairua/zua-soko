@@ -473,7 +473,7 @@ export default function MarketplaceManagementPage() {
         toast.error(response.data.message || "Failed to save product");
       }
     } catch (error: any) {
-      console.error("❌ Error saving product:", error);
+      console.error("��� Error saving product:", error);
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
@@ -668,7 +668,7 @@ export default function MarketplaceManagementPage() {
           }
         } catch (apiError: any) {
           if (isEndpointMissingError(apiError)) {
-            console.log("���️ PATCH /products/bulk-activate endpoint not available, marking as unavailable");
+            console.log("⚠️ PATCH /products/bulk-activate endpoint not available, marking as unavailable");
             markEndpointUnavailable('bulkActivate');
           } else {
             console.log("⚠️ API error during product activation, using local fallback");
@@ -1093,20 +1093,31 @@ export default function MarketplaceManagementPage() {
                       key={product.id}
                       className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                     >
-                      <div className="h-48 bg-gray-100 flex items-center justify-center">
+                      <div className="h-48 bg-gray-100 flex items-center justify-center relative">
                         {product.images && product.images.length > 0 && product.images[0] ? (
-                          <img
-                            src={product.images[0]}
-                            alt={product.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              console.log("Image failed to load:", product.images[0]);
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
+                          <>
+                            <img
+                              src={product.images[0]}
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                console.log("Image failed to load for product:", product.name);
+                                e.currentTarget.style.display = 'none';
+                                // Show fallback
+                                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
+                            />
+                            <div className="hidden absolute inset-0 items-center justify-center text-center">
+                              <div>
+                                <Package className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                                <p className="text-gray-500 text-sm">Image unavailable</p>
+                              </div>
+                            </div>
+                          </>
                         ) : (
                           <div className="text-center">
-                            <Image className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                            <Package className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                             <p className="text-gray-500 text-sm">No image</p>
                           </div>
                         )}
