@@ -1,281 +1,168 @@
-# Zuasoko Deployment Guide
+# Deployment Guide
 
-## Overview
-
-This guide will help you deploy the Zuasoko agricultural platform to your local server with a real PostgreSQL database.
+This document outlines the deployment process for the Zuasoko agricultural marketplace platform.
 
 ## Prerequisites
 
-- Node.js (v18 or higher)
-- PostgreSQL (v12 or higher)
-- NPM or Yarn package manager
+- Node.js 18+
+- PostgreSQL database
+- Vercel account (for Vercel deployment)
 
-## Database Setup
+## Environment Setup
 
-### 1. Install PostgreSQL
+### 1. Environment Variables
 
-```bash
-# Ubuntu/Debian
-sudo apt update
-sudo apt install postgresql postgresql-contrib
-
-# CentOS/RHEL
-sudo yum install postgresql-server postgresql-contrib
-
-# macOS (with Homebrew)
-brew install postgresql
-```
-
-### 2. Create Database and User
-
-```bash
-# Switch to postgres user
-sudo -u postgres psql
-
-# Create database and user
-CREATE DATABASE zuasoko_db;
-CREATE USER zuasoko_user WITH ENCRYPTED PASSWORD 'your_secure_password';
-GRANT ALL PRIVILEGES ON DATABASE zuasoko_db TO zuasoko_user;
-ALTER USER zuasoko_user CREATEDB;
-
-# Exit psql
-\q
-```
-
-### 3. Test Database Connection
-
-```bash
-psql -h localhost -U zuasoko_user -d zuasoko_db
-```
-
-## Backend Deployment
-
-### 1. Environment Configuration
-
-Copy the environment template and configure your settings:
-
-```bash
-cd backend
-cp .env.example .env
-```
-
-Edit the `.env` file with your configurations:
+Create a `.env` file in the root directory:
 
 ```env
 # Database Configuration
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=zuasoko_db
-DB_USER=zuasoko_user
-DB_PASSWORD=your_secure_password
-
-# JWT Secret (generate a strong random key)
-JWT_SECRET=your_super_secret_jwt_key_make_it_very_long_and_random
-
-# M-Pesa Configuration (use your actual Safaricom credentials)
-MPESA_CONSUMER_KEY=your_mpesa_consumer_key
-MPESA_CONSUMER_SECRET=your_mpesa_consumer_secret
-MPESA_BUSINESS_SHORT_CODE=your_business_shortcode
-MPESA_PASS_KEY=your_mpesa_passkey
-MPESA_CALLBACK_URL=http://your-domain.com/api/payments/callback
-
-# Production Settings
-NODE_ENV=production
-PORT=5001
-FRONTEND_URL=http://your-domain.com
-```
-
-### 2. Replace Server File
-
-Replace the old server with the new database-integrated version:
-
-```bash
-cd backend/src
-cp server.js server.js.backup
-cp server.js.new server.js
-```
-
-### 3. Install Dependencies and Start
-
-```bash
-cd backend
-npm install
-npm start
-```
-
-The server will:
-
-- ✅ Connect to PostgreSQL database
-- ✅ Initialize database schema automatically
-- ✅ Create demo user accounts
-- ✅ Set up all tables and relationships
-- ✅ Start serving API endpoints
-
-## Frontend Deployment
-
-### 1. Environment Configuration
-
-```bash
-cd frontend
-cp .env.example .env
-```
-
-Edit the `.env` file:
-
-```env
-VITE_API_URL=http://your-domain.com:5001/api
-VITE_APP_NAME=Zuasoko
-```
-
-### 2. Build and Deploy
-
-```bash
-cd frontend
-npm install
-npm run build
-
-# Serve the built files with a web server (nginx, apache, etc.)
-# Or use a simple static server for testing:
-npx serve -s dist -l 3000
-```
-
-## Production Deployment Options
-
-### Option 1: Direct Server Deployment
-
-1. Set up reverse proxy (nginx) to handle SSL and route traffic
-2. Use PM2 to manage Node.js processes
-3. Set up PostgreSQL with proper backup strategy
-
-### Option 2: Docker Deployment
-
-```bash
-# Create docker-compose.yml (example provided below)
-docker-compose up -d
-```
-
-### Option 3: Cloud Deployment
-
-- Deploy to Heroku, DigitalOcean, AWS, etc.
-- Use managed PostgreSQL service (AWS RDS, Google Cloud SQL, etc.)
-- Update connection strings accordingly
-
-## Database Connection String Examples
-
-### Local Development
-
-```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=zuasoko_db
-DB_USER=zuasoko_user
-DB_PASSWORD=your_password
-```
-
-### Production with Connection String
-
-```env
 DATABASE_URL=postgresql://username:password@host:port/database
+
+# Security
+JWT_SECRET=your_super_secure_jwt_secret_key
+
+# Server Configuration
+NODE_ENV=production
+PORT=3000
+
+# Frontend Configuration
+VITE_API_URL=/api
 ```
 
-### Cloud Database Examples
+### 2. Database Setup
 
-```env
-# Heroku Postgres
-DATABASE_URL=postgres://user:pass@host:5432/dbname
+Ensure your PostgreSQL database is accessible and the `DATABASE_URL` is correctly configured.
 
-# AWS RDS
-DATABASE_URL=postgresql://username:password@your-db.region.rds.amazonaws.com:5432/zuasoko_db
+## Deployment Options
 
-# Google Cloud SQL
-DATABASE_URL=postgresql://username:password@/zuasoko_db?host=/cloudsql/project:region:instance
+### Option 1: Vercel Deployment (Recommended)
 
-# DigitalOcean Managed Database
-DATABASE_URL=postgresql://username:password@host:25060/zuasoko_db?sslmode=require
-```
+1. **Install Vercel CLI**
+   ```bash
+   npm install -g vercel
+   ```
 
-## Demo Credentials
+2. **Login to Vercel**
+   ```bash
+   vercel login
+   ```
 
-After deployment, you can log in with these demo accounts:
+3. **Deploy to Production**
+   ```bash
+   npm run deploy
+   ```
 
-- **Admin**: +254712345678 / password123
-- **Farmer**: +254734567890 / password123
-- **Customer**: +254756789012 / password123
-- **Driver**: +254778901234 / password123
+4. **Deploy Preview**
+   ```bash
+   npm run deploy-preview
+   ```
 
-## Features Available
+### Option 2: Manual Server Deployment
 
-✅ **Real Database Integration**: All data persisted in PostgreSQL
-✅ **M-Pesa STK Push**: Live payment processing
-✅ **User Management**: Registration, authentication, profiles
-✅ **Consignment Management**: Farmer consignment workflow
-✅ **Marketplace**: Product browsing and purchasing
-✅ **Order Management**: Complete order lifecycle
-✅ **Wallet System**: Farmer earnings and withdrawals
-✅ **Driver Assignments**: Delivery management
-✅ **Admin Dashboard**: User and system management
-✅ **Real-time Notifications**: Database-backed notifications
+1. **Build the Application**
+   ```bash
+   npm run build
+   ```
+
+2. **Start Production Server**
+   ```bash
+   npm run start
+   ```
+
+### Option 3: Static Deployment
+
+For static-only deployment (without backend API):
+
+1. **Build the Application**
+   ```bash
+   npm run build
+   ```
+
+2. **Start Minimal Server**
+   ```bash
+   npm run start:minimal
+   ```
+
+## Deployment Scripts
+
+The following npm scripts are available for deployment:
+
+- `npm run build` - Build the frontend for production
+- `npm run start` - Start the full production server
+- `npm run start:minimal` - Start minimal static server
+- `npm run deploy` - Deploy to Vercel production
+- `npm run deploy-preview` - Deploy to Vercel preview
+- `npm run vercel-build` - Vercel build command
+
+## Environment-Specific Configuration
+
+### Development
+- Frontend runs on port 3000
+- API endpoints available at `/api/*`
+- Hot reload enabled
+
+### Production
+- Unified server serves both frontend and API
+- Optimized builds with minification
+- SSL/HTTPS recommended
+
+## Database Migration
+
+The application automatically creates necessary database tables on first run. Ensure your database user has the required permissions.
+
+## Health Checks
+
+After deployment, verify the application is running:
+
+1. **Frontend**: Access your deployment URL
+2. **API Health**: GET `/api/status`
+3. **Database**: Check `/api/status` for database connectivity
 
 ## Troubleshooting
 
-### Database Connection Issues
+### Common Issues
 
-1. Check PostgreSQL is running: `sudo systemctl status postgresql`
-2. Verify connection details in `.env` file
-3. Check firewall rules for PostgreSQL port (5432)
-4. Review PostgreSQL logs: `/var/log/postgresql/`
+1. **Database Connection Errors**
+   - Verify `DATABASE_URL` is correct
+   - Check database server accessibility
+   - Ensure database user has proper permissions
 
-### Server Startup Issues
+2. **Environment Variable Issues**
+   - Verify all required environment variables are set
+   - Check for typos in variable names
+   - Ensure JWT_SECRET is sufficiently secure
 
-1. Check Node.js version: `node --version` (should be v18+)
-2. Verify all environment variables are set
-3. Check server logs for specific error messages
-4. Ensure PostgreSQL is accessible from Node.js
+3. **Build Failures**
+   - Clear node_modules and reinstall: `npm run setup`
+   - Check for TypeScript errors: `npm run type-check`
 
-### M-Pesa Integration Issues
+### Logs
 
-1. Verify Safaricom credentials are correct
-2. Check callback URL is accessible from Safaricom servers
-3. Test in sandbox mode first before production
-4. Monitor payment callback logs
-
-## Backup and Maintenance
-
-### Database Backup
-
-```bash
-# Create backup
-pg_dump -h localhost -U zuasoko_user zuasoko_db > backup.sql
-
-# Restore backup
-psql -h localhost -U zuasoko_user zuasoko_db < backup.sql
-```
-
-### Log Monitoring
-
-```bash
-# Monitor application logs
-tail -f logs/app.log
-
-# Monitor database logs
-sudo tail -f /var/log/postgresql/postgresql-*.log
-```
+Monitor application logs for debugging:
+- Server logs will show database connection status
+- API request/response information
+- Error details for troubleshooting
 
 ## Security Considerations
 
-- Use strong passwords for database and JWT secrets
-- Enable SSL/TLS for database connections in production
-- Set up proper firewall rules
-- Regular security updates for OS and dependencies
-- Monitor access logs and unusual activities
+- Use strong JWT secrets in production
+- Enable HTTPS for all production deployments
+- Regularly update dependencies
+- Implement proper CORS policies
 - Use environment variables for all sensitive data
 
 ## Performance Optimization
 
-- Set up database connection pooling (already configured)
-- Enable database indexing (already included in schema)
-- Use caching for frequently accessed data
-- Monitor database performance and optimize queries
-- Set up proper logging and monitoring
+- Enable gzip compression
+- Use CDN for static assets
+- Implement database connection pooling
+- Monitor application performance metrics
 
-Your Zuasoko platform is now ready for production deployment! 🚀
+## Backup and Recovery
+
+- Regular database backups
+- Environment variable backup
+- Code repository backups
+- Deployment configuration backup
+
+For additional support or questions, refer to the main README.md or contact the development team.
