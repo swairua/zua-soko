@@ -348,37 +348,33 @@ export default function MarketplaceManagementPage() {
 
       let response;
       if (editingProduct) {
-        // For update, we'll simulate a successful save but with better state management
+        // Update existing product using real API
         console.log("🔄 Updating existing product:", editingProduct.id);
 
-        // Update in local state (in real app, this would be API call)
-        setProducts(prev =>
-          prev.map(p => p.id === editingProduct.id ? {
-            ...p,
-            ...productData,
-            id: editingProduct.id,
-            created_at: p.created_at || new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          } : p)
-        );
+        response = await apiService.post(`/products/${editingProduct.id}`, productData);
 
-        toast.success("Product updated successfully with images!");
-        response = { data: { success: true } };
+        if (response.data.success) {
+          // Update local state with server response
+          setProducts(prev =>
+            prev.map(p => p.id === editingProduct.id ? response.data.product : p)
+          );
+          toast.success("Product updated successfully in database!");
+        } else {
+          throw new Error(response.data.message || "Failed to update product");
+        }
       } else {
-        // For create, we'll also simulate but with proper structure
+        // Create new product using real API
         console.log("➕ Creating new product");
 
-        const newProduct = {
-          id: Date.now(),
-          ...productData,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          farmer_name: productData.farmer_name || "Admin",
-        };
+        response = await apiService.post("/products", productData);
 
-        setProducts(prev => [...prev, newProduct]);
-        toast.success("Product created successfully with images!");
-        response = { data: { success: true } };
+        if (response.data.success) {
+          // Add new product to local state
+          setProducts(prev => [...prev, response.data.product]);
+          toast.success("Product created successfully in database!");
+        } else {
+          throw new Error(response.data.message || "Failed to create product");
+        }
       }
 
       if (response.data.success) {
