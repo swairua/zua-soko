@@ -536,9 +536,20 @@ export default function MarketplaceManagementPage() {
           toast.success("Product removed locally (server endpoint not available)");
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Error deleting product:", error);
-      toast.error("Failed to delete product");
+
+      // Get user-friendly error message
+      let errorMessage = "Failed to delete product";
+      if (error.friendlyMessage) {
+        errorMessage = error.friendlyMessage;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message && error.message !== "[object Object]") {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     }
   };
 
