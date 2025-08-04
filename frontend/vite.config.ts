@@ -22,41 +22,19 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        "@/shared": path.resolve(__dirname, "../shared/src"),
       },
     },
     build: {
       outDir: "dist",
       sourcemap: false,
       rollupOptions: {
-        ...(isProduction
-          ? {
-              input: {
-                main: path.resolve(__dirname, "index.html"),
-              },
-              output: {
-                entryFileNames: "assets/[name]-[hash].js",
-                chunkFileNames: "assets/[name]-[hash].js",
-                assetFileNames: "assets/[name]-[hash].[ext]",
-                manualChunks: {
-                  vendor: ["react", "react-dom"],
-                  router: ["react-router-dom"],
-                  ui: ["lucide-react", "react-hot-toast"],
-                },
-              },
-            }
-          : {
-              output: {
-                manualChunks: {
-                  vendor: ["react", "react-dom"],
-                  router: ["react-router-dom"],
-                  ui: ["lucide-react", "react-hot-toast"],
-                },
-              },
-            }),
-        external: isProduction
-          ? ["/@vite/client", "@vite/client", "vite/client", "/vite/client"]
-          : [],
+        output: {
+          manualChunks: {
+            vendor: ["react", "react-dom"],
+            router: ["react-router-dom"],
+            ui: ["lucide-react", "react-hot-toast"],
+          },
+        },
       },
       target: "esnext",
       minify: isProduction ? "esbuild" : false,
@@ -70,23 +48,8 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       host: true,
-      allowedHosts: ["zua-soko.onrender.com", "localhost"],
-      // Enable proxy in development to connect to backend
-      proxy: {
-        "/api": {
-          target: "http://localhost:5002",
-          changeOrigin: true,
-          secure: false,
-          configure: (proxy, _options) => {
-            proxy.on('error', (err, _req, _res) => {
-              console.log('Proxy error:', err);
-            });
-            proxy.on('proxyReq', (proxyReq, req, _res) => {
-              console.log('Proxying request:', req.method, req.url);
-            });
-          },
-        },
-      },
+      // In the GitHub repo structure, API calls are handled differently
+      // Remove proxy configuration for cleaner setup
     },
   };
 });
