@@ -141,8 +141,8 @@ export default function MarketplaceManagementPage() {
   const fetchProducts = async () => {
     try {
       console.log("🛍️ Fetching marketplace products (refresh)");
-      // For admin view, we want all products (including inactive)
-      const response = await apiService.get("/admin/products");
+      // Use existing marketplace endpoint (production server doesn't have admin/products yet)
+      const response = await apiService.get("/marketplace/products");
 
       if (response.data.success) {
         const productData = response.data.products;
