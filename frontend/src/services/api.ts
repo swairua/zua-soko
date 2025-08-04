@@ -36,7 +36,27 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API Error:", error.response?.data || error.message);
+    // Handle different types of error responses more gracefully
+    const status = error.response?.status;
+    const data = error.response?.data;
+
+    // Check if response is HTML (like Express error pages)
+    const isHtmlResponse = typeof data === 'string' && data.includes('<!DOCTYPE html>');
+
+    if (isHtmlResponse) {
+      // Extract error message from HTML if possible
+      const match = data.match(/<pre>(.*?)<\/pre>/);
+      const htmlError = match ? match[1] : 'Server endpoint not found';
+      console.error(`API Error (${status}):`, htmlError);
+
+      // Create a more user-friendly error object
+      error.friendlyMessage = htmlError;
+      error.isEndpointMissing = status === 404;
+    } else {
+      // Handle JSON errors normally
+      console.error(`API Error (${status}):`, data || error.message);
+    }
+
     return Promise.reject(error);
   }
 );
