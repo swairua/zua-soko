@@ -136,12 +136,7 @@ export default function MarketplaceManagementPage() {
   const fetchProducts = async () => {
     try {
       console.log("🛍️ Fetching marketplace products (refresh)");
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/admin/marketplace/products`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const response = await apiService.get("/admin/marketplace/products");
 
       if (response.data.success) {
         const productData = response.data.products;
