@@ -128,7 +128,7 @@ pool.connect(async (err, client, release) => {
           ('Jane', 'Wanjiku', 'jane.customer@zuasoko.com', '+254720234567', $1, 'CUSTOMER', 'Nairobi', true, true),
           ('Peter', 'Kamau', 'peter.driver@zuasoko.com', '+254730345678', $1, 'DRIVER', 'Kiambu', true, true);
         `, [hashPassword("password123")]);
-        console.log("✅ Sample users created");
+        console.log("�� Sample users created");
       }
 
       const productCheck = await client.query("SELECT COUNT(*) FROM products");
@@ -550,6 +550,34 @@ app.delete("/api/products/:id", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete product",
+      error: err.message,
+    });
+  }
+});
+
+// Bulk update products to make them active
+app.patch("/api/products/bulk-activate", async (req, res) => {
+  try {
+    console.log("🔄 Activating all products");
+
+    const result = await pool.query(`
+      UPDATE products
+      SET is_active = true, updated_at = CURRENT_TIMESTAMP
+      WHERE is_active IS NULL OR is_active = false
+      RETURNING id, name, is_active
+    `);
+
+    console.log("✅ Products activated:", result.rows.length);
+    res.json({
+      success: true,
+      message: `${result.rows.length} products activated`,
+      activated_products: result.rows,
+    });
+  } catch (err) {
+    console.error("❌ Error activating products:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to activate products",
       error: err.message,
     });
   }
