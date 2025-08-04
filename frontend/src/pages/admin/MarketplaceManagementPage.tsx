@@ -478,7 +478,7 @@ export default function MarketplaceManagementPage() {
   const activateAllProducts = async () => {
     try {
       console.log("🔄 Activating all products in database");
-      const response = await apiService.put("/products/bulk-activate", {});
+      const response = await apiService.patch("/products/bulk-activate", {});
 
       if (response.data.success) {
         toast.success(`${response.data.activated_products?.length || 0} products activated!`);
