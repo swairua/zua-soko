@@ -14,6 +14,7 @@ import {
   Mail,
   MapPin,
   Calendar,
+  ArrowRight,
 } from "lucide-react";
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
