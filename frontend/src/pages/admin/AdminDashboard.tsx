@@ -68,7 +68,7 @@ export default function AdminDashboard() {
   const fetchUsers = async () => {
     try {
       console.log("👥 Fetching users from real database");
-      const response = await fetch("/api/data/users", {
+      const response = await fetch("/api/admin/users", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -89,10 +89,6 @@ export default function AdminDashboard() {
 
       setStats((prev) => ({
         ...prev,
-        totalUsers: safeUserData.length,
-        pendingApprovals: safeUserData.filter(
-          (user: any) => user.status === "PENDING",
-        ).length,
         recentUsers: safeUserData.slice(0, 5).map((user: any) => ({
           id: user.id,
           name: `${user.first_name || user.firstName} ${user.last_name || user.lastName}`,
@@ -113,58 +109,20 @@ export default function AdminDashboard() {
   const fetchRecentActivity = async () => {
     try {
       console.log("🔄 Fetching recent activity from database");
-      const response = await apiService.get("/api/data/recent");
+      const response = await apiService.get("/api/admin/activity");
 
       if (response.data.success) {
-        // Map recent data from different tables to activities
-        const activities = [];
-
-        // Add recent users as activities
-        if (response.data.recent.users) {
-          response.data.recent.users.forEach((user: any, index: number) => {
-            activities.push({
-              id: `user-${index}`,
-              type: "user",
-              message: `New user registration: ${user.first_name} ${user.last_name} (${user.role})`,
-              time: new Date(user.created_at).toLocaleString(),
-              status: user.verified ? "completed" : "pending",
-            });
-          });
-        }
-
-        // Add recent products as activities
-        if (response.data.recent.products) {
-          response.data.recent.products.forEach((product: any, index: number) => {
-            activities.push({
-              id: `product-${index}`,
-              type: "consignment",
-              message: `Product added: ${product.name} by ${product.farmer_name}`,
-              time: new Date(product.created_at).toLocaleString(),
-              status: "completed",
-            });
-          });
-        }
-
-        // Add recent orders as activities
-        if (response.data.recent.orders) {
-          response.data.recent.orders.forEach((order: any, index: number) => {
-            activities.push({
-              id: `order-${index}`,
-              type: "order",
-              message: `Order placed: KES ${order.total_amount} (${order.status})`,
-              time: new Date(order.created_at).toLocaleString(),
-              status: order.status === "COMPLETED" ? "completed" : "pending",
-            });
-          });
-        }
-
-        // Sort by time (most recent first) and take only first 10
-        activities.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-        const recentActivities = activities.slice(0, 10);
+        const activities = response.data.activities.map((activity: any) => ({
+          id: activity.id,
+          type: activity.type,
+          message: activity.description,
+          time: new Date(activity.timestamp).toLocaleString(),
+          status: activity.status,
+        }));
 
         setStats((prev) => ({
           ...prev,
-          recentActivities: recentActivities,
+          recentActivities: activities,
         }));
 
         console.log("✅ Recent activity loaded:", activities);
@@ -210,7 +168,7 @@ export default function AdminDashboard() {
   const fetchAnalyticsStats = async () => {
     try {
       console.log("📊 Fetching analytics stats from database");
-      const response = await apiService.get("/api/data/stats");
+      const response = await apiService.get("/api/admin/analytics/stats");
 
       if (response.data.success) {
         const analyticsStats = response.data.stats;
@@ -218,10 +176,10 @@ export default function AdminDashboard() {
 
         setStats((prev) => ({
           ...prev,
-          totalUsers: parseInt(analyticsStats.users?.total_users) || 0,
-          pendingApprovals: parseInt(analyticsStats.users?.total_users) - parseInt(analyticsStats.users?.verified_users) || 0,
-          activeConsignments: parseInt(analyticsStats.products?.total_products) || 0,
-          monthlyRevenue: parseFloat(analyticsStats.orders?.total_revenue) || 0,
+          totalUsers: analyticsStats.totalUsers || 0,
+          pendingApprovals: analyticsStats.pendingApprovals || 0,
+          activeConsignments: analyticsStats.totalConsignments || 0,
+          monthlyRevenue: analyticsStats.totalRevenue || 0,
         }));
       }
     } catch (error) {
