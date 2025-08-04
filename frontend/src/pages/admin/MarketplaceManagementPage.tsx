@@ -349,9 +349,11 @@ export default function MarketplaceManagementPage() {
               setProducts(prev => [...prev, response.data.product]);
               toast.success("Product created successfully in database!");
             }
-          } catch (apiError) {
-            console.log("⚠️ API endpoint not available, using local creation");
-            // Fallback to local state creation
+          } catch (apiError: any) {
+            console.log("⚠️ API endpoint not available (POST /products), using local creation");
+            console.log("Error details:", apiError.response?.status, apiError.message);
+
+            // Fallback to local state creation for any API error
             const newProduct = {
               id: Date.now(),
               ...productData,
@@ -359,7 +361,7 @@ export default function MarketplaceManagementPage() {
               updated_at: new Date().toISOString(),
             };
             setProducts(prev => [...prev, newProduct]);
-            toast.success("Product created locally (database endpoint not available)");
+            toast.success("Product created locally (server endpoint not available)");
             response = { data: { success: true } };
           }
         }
