@@ -387,7 +387,7 @@ app.get("/api/marketplace/counties", async (req, res) => {
 // Admin settings endpoints
 app.get("/api/admin/settings", async (req, res) => {
   try {
-    console.log("⚙️ Fetching admin settings");
+    console.log("��️ Fetching admin settings");
 
     // Return default settings since we don't have a settings table yet
     const defaultSettings = {
@@ -649,18 +649,24 @@ app.get("/api/status", async (req, res) => {
   }
 });
 
-// Serve static files only if dist directory exists (production)
+// Serve static files from root directory (where frontend build is copied)
+const fs = require('fs');
 const distPath = path.join(__dirname, "dist");
 const frontendDistPath = path.join(__dirname, "frontend", "dist");
+const rootPath = __dirname;
 
-if (require('fs').existsSync(distPath)) {
+// Check for frontend files in different locations
+if (fs.existsSync(path.join(__dirname, "index.html"))) {
+  console.log("📁 Serving static files from root directory");
+  app.use(express.static(rootPath));
+} else if (fs.existsSync(distPath)) {
   console.log("📁 Serving static files from dist/");
   app.use(express.static(distPath));
-} else if (require('fs').existsSync(frontendDistPath)) {
+} else if (fs.existsSync(frontendDistPath)) {
   console.log("📁 Serving static files from frontend/dist/");
   app.use(express.static(frontendDistPath));
 } else {
-  console.log("⚠️ No dist folder found - running in API-only mode");
+  console.log("⚠️ No frontend build found - running in API-only mode");
 }
 
 // Catch all handler for SPA (only if not an API route)
