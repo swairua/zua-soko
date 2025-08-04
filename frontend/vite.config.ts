@@ -46,12 +46,12 @@ export default defineConfig(({ mode }) => {
       "process.env.NODE_ENV": JSON.stringify(mode),
     },
     server: {
-      port: 5173,
+      port: 3000,
       host: true,
       // Proxy API calls to backend server
       proxy: {
         "/api": {
-          target: "http://localhost:3000",
+          target: "http://localhost:5003",
           changeOrigin: true,
           secure: false,
         },
