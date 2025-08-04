@@ -106,6 +106,12 @@ export const apiService = {
     const response = await api.delete(url);
     return response;
   },
+
+  // Generic PATCH method
+  patch: async (url: string, data: any) => {
+    const response = await api.patch(url, data);
+    return response;
+  },
 };
 
 export default api;
