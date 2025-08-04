@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import axios from "axios";
+import { apiService } from "../services/api";
 
 // Add request interceptor for debugging
 axios.interceptors.request.use(
