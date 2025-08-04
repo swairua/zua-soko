@@ -2,47 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { apiService } from "../services/api";
 
-// Add request interceptor for debugging
-axios.interceptors.request.use(
-  (config) => {
-    console.log("🌐 Axios Request:", {
-      url: config.url,
-      method: config.method,
-      headers: config.headers,
-      data: config.data,
-      baseURL: config.baseURL,
-    });
-    return config;
-  },
-  (error) => {
-    console.error("🌐 Axios Request Error:", error);
-    return Promise.reject(error);
-  },
-);
 
-// Add response interceptor for debugging
-axios.interceptors.response.use(
-  (response) => {
-    console.log("🌐 Axios Response:", {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-      data: response.data,
-    });
-    return response;
-  },
-  (error) => {
-    console.error("🌐 Axios Response Error:");
-    console.error("  Status:", error.response?.status);
-    console.error("  Status Text:", error.response?.statusText);
-    console.error("  Headers:", error.response?.headers);
-    console.error("  Data:", error.response?.data);
-    console.error("  Message:", error.message);
-    console.error("  Config URL:", error.config?.url);
-    console.error("  Full Error:", error);
-    return Promise.reject(error);
-  },
-);
 
 interface User {
   id: string;
