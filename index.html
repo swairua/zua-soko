@@ -99,6 +99,14 @@
     </div>
 
     <script>
+        // Log environment info for debugging
+        console.log('🔧 Production Environment Info:', {
+            hostname: window.location.hostname,
+            origin: window.location.origin,
+            protocol: window.location.protocol,
+            port: window.location.port
+        });
+
         // Check API status
         fetch('/api/status')
             .then(response => response.json())
