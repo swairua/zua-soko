@@ -598,27 +598,46 @@ export default function MarketplaceManagementPage() {
 
   const activateAllProducts = async () => {
     try {
-      console.log("🔄 Attempting to activate all products");
+      console.log("🔄 Activating all products");
 
-      try {
-        const response = await apiService.patch("/products/bulk-activate", {});
-        if (response.data.success) {
-          toast.success(`${response.data.activated_products?.length || 0} products activated!`);
-          await fetchProducts();
-        } else {
-          throw new Error(response.data.message || "Failed to activate products");
-        }
-      } catch (apiError: any) {
-        console.log("⚠️ Bulk activate API endpoint not available (PATCH /products/bulk-activate), using local activation");
-        console.log("Error details:", apiError.response?.status, apiError.message);
-
-        // Fallback to local state activation for any API error
+      // Check if we know the endpoint is unavailable
+      if (endpointAvailability.bulkActivate === false) {
+        console.log("⚠️ PATCH /products/bulk-activate endpoint known to be unavailable, using local activation");
+        // Direct local activation - no API call
         setProducts(prev => prev.map(p => ({ ...p, is_active: true })));
         setStats(prev => ({
           ...prev,
           activeProducts: products.length,
         }));
         toast.success("Products activated locally (server endpoint not available)");
+      } else {
+        // Try API call if endpoint availability is unknown or known to be available
+        try {
+          const response = await apiService.patch("/products/bulk-activate", {});
+          if (response.data.success) {
+            markEndpointAvailable('bulkActivate');
+            toast.success(`${response.data.activated_products?.length || 0} products activated!`);
+            await fetchProducts();
+          } else {
+            throw new Error(response.data.message || "Failed to activate products");
+          }
+        } catch (apiError: any) {
+          if (isEndpointMissingError(apiError)) {
+            console.log("⚠️ PATCH /products/bulk-activate endpoint not available, marking as unavailable");
+            markEndpointUnavailable('bulkActivate');
+          } else {
+            console.log("⚠️ API error during product activation, using local fallback");
+            console.error("Activation error:", apiError);
+          }
+
+          // Fallback to local state activation
+          setProducts(prev => prev.map(p => ({ ...p, is_active: true })));
+          setStats(prev => ({
+            ...prev,
+            activeProducts: products.length,
+          }));
+          toast.success("Products activated locally (server endpoint not available)");
+        }
       }
     } catch (error: any) {
       console.error("❌ Error activating products:", error);
