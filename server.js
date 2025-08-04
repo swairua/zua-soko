@@ -133,6 +133,37 @@ app.post("/api/ping", (req, res) => {
   });
 });
 
+// Route debugging endpoint
+app.get("/api/routes", (req, res) => {
+  console.log("🗺️ ROUTES endpoint hit!");
+
+  // List all available routes
+  const routes = [
+    "GET /api/ping",
+    "POST /api/ping",
+    "GET /api/routes",
+    "POST /api/auth/login",
+    "POST /api/auth/register",
+    "GET /api/products",
+    "GET /api/marketplace/products",
+    "GET /api/marketplace/categories",
+    "GET /api/marketplace/counties",
+    "GET /api/data/everything",
+    "GET /api/data/stats",
+    "GET /api/status",
+    "GET /api/debug",
+    "POST /api/debug"
+  ];
+
+  res.json({
+    message: "Available API routes",
+    routes,
+    timestamp: new Date().toISOString(),
+    server: "working",
+    environment: process.env.NODE_ENV || "production"
+  });
+});
+
 // =================================================
 // LOGIN ENDPOINT - EXACTLY AS YOU REQUESTED
 // =================================================
