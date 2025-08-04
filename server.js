@@ -1788,6 +1788,160 @@ app.get("/api/admin/activity", async (req, res) => {
 });
 
 // =================================================
+// CONSIGNMENTS ENDPOINTS
+// =================================================
+
+// Get all consignments
+app.get("/api/consignments", async (req, res) => {
+  try {
+    console.log("📦 Fetching all consignments");
+
+    const result = await pool.query(`
+      SELECT c.*, u.first_name, u.last_name, u.phone, u.email
+      FROM consignments c
+      LEFT JOIN users u ON c.farmer_id = u.id
+      ORDER BY c.created_at DESC
+    `);
+
+    const consignments = result.rows.map(row => ({
+      id: row.id,
+      farmerId: row.farmer_id,
+      farmerName: `${row.first_name} ${row.last_name}`,
+      farmerPhone: row.phone,
+      farmerEmail: row.email,
+      productName: row.product_name,
+      quantity: row.quantity,
+      unit: row.unit,
+      pricePerUnit: parseFloat(row.price_per_unit),
+      totalValue: parseFloat(row.total_value),
+      status: row.status,
+      deliveryDate: row.delivery_date,
+      notes: row.notes,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }));
+
+    console.log(`📦 Found ${consignments.length} consignments`);
+
+    res.json({
+      success: true,
+      consignments,
+      count: consignments.length,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching consignments:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch consignments",
+      details: err.message,
+    });
+  }
+});
+
+// Update consignment status
+app.patch("/api/consignments/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, suggestedPrice, driverId, notes } = req.body;
+
+    console.log(`📦 Updating consignment ${id}:`, { status, suggestedPrice, driverId });
+
+    let updateQuery = "UPDATE consignments SET updated_at = CURRENT_TIMESTAMP";
+    const values = [id];
+    let valueIndex = 2;
+
+    if (status) {
+      updateQuery += `, status = $${valueIndex}`;
+      values.push(status);
+      valueIndex++;
+    }
+
+    if (suggestedPrice) {
+      updateQuery += `, price_per_unit = $${valueIndex}`;
+      values.push(parseFloat(suggestedPrice));
+      valueIndex++;
+    }
+
+    if (notes) {
+      updateQuery += `, notes = $${valueIndex}`;
+      values.push(notes);
+      valueIndex++;
+    }
+
+    updateQuery += " WHERE id = $1 RETURNING *";
+
+    const result = await pool.query(updateQuery, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Consignment not found",
+      });
+    }
+
+    console.log("✅ Consignment updated successfully");
+    res.json({
+      success: true,
+      message: "Consignment updated successfully",
+      consignment: result.rows[0],
+    });
+  } catch (err) {
+    console.error("❌ Error updating consignment:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update consignment",
+      details: err.message,
+    });
+  }
+});
+
+// =================================================
+// DRIVERS ENDPOINTS
+// =================================================
+
+// Get all drivers
+app.get("/api/drivers", async (req, res) => {
+  try {
+    console.log("🚛 Fetching all drivers");
+
+    const result = await pool.query(`
+      SELECT id, first_name, last_name, email, phone, county, created_at
+      FROM users
+      WHERE role = 'DRIVER'
+      ORDER BY first_name, last_name
+    `);
+
+    const drivers = result.rows.map(row => ({
+      id: row.id,
+      name: `${row.first_name} ${row.last_name}`,
+      email: row.email,
+      phone: row.phone,
+      county: row.county,
+      status: "AVAILABLE", // Default status
+      vehicleType: "Pickup Truck", // Default vehicle
+      rating: 4.5, // Default rating
+      totalDeliveries: 0, // Would come from deliveries table in real app
+      createdAt: row.created_at,
+    }));
+
+    console.log(`🚛 Found ${drivers.length} drivers`);
+
+    res.json({
+      success: true,
+      drivers,
+      count: drivers.length,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching drivers:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch drivers",
+      details: err.message,
+    });
+  }
+});
+
+// =================================================
 // DATABASE INITIALIZATION ENDPOINT
 // =================================================
 app.post("/api/admin/init-database", async (req, res) => {
