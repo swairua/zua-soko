@@ -520,9 +520,9 @@ export default function AdminSettingsPage() {
                           <input
                             type="checkbox"
                             checked={
-                              settings.notifications[
+                              settings.notifications?.[
                                 item.key as keyof typeof settings.notifications
-                              ]
+                              ] || false
                             }
                             onChange={(e) =>
                               updateSettings(
