@@ -216,6 +216,42 @@ pool.connect(async (err, client, release) => {
         console.log("✅ Sample products inserted");
       }
 
+      // Add sample farmers and consignments
+      const farmerCheck = await client.query(
+        "SELECT COUNT(*) FROM users WHERE role = 'FARMER'"
+      );
+
+      if (parseInt(farmerCheck.rows[0].count) === 0) {
+        await client.query(`
+          INSERT INTO users (
+            first_name, last_name, email, phone, password_hash,
+            role, county, verified, registration_fee_paid
+          ) VALUES
+          ('John', 'Kimani', 'john.farmer@zuasoko.com', '+254710123456', $1, 'FARMER', 'Nakuru', true, true),
+          ('Jane', 'Wanjiku', 'jane.farmer@zuasoko.com', '+254710234567', $1, 'FARMER', 'Meru', true, true),
+          ('Peter', 'Kamau', 'peter.farmer@zuasoko.com', '+254710345678', $1, 'FARMER', 'Kiambu', true, true);
+        `, [hashPassword("password123")]);
+        console.log("✅ Sample farmers created");
+      }
+
+      // Add sample consignments
+      const consignmentCheck = await client.query("SELECT COUNT(*) FROM consignments");
+      if (parseInt(consignmentCheck.rows[0].count) === 0) {
+        // Get farmer IDs
+        const farmers = await client.query("SELECT id FROM users WHERE role = 'FARMER' LIMIT 3");
+        if (farmers.rows.length > 0) {
+          await client.query(`
+            INSERT INTO consignments (
+              farmer_id, product_name, quantity, unit, price_per_unit, total_value, status, notes
+            ) VALUES
+            ($1, 'Fresh Tomatoes', 100, 'kg', 130, 13000, 'PENDING', 'Grade A organic tomatoes ready for market'),
+            ($2, 'Sweet Potatoes', 50, 'kg', 80, 4000, 'APPROVED', 'High quality sweet potatoes from Meru'),
+            ($3, 'Fresh Spinach', 30, 'bunch', 50, 1500, 'PRICE_SUGGESTED', 'Organic spinach leaves, pesticide-free');
+          `, [farmers.rows[0].id, farmers.rows[1]?.id || farmers.rows[0].id, farmers.rows[2]?.id || farmers.rows[0].id]);
+          console.log("✅ Sample consignments created");
+        }
+      }
+
       console.log("🎉 Database auto-initialization completed!");
 
     } catch (initError) {
@@ -372,7 +408,7 @@ app.post("/api/auth/login", async (req, res) => {
         [phone.trim()],
       );
       user = result.rows[0];
-      console.log(`�� Database query successful, found user: ${user ? 'YES' : 'NO'}`);
+      console.log(`✅ Database query successful, found user: ${user ? 'YES' : 'NO'}`);
     } catch (dbError) {
       console.warn("⚠️ Database connection failed, trying demo users:", dbError.message);
 
@@ -614,7 +650,7 @@ app.get("/api/marketplace/products", async (req, res) => {
       `);
 
       const columns = tableCheck.rows.map((row) => row.column_name);
-      console.log("��� Products table columns:", columns);
+      console.log("🔍 Products table columns:", columns);
 
       if (columns.length === 0) {
         console.log(
@@ -2227,7 +2263,7 @@ app.listen(PORT, () => {
 process.on("SIGTERM", () => {
   console.log("🔄 Shutting down gracefully...");
   pool.end(() => {
-    console.log("✅ Database connections closed");
+    console.log("�� Database connections closed");
     process.exit(0);
   });
 });
