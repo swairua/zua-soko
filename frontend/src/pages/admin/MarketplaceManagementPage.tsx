@@ -207,7 +207,7 @@ export default function MarketplaceManagementPage() {
             .length,
         }));
 
-        console.log("✅ Marketplace products state updated successfully");
+        console.log("�� Marketplace products state updated successfully");
       }
     } catch (error) {
       console.error("❌ Error fetching products:", error);
@@ -473,12 +473,19 @@ export default function MarketplaceManagementPage() {
         toast.error(response.data.message || "Failed to save product");
       }
     } catch (error: any) {
-      console.error("��� Error saving product:", error);
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error("Failed to save product");
+      console.error("❌ Error saving product:", error);
+
+      // Get user-friendly error message
+      let errorMessage = "Failed to save product";
+      if (error.friendlyMessage) {
+        errorMessage = error.friendlyMessage;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message && error.message !== "[object Object]") {
+        errorMessage = error.message;
       }
+
+      toast.error(errorMessage);
     }
   };
 
