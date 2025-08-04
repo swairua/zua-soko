@@ -298,12 +298,43 @@ app.get("/api/status", async (req, res) => {
   }
 });
 
-// Serve static files
-app.use(express.static(path.join(__dirname, "dist")));
+// Serve static files only if dist directory exists (production)
+const distPath = path.join(__dirname, "dist");
+const frontendDistPath = path.join(__dirname, "frontend", "dist");
 
-// Catch all handler for SPA
+if (require('fs').existsSync(distPath)) {
+  console.log("📁 Serving static files from dist/");
+  app.use(express.static(distPath));
+} else if (require('fs').existsSync(frontendDistPath)) {
+  console.log("📁 Serving static files from frontend/dist/");
+  app.use(express.static(frontendDistPath));
+} else {
+  console.log("⚠️ No dist folder found - running in API-only mode");
+}
+
+// Catch all handler for SPA (only if not an API route)
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+  // Skip API routes
+  if (req.path.startsWith("/api/")) {
+    return res.status(404).json({ error: "API endpoint not found" });
+  }
+
+  // Try to serve index.html if available
+  const indexPath = require('fs').existsSync(distPath)
+    ? path.join(distPath, "index.html")
+    : require('fs').existsSync(frontendDistPath)
+    ? path.join(frontendDistPath, "index.html")
+    : null;
+
+  if (indexPath) {
+    res.sendFile(indexPath);
+  } else {
+    res.json({
+      message: "Zuasoko API Server",
+      status: "running",
+      note: "Frontend not built yet - run 'npm run build' first"
+    });
+  }
 });
 
 // Start server
