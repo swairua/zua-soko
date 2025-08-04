@@ -401,11 +401,16 @@ export default function MarketplaceManagementPage() {
     if (!confirm("Are you sure you want to delete this product?")) return;
 
     try {
-      // Note: Admin delete endpoint doesn't exist, simulating delete
-      console.log("🗑️ Simulating product delete (admin endpoint not available):", productId);
+      console.log("🗑️ Deleting product from database:", productId);
 
-      setProducts(prev => prev.filter(p => p.id !== productId));
-      toast.success("Product deleted successfully (simulated)");
+      const response = await apiService.delete(`/products/${productId}`);
+
+      if (response.data.success) {
+        setProducts(prev => prev.filter(p => p.id !== productId));
+        toast.success("Product deleted successfully from database!");
+      } else {
+        throw new Error(response.data.message || "Failed to delete product");
+      }
     } catch (error) {
       console.error("❌ Error deleting product:", error);
       toast.error("Failed to delete product");
