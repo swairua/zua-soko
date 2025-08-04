@@ -333,10 +333,14 @@ export default function MarketplaceManagementPage() {
               toast.success("Product updated successfully in database!");
             }
           } catch (apiError: any) {
-            console.log("⚠️ API endpoint not available (PUT /products/:id), using local update");
-            console.log("Error details:", apiError.response?.status, apiError.message);
+            if (isEndpointMissingError(apiError)) {
+              console.log("⚠️ PUT /products/:id endpoint not available, using local update");
+            } else {
+              console.log("⚠️ API error during product update, using local fallback");
+              console.error("Update error:", apiError);
+            }
 
-            // Fallback to local state update for any API error (404, 500, HTML responses, etc.)
+            // Fallback to local state update for any API error
             setProducts(prev =>
               prev.map(p => p.id === editingProduct.id ? {
                 ...p,
