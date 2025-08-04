@@ -116,6 +116,7 @@ export const apiService = {
 
   // Generic GET method
   get: async (url: string) => {
+    console.log(`🔍 API GET: ${API_BASE_URL}${url}`);
     const response = await api.get(url);
     return response;
   },
