@@ -181,6 +181,24 @@ pool.connect(async (err, client, release) => {
         console.log("✅ Admin user created");
       }
 
+      // Add sample drivers if none exist
+      const driverCheck = await client.query(
+        "SELECT COUNT(*) FROM users WHERE role = 'DRIVER'"
+      );
+
+      if (parseInt(driverCheck.rows[0].count) === 0) {
+        await client.query(`
+          INSERT INTO users (
+            first_name, last_name, email, phone, password_hash,
+            role, county, verified, registration_fee_paid
+          ) VALUES
+          ('John', 'Mwangi', 'john.driver@zuasoko.com', '+254700123456', $1, 'DRIVER', 'Nairobi', true, true),
+          ('Grace', 'Wanjiku', 'grace.driver@zuasoko.com', '+254700234567', $1, 'DRIVER', 'Kiambu', true, true),
+          ('Peter', 'Kamau', 'peter.driver@zuasoko.com', '+254700345678', $1, 'DRIVER', 'Nakuru', true, true);
+        `, [hashPassword("password123")]);
+        console.log("✅ Sample drivers created");
+      }
+
       // Insert sample products if table is empty
       const productCheck = await client.query("SELECT COUNT(*) FROM products");
       if (parseInt(productCheck.rows[0].count) === 0) {
@@ -354,7 +372,7 @@ app.post("/api/auth/login", async (req, res) => {
         [phone.trim()],
       );
       user = result.rows[0];
-      console.log(`✅ Database query successful, found user: ${user ? 'YES' : 'NO'}`);
+      console.log(`�� Database query successful, found user: ${user ? 'YES' : 'NO'}`);
     } catch (dbError) {
       console.warn("⚠️ Database connection failed, trying demo users:", dbError.message);
 
@@ -596,7 +614,7 @@ app.get("/api/marketplace/products", async (req, res) => {
       `);
 
       const columns = tableCheck.rows.map((row) => row.column_name);
-      console.log("🔍 Products table columns:", columns);
+      console.log("��� Products table columns:", columns);
 
       if (columns.length === 0) {
         console.log(
