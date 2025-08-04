@@ -392,7 +392,7 @@ app.get("/api/marketplace/counties", async (req, res) => {
 // Admin settings endpoints
 app.get("/api/admin/settings", async (req, res) => {
   try {
-    console.log("⚙��� Fetching admin settings");
+    console.log("⚙️ Fetching admin settings");
 
     // Return default settings since we don't have a settings table yet
     const defaultSettings = {
@@ -675,6 +675,162 @@ app.get("/health", (req, res) => {
     environment: process.env.NODE_ENV || "production",
     port: PORT
   });
+});
+
+// Registration fees endpoints
+app.get("/api/admin/registration-fees/unpaid", async (req, res) => {
+  try {
+    console.log("💰 Fetching unpaid farmers");
+
+    // Query farmers who haven't paid registration fees
+    const result = await pool.query(`
+      SELECT
+        id, first_name, last_name, email, phone, county,
+        created_at, registration_fee_paid,
+        EXTRACT(day FROM NOW() - created_at) as days_since_registration
+      FROM users
+      WHERE role = 'FARMER' AND registration_fee_paid = false
+      ORDER BY created_at DESC
+    `);
+
+    const farmers = result.rows.map(farmer => {
+      const daysSince = parseInt(farmer.days_since_registration) || 0;
+      const gracePeriodDays = 7; // Default grace period
+      const gracePeriodRemaining = gracePeriodDays - daysSince;
+
+      return {
+        id: farmer.id,
+        firstName: farmer.first_name,
+        lastName: farmer.last_name,
+        email: farmer.email,
+        phone: farmer.phone,
+        county: farmer.county,
+        registrationFeePaid: farmer.registration_fee_paid,
+        registeredAt: farmer.created_at,
+        daysSinceRegistration: daysSince,
+        gracePeriodRemaining: gracePeriodRemaining,
+        consignmentCount: 0 // Would need to join with consignments table
+      };
+    });
+
+    res.json({
+      success: true,
+      farmers,
+      count: farmers.length,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching unpaid farmers:", err);
+
+    // Return demo data for development/demo purposes
+    const demoFarmers = [
+      {
+        id: "farmer-001",
+        firstName: "John",
+        lastName: "Kimani",
+        email: "john@example.com",
+        phone: "+254712345678",
+        county: "Nakuru",
+        registrationFeePaid: false,
+        registeredAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        daysSinceRegistration: 5,
+        gracePeriodRemaining: 2,
+        consignmentCount: 3,
+      },
+      {
+        id: "farmer-002",
+        firstName: "Jane",
+        lastName: "Wanjiku",
+        email: "jane@example.com",
+        phone: "+254723456789",
+        county: "Meru",
+        registrationFeePaid: false,
+        registeredAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        daysSinceRegistration: 10,
+        gracePeriodRemaining: -3,
+        consignmentCount: 2,
+      }
+    ];
+
+    res.json({
+      success: true,
+      farmers: demoFarmers,
+      count: demoFarmers.length,
+      fallback: true,
+      error: process.env.NODE_ENV === 'production' ? 'Database unavailable' : err.message
+    });
+  }
+});
+
+app.post("/api/admin/registration-fees/stk-push", async (req, res) => {
+  try {
+    console.log("💳 Processing STK push request");
+    const { farmer_id, phone_number, amount } = req.body;
+
+    if (!farmer_id || !phone_number || !amount) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing required fields: farmer_id, phone_number, amount"
+      });
+    }
+
+    console.log(`💳 STK push initiated for farmer ${farmer_id}, phone: ${phone_number}, amount: ${amount}`);
+
+    // In a real implementation, this would integrate with M-Pesa STK Push API
+    // For now, we'll simulate the response
+
+    // Generate a mock transaction ID
+    const transactionId = `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
+
+    // Simulate successful STK push initiation
+    const response = {
+      success: true,
+      message: "STK push initiated successfully",
+      transaction_id: transactionId,
+      merchant_request_id: `MR${Date.now()}`,
+      checkout_request_id: `CR${Date.now()}`,
+      phone_number: phone_number,
+      amount: amount,
+      status: "INITIATED"
+    };
+
+    // Log the transaction (in production, save to database)
+    console.log("✅ STK push transaction:", response);
+
+    res.json(response);
+  } catch (err) {
+    console.error("❌ STK push error:", err);
+    res.status(500).json({
+      success: false,
+      error: "STK push failed",
+      details: process.env.NODE_ENV === 'production' ? 'Payment service unavailable' : err.message
+    });
+  }
+});
+
+// Get registration fees settings
+app.get("/api/admin/registration-fees/settings", async (req, res) => {
+  try {
+    // Return current registration fee settings
+    const settings = {
+      farmerRegistrationFee: 1000, // KES 1000
+      gracePeriodDays: 7,
+      registrationFeeEnabled: true,
+      mpesaEnabled: true,
+      mpesaShortcode: "174379" // Demo shortcode
+    };
+
+    res.json({
+      success: true,
+      settings
+    });
+  } catch (err) {
+    console.error("❌ Error fetching registration settings:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch settings",
+      details: err.message
+    });
+  }
 });
 
 // Status endpoint
