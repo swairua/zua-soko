@@ -105,10 +105,10 @@ const fallbackData = {
 
 // API functions
 export const apiService = {
-  // Health check with improved error handling
+  // Status check with improved error handling
   getHealth: async () => {
     try {
-      const response = await api.get("/health");
+      const response = await api.get("/status");
       return response.data;
     } catch (error: any) {
       // In development, return demo status if API is unreachable

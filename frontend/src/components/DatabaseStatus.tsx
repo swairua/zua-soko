@@ -18,15 +18,21 @@ export default function DatabaseStatus() {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const health = await apiService.getHealth();
+        // Use the status endpoint instead of health
+        const response = await fetch('/api/status');
+        const health = await response.json();
+
+        const isConnected = health.status === "OK" && health.database === "connected";
+        const dbType = health.database_type || health.database;
+
         setStatus({
-          connected: health.status === "OK",
-          database: health.database || "unknown",
+          connected: isConnected,
+          database: dbType,
           loading: false,
           error: false,
         });
       } catch (error: any) {
-        console.warn("Health check failed:", error.message);
+        console.warn("Status check failed:", error.message);
         setStatus({
           connected: false,
           database: "error",
@@ -47,10 +53,9 @@ export default function DatabaseStatus() {
     return null; // Don't show while loading
   }
 
-  const isRealDatabase = status.database === "connected";
+  const isNeonDatabase = status.database === "neon_postgresql" || status.connected;
   const hasError = status.error || status.database.includes("error");
-  const isDemoMode =
-    status.database === "demo" || (!isRealDatabase && !hasError);
+  const isDemoMode = status.database === "demo" || (!isNeonDatabase && !hasError);
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -58,7 +63,7 @@ export default function DatabaseStatus() {
         className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium shadow-lg transition-all duration-300 ${
           hasError
             ? "bg-red-100 text-red-800 border border-red-200"
-            : isRealDatabase
+            : isNeonDatabase
               ? "bg-green-100 text-green-800 border border-green-200"
               : isDemoMode
                 ? "bg-blue-100 text-blue-800 border border-blue-200"
@@ -71,10 +76,10 @@ export default function DatabaseStatus() {
             <span>API Error</span>
             <WifiOff className="w-4 h-4" />
           </>
-        ) : isRealDatabase ? (
+        ) : isNeonDatabase ? (
           <>
             <Database className="w-4 h-4" />
-            <span>Render.com DB</span>
+            <span>Neon DB Live</span>
             <Wifi className="w-4 h-4" />
           </>
         ) : (
