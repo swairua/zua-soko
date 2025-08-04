@@ -339,26 +339,12 @@ export default function MarketplaceManagementPage() {
 
       try {
         if (editingProduct) {
-          // Try to update existing product using API (fallback to local if not available)
-          console.log("🔄 Attempting to update product:", editingProduct.id);
+          console.log("🔄 Updating product:", editingProduct.id);
 
-          try {
-            response = await apiService.put(`/products/${editingProduct.id}`, productData);
-            if (response.data.success) {
-              setProducts(prev =>
-                prev.map(p => p.id === editingProduct.id ? response.data.product : p)
-              );
-              toast.success("Product updated successfully in database!");
-            }
-          } catch (apiError: any) {
-            if (isEndpointMissingError(apiError)) {
-              console.log("⚠️ PUT /products/:id endpoint not available, using local update");
-            } else {
-              console.log("⚠️ API error during product update, using local fallback");
-              console.error("Update error:", apiError);
-            }
-
-            // Fallback to local state update for any API error
+          // Check if we know the endpoint is unavailable
+          if (endpointAvailability.updateProduct === false) {
+            console.log("⚠️ PUT /products/:id endpoint known to be unavailable, using local update");
+            // Direct local update - no API call
             setProducts(prev =>
               prev.map(p => p.id === editingProduct.id ? {
                 ...p,
@@ -368,6 +354,37 @@ export default function MarketplaceManagementPage() {
             );
             toast.success("Product updated locally (server endpoint not available)");
             response = { data: { success: true } };
+          } else {
+            // Try API call if endpoint availability is unknown or known to be available
+            try {
+              response = await apiService.put(`/products/${editingProduct.id}`, productData);
+              if (response.data.success) {
+                markEndpointAvailable('updateProduct');
+                setProducts(prev =>
+                  prev.map(p => p.id === editingProduct.id ? response.data.product : p)
+                );
+                toast.success("Product updated successfully in database!");
+              }
+            } catch (apiError: any) {
+              if (isEndpointMissingError(apiError)) {
+                console.log("⚠️ PUT /products/:id endpoint not available, marking as unavailable");
+                markEndpointUnavailable('updateProduct');
+              } else {
+                console.log("⚠️ API error during product update, using local fallback");
+                console.error("Update error:", apiError);
+              }
+
+              // Fallback to local state update
+              setProducts(prev =>
+                prev.map(p => p.id === editingProduct.id ? {
+                  ...p,
+                  ...productData,
+                  updated_at: new Date().toISOString()
+                } : p)
+              );
+              toast.success("Product updated locally (server endpoint not available)");
+              response = { data: { success: true } };
+            }
           }
         } else {
           // Try to create new product using API (fallback to local if not available)
