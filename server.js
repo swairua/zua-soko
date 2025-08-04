@@ -1387,9 +1387,22 @@ app.get("/api/status", async (req, res) => {
 });
 
 // =================================================
+// SERVE STATIC FILES
+// =================================================
+// Serve static files (CSS, JS, images) but not for API routes
+app.use(express.static(".", {
+  index: false,
+  setHeaders: (res, path) => {
+    if (path.includes('/api/')) {
+      return false; // Don't serve API paths as static files
+    }
+  }
+}));
+
+// =================================================
 // SERVE FRONTEND FILES
 // =================================================
-// Only serve frontend for GET requests that don't start with /api
+// Only serve frontend HTML for non-API GET requests
 app.get("*", (req, res, next) => {
   // Skip API routes
   if (req.path.startsWith("/api/")) {
