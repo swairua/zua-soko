@@ -646,17 +646,26 @@ export default function MarketplaceManagementPage() {
                 <span>Refresh</span>
               </button>
               {activeTab === "products" && (
-                <button
-                  onClick={() => {
-                    resetForm();
-                    setEditingProduct(null);
-                    setShowProductForm(true);
-                  }}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 flex items-center space-x-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Product</span>
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={activateAllProducts}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 flex items-center space-x-2"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Activate All</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      resetForm();
+                      setEditingProduct(null);
+                      setShowProductForm(true);
+                    }}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 flex items-center space-x-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Product</span>
+                  </button>
+                </div>
               )}
             </div>
           </div>
