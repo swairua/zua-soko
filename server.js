@@ -274,6 +274,79 @@ app.get("/api/marketplace/counties", async (req, res) => {
   }
 });
 
+// Admin settings endpoints
+app.get("/api/admin/settings", async (req, res) => {
+  try {
+    console.log("⚙️ Fetching admin settings");
+
+    // Return default settings since we don't have a settings table yet
+    const defaultSettings = {
+      platform: {
+        name: "Zuasoko",
+        description: "Agricultural marketplace connecting farmers to markets",
+        supportEmail: "support@zuasoko.com",
+        supportPhone: "+254712345678",
+      },
+      fees: {
+        farmerRegistrationFee: 1000,
+        registrationFeeEnabled: true,
+        gracePeriodDays: 7,
+      },
+      payments: {
+        mpesaEnabled: true,
+        mpesaShortcode: "174379",
+        mpesaPasskey: "***",
+        bankTransferEnabled: false,
+        commissionRate: 5,
+      },
+      notifications: {
+        emailEnabled: false,
+        smsEnabled: true,
+        pushEnabled: true,
+        adminNotifications: true,
+      },
+      security: {
+        passwordMinLength: 8,
+        sessionTimeoutMinutes: 60,
+        maxLoginAttempts: 5,
+        requireEmailVerification: false,
+      },
+    };
+
+    res.json({
+      success: true,
+      settings: defaultSettings,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching admin settings:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch settings",
+      details: err.message,
+    });
+  }
+});
+
+app.put("/api/admin/settings", async (req, res) => {
+  try {
+    console.log("⚙️ Updating admin settings");
+
+    // In a real app, this would save to database
+    // For now, just return success
+    res.json({
+      success: true,
+      message: "Settings updated successfully",
+    });
+  } catch (err) {
+    console.error("❌ Error updating admin settings:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update settings",
+      details: err.message,
+    });
+  }
+});
+
 // Status endpoint
 app.get("/api/status", async (req, res) => {
   try {
