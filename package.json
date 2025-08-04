@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node server.js",
+    "start": "npm run build && node server.js",
     "start:minimal": "node minimal-server.js",
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm install && npm run build:prod && cp -r dist/* ../",
+    "build": "cd frontend && npm install && npm run build:prod && cp -r frontend/dist/* .",
     "deploy-db": "node deploy-database.js",
     "setup": "npm install && cd frontend && npm install",
     "dev:frontend": "cd frontend && npm run dev",
