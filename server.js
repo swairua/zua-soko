@@ -389,6 +389,172 @@ app.get("/api/marketplace/counties", async (req, res) => {
   }
 });
 
+// Product management endpoints
+app.post("/api/products", async (req, res) => {
+  try {
+    console.log("➕ Creating new product");
+    const {
+      name,
+      category,
+      price_per_unit,
+      unit,
+      description,
+      stock_quantity,
+      is_featured,
+      farmer_name,
+      farmer_county,
+      images,
+    } = req.body;
+
+    if (!name || !category || !price_per_unit) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: name, category, price_per_unit"
+      });
+    }
+
+    const result = await pool.query(`
+      INSERT INTO products (
+        name, category, price_per_unit, unit, description,
+        stock_quantity, is_featured, farmer_name, farmer_county, images, is_active
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING *
+    `, [
+      name,
+      category,
+      parseFloat(price_per_unit),
+      unit || 'kg',
+      description || '',
+      parseInt(stock_quantity) || 0,
+      Boolean(is_featured),
+      farmer_name || 'Admin',
+      farmer_county || 'Central',
+      images || [],
+      true // Set as active by default
+    ]);
+
+    console.log("✅ Product created:", result.rows[0]);
+    res.status(201).json({
+      success: true,
+      message: "Product created successfully",
+      product: result.rows[0],
+    });
+  } catch (err) {
+    console.error("❌ Error creating product:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create product",
+      error: err.message,
+    });
+  }
+});
+
+app.put("/api/products/:id", async (req, res) => {
+  try {
+    const productId = req.params.id;
+    console.log("🔄 Updating product:", productId);
+
+    const {
+      name,
+      category,
+      price_per_unit,
+      unit,
+      description,
+      stock_quantity,
+      is_featured,
+      farmer_name,
+      farmer_county,
+      images,
+      is_active,
+    } = req.body;
+
+    const result = await pool.query(`
+      UPDATE products SET
+        name = $1,
+        category = $2,
+        price_per_unit = $3,
+        unit = $4,
+        description = $5,
+        stock_quantity = $6,
+        is_featured = $7,
+        farmer_name = $8,
+        farmer_county = $9,
+        images = $10,
+        is_active = $11,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $12
+      RETURNING *
+    `, [
+      name,
+      category,
+      parseFloat(price_per_unit),
+      unit,
+      description,
+      parseInt(stock_quantity) || 0,
+      Boolean(is_featured),
+      farmer_name,
+      farmer_county,
+      images || [],
+      is_active !== undefined ? Boolean(is_active) : true,
+      productId
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    console.log("✅ Product updated:", result.rows[0]);
+    res.json({
+      success: true,
+      message: "Product updated successfully",
+      product: result.rows[0],
+    });
+  } catch (err) {
+    console.error("❌ Error updating product:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update product",
+      error: err.message,
+    });
+  }
+});
+
+app.delete("/api/products/:id", async (req, res) => {
+  try {
+    const productId = req.params.id;
+    console.log("🗑️ Deleting product:", productId);
+
+    const result = await pool.query(
+      "DELETE FROM products WHERE id = $1 RETURNING *",
+      [productId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    console.log("✅ Product deleted:", result.rows[0]);
+    res.json({
+      success: true,
+      message: "Product deleted successfully",
+      product: result.rows[0],
+    });
+  } catch (err) {
+    console.error("❌ Error deleting product:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete product",
+      error: err.message,
+    });
+  }
+});
+
 // Admin settings endpoints
 app.get("/api/admin/settings", async (req, res) => {
   try {
