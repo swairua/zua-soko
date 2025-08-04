@@ -389,6 +389,32 @@ app.get("/api/marketplace/counties", async (req, res) => {
   }
 });
 
+// Admin-specific product endpoint (returns all products including inactive)
+app.get("/api/admin/products", async (req, res) => {
+  try {
+    console.log("👥 Fetching all products for admin (including inactive)");
+    const result = await pool.query(`
+      SELECT id, name, category, price_per_unit, unit, description,
+             stock_quantity, COALESCE(is_featured, false) as is_featured,
+             farmer_name, farmer_county, created_at, images,
+             COALESCE(is_active, false) as is_active
+      FROM products
+      ORDER BY is_featured DESC, created_at DESC
+    `);
+
+    res.json({
+      success: true,
+      products: result.rows,
+    });
+  } catch (err) {
+    console.error("Admin products error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch products"
+    });
+  }
+});
+
 // Product management endpoints
 app.post("/api/products", async (req, res) => {
   try {
