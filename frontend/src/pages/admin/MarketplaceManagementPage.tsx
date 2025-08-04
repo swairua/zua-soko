@@ -107,12 +107,30 @@ export default function MarketplaceManagementPage() {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
 
+  // Track which endpoints are available to avoid unnecessary calls
+  const [endpointAvailability, setEndpointAvailability] = useState({
+    createProduct: null as boolean | null, // null = unknown, true = available, false = not available
+    updateProduct: null as boolean | null,
+    deleteProduct: null as boolean | null,
+    bulkActivate: null as boolean | null,
+  });
+
   // Utility function to check if error is due to missing endpoint
   const isEndpointMissingError = (error: any): boolean => {
     const status = error.response?.status;
     const data = error.response?.data;
     const isHtmlError = typeof data === 'string' && data.includes('<!DOCTYPE html>');
     return status === 404 || isHtmlError || error.isEndpointMissing;
+  };
+
+  // Mark endpoint as unavailable
+  const markEndpointUnavailable = (endpoint: keyof typeof endpointAvailability) => {
+    setEndpointAvailability(prev => ({ ...prev, [endpoint]: false }));
+  };
+
+  // Mark endpoint as available
+  const markEndpointAvailable = (endpoint: keyof typeof endpointAvailability) => {
+    setEndpointAvailability(prev => ({ ...prev, [endpoint]: true }));
   };
 
   // Stats
