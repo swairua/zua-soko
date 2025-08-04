@@ -94,6 +94,18 @@ export const apiService = {
     const response = await api.post(url, data);
     return response;
   },
+
+  // Generic PUT method
+  put: async (url: string, data: any) => {
+    const response = await api.put(url, data);
+    return response;
+  },
+
+  // Generic DELETE method
+  delete: async (url: string) => {
+    const response = await api.delete(url);
+    return response;
+  },
 };
 
 export default api;
