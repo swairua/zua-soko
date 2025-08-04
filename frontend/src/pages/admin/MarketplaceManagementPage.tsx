@@ -818,6 +818,13 @@ export default function MarketplaceManagementPage() {
               {activeTab === "products" && (
                 <div className="flex space-x-2">
                   <button
+                    onClick={refreshDatabaseProducts}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 flex items-center space-x-2"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span>Add Sample Items</span>
+                  </button>
+                  <button
                     onClick={activateAllProducts}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 flex items-center space-x-2"
                   >
