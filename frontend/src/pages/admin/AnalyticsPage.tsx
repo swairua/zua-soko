@@ -285,7 +285,7 @@ export default function AnalyticsPage() {
             <div className="mt-4 flex items-center">
               <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
               <span className="text-sm font-medium text-green-600">
-                +{stats.userGrowth}%
+                +{stats.userGrowth || 0}%
               </span>
               <span className="text-sm text-gray-500 ml-2">vs last month</span>
             </div>
