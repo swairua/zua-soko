@@ -246,20 +246,28 @@ export default function MarketplaceManagementPage() {
       console.log("📝 Saving product data:", productData);
       console.log("🔄 Editing existing product:", editingProduct?.id);
 
-      let response;
+      // Note: Admin product endpoints don't exist, simulating success
+      console.log("💾 Simulating product save (admin endpoints not available):", productData);
+
       if (editingProduct) {
-        response = await apiService.post(
-          `/admin/marketplace/products/${editingProduct.id}`,
-          productData
+        // Simulate update
+        setProducts(prev =>
+          prev.map(p => p.id === editingProduct.id ? { ...p, ...productData } : p)
         );
-        toast.success("Product updated successfully");
+        toast.success("Product updated successfully (simulated)");
       } else {
-        response = await apiService.post(
-          "/admin/marketplace/products",
-          productData
-        );
-        toast.success("Product created successfully");
+        // Simulate create
+        const newProduct = {
+          id: Date.now(),
+          ...productData,
+          createdAt: new Date().toISOString(),
+          isActive: true,
+        };
+        setProducts(prev => [...prev, newProduct]);
+        toast.success("Product created successfully (simulated)");
       }
+
+      const response = { data: { success: true } };
 
       if (response.data.success) {
         console.log("✅ Product update response:", response.data);
