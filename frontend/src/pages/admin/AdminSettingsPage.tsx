@@ -345,7 +345,7 @@ export default function AdminSettingsPage() {
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={settings.payments.mpesaEnabled}
+                            checked={settings.payments?.mpesaEnabled || false}
                             onChange={(e) =>
                               updateSettings(
                                 "payments",
