@@ -253,59 +253,99 @@ export default function UserManagementPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Users className="w-6 h-6 text-blue-600" />
+          <div
+            onClick={() => {
+              setRoleFilter("ALL");
+              setStatusFilter("ALL");
+              setSearch("");
+            }}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                  <Users className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                    {stats.total}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Total Users</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.total}
-                </h3>
-                <p className="text-gray-600 text-sm">Total Users</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <UserCheck className="w-6 h-6 text-green-600" />
+          <div
+            onClick={() => {
+              setRoleFilter("ALL");
+              setStatusFilter("ACTIVE");
+              setSearch("");
+            }}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-green-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                  <UserCheck className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
+                    {stats.active}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Active Users</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.active}
-                </h3>
-                <p className="text-gray-600 text-sm">Active Users</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-yellow-100 rounded-lg">
-                <UserCheck className="w-6 h-6 text-yellow-600" />
+          <div
+            onClick={() => {
+              setRoleFilter("ALL");
+              setStatusFilter("PENDING");
+              setSearch("");
+            }}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-yellow-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors">
+                  <UserCheck className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors">
+                    {stats.pending}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Pending Approval</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.pending}
-                </h3>
-                <p className="text-gray-600 text-sm">Pending Approval</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-yellow-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-red-100 rounded-lg">
-                <UserX className="w-6 h-6 text-red-600" />
+          <div
+            onClick={() => {
+              setRoleFilter("ALL");
+              setStatusFilter("BLOCKED");
+              setSearch("");
+            }}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-red-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
+                  <UserX className="w-6 h-6 text-red-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-red-600 transition-colors">
+                    {stats.blocked}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Blocked/Suspended</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.blocked}
-                </h3>
-                <p className="text-gray-600 text-sm">Blocked/Suspended</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-red-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
         </div>
