@@ -52,9 +52,20 @@ api.interceptors.response.use(
       // Create a more user-friendly error object
       error.friendlyMessage = htmlError;
       error.isEndpointMissing = status === 404;
+
+      // Override the error message to prevent [object Object]
+      error.message = htmlError;
+    } else if (typeof data === 'object' && data !== null) {
+      // Handle JSON error objects
+      const errorMessage = data.message || data.error || 'Unknown server error';
+      console.error(`API Error (${status}):`, errorMessage);
+      error.friendlyMessage = errorMessage;
+      error.message = errorMessage;
     } else {
-      // Handle JSON errors normally
-      console.error(`API Error (${status}):`, data || error.message);
+      // Handle other error types
+      const errorMessage = data || error.message || 'Network error';
+      console.error(`API Error (${status}):`, errorMessage);
+      error.friendlyMessage = errorMessage;
     }
 
     return Promise.reject(error);
