@@ -2169,6 +2169,8 @@ app.use("/api/*", (req, res) => {
       "GET /api/marketplace/products",
       "GET /api/marketplace/categories",
       "GET /api/marketplace/counties",
+      "GET /api/consignments",
+      "GET /api/drivers",
       "GET /api/admin/settings",
       "GET /api/admin/users",
       "GET /api/admin/analytics/stats",
