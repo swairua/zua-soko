@@ -114,6 +114,28 @@ app.post("/api/test", (req, res) => {
 });
 
 // =================================================
+// SIMPLE PING ENDPOINT FOR TESTING
+// =================================================
+app.get("/api/ping", (req, res) => {
+  console.log("🏓 PING endpoint hit!");
+  res.json({
+    message: "pong",
+    timestamp: new Date().toISOString(),
+    server: "working"
+  });
+});
+
+app.post("/api/ping", (req, res) => {
+  console.log("🏓 PING POST endpoint hit with body:", req.body);
+  res.json({
+    message: "pong",
+    body: req.body,
+    timestamp: new Date().toISOString(),
+    server: "working"
+  });
+});
+
+// =================================================
 // LOGIN ENDPOINT - EXACTLY AS YOU REQUESTED
 // =================================================
 app.post("/api/auth/login", async (req, res) => {
