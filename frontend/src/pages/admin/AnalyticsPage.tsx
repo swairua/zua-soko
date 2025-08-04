@@ -298,7 +298,7 @@ export default function AnalyticsPage() {
                   Total Orders
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats.totalOrders.toLocaleString()}
+                  {(stats.totalOrders || 0).toLocaleString()}
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-lg">
