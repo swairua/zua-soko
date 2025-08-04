@@ -475,6 +475,24 @@ export default function MarketplaceManagementPage() {
     }
   };
 
+  const activateAllProducts = async () => {
+    try {
+      console.log("🔄 Activating all products in database");
+      const response = await apiService.put("/products/bulk-activate", {});
+
+      if (response.data.success) {
+        toast.success(`${response.data.activated_products?.length || 0} products activated!`);
+        // Refresh products list
+        await fetchProducts();
+      } else {
+        throw new Error(response.data.message || "Failed to activate products");
+      }
+    } catch (error: any) {
+      console.error("❌ Error activating products:", error);
+      toast.error(error.message || "Failed to activate products");
+    }
+  };
+
   const generateInvoice = async (order: Order) => {
     try {
       // Note: Admin invoice endpoint doesn't exist, generating mock invoice
