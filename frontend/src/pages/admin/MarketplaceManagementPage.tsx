@@ -420,8 +420,12 @@ export default function MarketplaceManagementPage() {
           throw new Error(response.data.message || "Failed to delete product");
         }
       } catch (apiError: any) {
-        console.log("⚠️ Delete API endpoint not available (DELETE /products/:id), using local delete");
-        console.log("Error details:", apiError.response?.status, apiError.message);
+        if (isEndpointMissingError(apiError)) {
+          console.log("⚠️ DELETE /products/:id endpoint not available, using local delete");
+        } else {
+          console.log("⚠️ API error during product deletion, using local fallback");
+          console.error("Deletion error:", apiError);
+        }
 
         // Fallback to local state deletion for any API error
         setProducts(prev => prev.filter(p => p.id !== productId));
