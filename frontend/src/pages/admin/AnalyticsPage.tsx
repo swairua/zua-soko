@@ -63,12 +63,8 @@ export default function AnalyticsPage() {
 
       // Fetch stats and monthly data in parallel
       const [statsResponse, monthlyResponse] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL}/admin/analytics/stats`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get(`${import.meta.env.VITE_API_URL}/admin/analytics/monthly`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        apiService.get("/admin/analytics/stats"),
+        apiService.get("/admin/analytics/monthly"),
       ]);
 
       if (statsResponse.data.success) {
