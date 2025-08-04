@@ -167,13 +167,36 @@ export default function MarketplaceManagementPage() {
 
   const fetchProducts = async () => {
     try {
-      console.log("🛍️ Fetching marketplace products (refresh)");
-      // Use existing marketplace endpoint (production server doesn't have admin/products yet)
-      const response = await apiService.get("/marketplace/products");
+      console.log("🛍️ Fetching admin products (including inactive)");
 
+      // Try admin endpoint first for all products including inactive
+      try {
+        const response = await apiService.get("/admin/products");
+        if (response.data.success) {
+          const productData = response.data.products;
+          console.log("📦 Setting admin product data:", productData);
+          setProducts(productData);
+
+          // Update stats
+          setStats((prev) => ({
+            ...prev,
+            totalProducts: productData.length,
+            activeProducts: productData.filter((p: Product) => p.is_active)
+              .length,
+          }));
+
+          console.log("✅ Admin products state updated successfully");
+          return;
+        }
+      } catch (adminError) {
+        console.log("⚠️ Admin endpoint failed, trying marketplace endpoint");
+      }
+
+      // Fallback to marketplace endpoint
+      const response = await apiService.get("/marketplace/products");
       if (response.data.success) {
         const productData = response.data.products;
-        console.log("📦 Setting new product data:", productData);
+        console.log("📦 Setting marketplace product data:", productData);
         setProducts(productData);
 
         // Update stats
@@ -184,12 +207,12 @@ export default function MarketplaceManagementPage() {
             .length,
         }));
 
-        console.log("✅ Products state updated successfully");
+        console.log("✅ Marketplace products state updated successfully");
       }
     } catch (error) {
       console.error("❌ Error fetching products:", error);
 
-      // Set empty array if API fails - use live data only
+      // Set empty array if API fails
       setProducts([]);
       setStats(prev => ({
         ...prev,
