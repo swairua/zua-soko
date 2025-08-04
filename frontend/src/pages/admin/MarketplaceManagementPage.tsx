@@ -121,7 +121,22 @@ export default function MarketplaceManagementPage() {
     const status = error.response?.status;
     const data = error.response?.data;
     const isHtmlError = typeof data === 'string' && data.includes('<!DOCTYPE html>');
-    return status === 404 || isHtmlError || error.isEndpointMissing;
+    const isApiNotFoundError = status === 404 && (
+      data?.error === "API endpoint not found" ||
+      error.friendlyMessage?.includes("API endpoint not found") ||
+      error.message?.includes("API endpoint not found")
+    );
+
+    console.log("🔍 Checking if endpoint missing:", {
+      status,
+      isHtmlError,
+      isApiNotFoundError,
+      errorMessage: error.message,
+      friendlyMessage: error.friendlyMessage,
+      responseData: data
+    });
+
+    return status === 404 || isHtmlError || error.isEndpointMissing || isApiNotFoundError;
   };
 
   // Mark endpoint as unavailable
