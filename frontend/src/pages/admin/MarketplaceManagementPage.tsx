@@ -380,6 +380,53 @@ export default function MarketplaceManagementPage() {
       farmer_county: "Central",
       images: [],
     });
+    setSelectedImages([]);
+    setImagePreviewUrls([]);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Limit to 5 images
+    const selectedFiles = files.slice(0, 5);
+    setSelectedImages(selectedFiles);
+
+    // Create preview URLs
+    const previewUrls = selectedFiles.map(file => URL.createObjectURL(file));
+    setImagePreviewUrls(previewUrls);
+
+    console.log("📷 Selected images:", selectedFiles.map(f => f.name));
+  };
+
+  const removeImage = (index: number) => {
+    const newImages = selectedImages.filter((_, i) => i !== index);
+    const newPreviews = imagePreviewUrls.filter((_, i) => i !== index);
+
+    setSelectedImages(newImages);
+    setImagePreviewUrls(newPreviews);
+  };
+
+  const uploadImages = async (images: File[]): Promise<string[]> => {
+    // In a real app, this would upload to a cloud storage service
+    // For now, we'll convert to base64 for demo purposes
+    const uploadPromises = images.map(file => {
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    });
+
+    try {
+      const base64Images = await Promise.all(uploadPromises);
+      console.log("📤 Images converted to base64 (simulated upload)");
+      return base64Images;
+    } catch (error) {
+      console.error("❌ Error uploading images:", error);
+      throw error;
+    }
   };
 
   const handleSTKPush = async (order: Order) => {
