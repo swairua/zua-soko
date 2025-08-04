@@ -159,7 +159,38 @@ export default function MarketplaceManagementPage() {
     unpaidOrders: 0,
   });
 
+  // Test endpoints availability on component mount
+  const testEndpoints = async () => {
+    console.log("🧪 Testing endpoint availability...");
+
+    const endpointsToTest = [
+      { name: "admin-products", url: "/admin/products", method: "GET" },
+      { name: "admin-refresh", url: "/admin/refresh-products", method: "POST" },
+      { name: "products", url: "/products", method: "GET" },
+      { name: "marketplace-products", url: "/marketplace/products", method: "GET" },
+    ];
+
+    for (const endpoint of endpointsToTest) {
+      try {
+        if (endpoint.method === "GET") {
+          const response = await apiService.get(endpoint.url);
+          console.log(`✅ ${endpoint.name}: Available`);
+        } else if (endpoint.method === "POST" && endpoint.name === "admin-refresh") {
+          // Don't actually call refresh, just test if the endpoint exists by checking the error
+          continue;
+        }
+      } catch (error: any) {
+        if (isEndpointMissingError(error)) {
+          console.log(`❌ ${endpoint.name}: Not available (404)`);
+        } else {
+          console.log(`⚠️ ${endpoint.name}: Error but endpoint exists:`, error.message);
+        }
+      }
+    }
+  };
+
   useEffect(() => {
+    testEndpoints();
     fetchData();
   }, [activeTab]);
 
@@ -651,7 +682,7 @@ export default function MarketplaceManagementPage() {
   const handleSTKPush = async (order: Order) => {
     try {
       // Note: Admin STK push endpoint doesn't exist, simulating success
-      console.log("💳 Simulating STK push (admin endpoint not available):", {
+      console.log("���� Simulating STK push (admin endpoint not available):", {
         orderId: order.id,
         phone: order.customer_phone,
         amount: order.total_amount,
