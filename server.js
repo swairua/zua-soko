@@ -347,6 +347,174 @@ app.put("/api/admin/settings", async (req, res) => {
   }
 });
 
+// Admin users endpoint
+app.get("/api/admin/users", async (req, res) => {
+  try {
+    console.log("👥 Fetching users via admin endpoint");
+
+    const result = await pool.query(`
+      SELECT id, first_name, last_name, email, phone, role, county,
+             verified, registration_fee_paid, created_at, updated_at
+      FROM users
+      ORDER BY created_at DESC
+    `);
+
+    res.json({
+      success: true,
+      users: result.rows,
+      count: result.rows.length,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching users via admin:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch users",
+      details: err.message,
+    });
+  }
+});
+
+// Admin analytics endpoint
+app.get("/api/admin/analytics/stats", async (req, res) => {
+  try {
+    console.log("📊 Fetching analytics stats via admin endpoint");
+
+    const stats = {};
+
+    // User statistics
+    try {
+      const userStats = await pool.query(`
+        SELECT
+          COUNT(*) as total_users,
+          COUNT(CASE WHEN role = 'FARMER' THEN 1 END) as farmers,
+          COUNT(CASE WHEN role = 'CUSTOMER' THEN 1 END) as customers,
+          COUNT(CASE WHEN role = 'ADMIN' THEN 1 END) as admins,
+          COUNT(CASE WHEN role = 'DRIVER' THEN 1 END) as drivers,
+          COUNT(CASE WHEN verified = true THEN 1 END) as verified_users
+        FROM users
+      `);
+      stats.users = userStats.rows[0];
+    } catch (err) {
+      stats.users = { total_users: 0, farmers: 0, customers: 0, admins: 0, drivers: 0, verified_users: 0 };
+    }
+
+    // Product statistics
+    try {
+      const productStats = await pool.query(`
+        SELECT
+          COUNT(*) as total_products,
+          COUNT(CASE WHEN is_featured = true THEN 1 END) as featured_products,
+          AVG(price_per_unit) as avg_price,
+          SUM(stock_quantity) as total_stock
+        FROM products
+      `);
+      stats.products = productStats.rows[0];
+    } catch (err) {
+      stats.products = { total_products: 0, featured_products: 0, avg_price: 0, total_stock: 0 };
+    }
+
+    // Order statistics
+    try {
+      const orderStats = await pool.query(`
+        SELECT
+          COUNT(*) as total_orders,
+          SUM(total_amount) as total_revenue,
+          AVG(total_amount) as avg_order_value
+        FROM orders
+      `);
+      stats.orders = orderStats.rows[0];
+    } catch (err) {
+      stats.orders = { total_orders: 0, total_revenue: 0, avg_order_value: 0 };
+    }
+
+    res.json({
+      success: true,
+      stats: {
+        totalUsers: parseInt(stats.users.total_users) || 0,
+        pendingApprovals: parseInt(stats.users.total_users) - parseInt(stats.users.verified_users) || 0,
+        totalConsignments: parseInt(stats.products.total_products) || 0,
+        totalRevenue: parseFloat(stats.orders.total_revenue) || 0,
+        ...stats
+      },
+    });
+  } catch (err) {
+    console.error("❌ Error fetching analytics stats:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch analytics",
+      details: err.message,
+    });
+  }
+});
+
+// Admin activity endpoint
+app.get("/api/admin/activity", async (req, res) => {
+  try {
+    console.log("🔄 Fetching admin activity");
+
+    const activities = [];
+
+    // Get recent users
+    try {
+      const recentUsers = await pool.query(`
+        SELECT id, first_name, last_name, email, role, created_at, verified
+        FROM users
+        ORDER BY created_at DESC
+        LIMIT 5
+      `);
+
+      recentUsers.rows.forEach((user, index) => {
+        activities.push({
+          id: `user-${index}`,
+          type: "user",
+          description: `New ${user.role.toLowerCase()} registered: ${user.first_name} ${user.last_name}`,
+          timestamp: user.created_at,
+          status: user.verified ? "completed" : "pending",
+        });
+      });
+    } catch (err) {
+      console.warn("Could not fetch recent users for activity:", err.message);
+    }
+
+    // Get recent products
+    try {
+      const recentProducts = await pool.query(`
+        SELECT id, name, farmer_name, created_at
+        FROM products
+        ORDER BY created_at DESC
+        LIMIT 5
+      `);
+
+      recentProducts.rows.forEach((product, index) => {
+        activities.push({
+          id: `product-${index}`,
+          type: "consignment",
+          description: `Product added: ${product.name} by ${product.farmer_name}`,
+          timestamp: product.created_at,
+          status: "completed",
+        });
+      });
+    } catch (err) {
+      console.warn("Could not fetch recent products for activity:", err.message);
+    }
+
+    // Sort by timestamp (most recent first)
+    activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    res.json({
+      success: true,
+      activities: activities.slice(0, 10),
+    });
+  } catch (err) {
+    console.error("❌ Error fetching admin activity:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch activity",
+      details: err.message,
+    });
+  }
+});
+
 // Status endpoint
 app.get("/api/status", async (req, res) => {
   try {
