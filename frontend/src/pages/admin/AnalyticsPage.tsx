@@ -275,7 +275,7 @@ export default function AnalyticsPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Users</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats.totalUsers.toLocaleString()}
+                  {(stats.totalUsers || 0).toLocaleString()}
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
