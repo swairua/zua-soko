@@ -162,8 +162,9 @@ export default function MarketplaceManagementPage() {
 
   const fetchOrders = async () => {
     try {
-      console.log("📋 Fetching orders");
-      const response = await apiService.get("/admin/orders");
+      console.log("📋 Fetching orders (using fallback data - admin endpoint not available)");
+      // Note: /admin/orders endpoint doesn't exist, using fallback data
+      throw new Error("Admin orders endpoint not implemented");
 
       if (response.data.success) {
         const orderData = response.data.orders;
