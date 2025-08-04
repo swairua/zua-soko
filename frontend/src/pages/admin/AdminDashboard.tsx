@@ -89,6 +89,8 @@ export default function AdminDashboard() {
 
       setStats((prev) => ({
         ...prev,
+        totalUsers: safeUserData.length,
+        pendingApprovals: safeUserData.filter((user: any) => !user.verified).length,
         recentUsers: safeUserData.slice(0, 5).map((user: any) => ({
           id: user.id,
           name: `${user.first_name || user.firstName} ${user.last_name || user.lastName}`,
@@ -102,7 +104,31 @@ export default function AdminDashboard() {
       }));
     } catch (error) {
       console.error("Error fetching users:", error);
-      toast.error("Failed to fetch users data");
+      // Set fallback user data
+      setStats((prev) => ({
+        ...prev,
+        totalUsers: 5,
+        pendingApprovals: 2,
+        recentUsers: [
+          {
+            id: 1,
+            name: "Admin User",
+            email: "admin@zuasoko.com",
+            role: "ADMIN",
+            status: "ACTIVE",
+            joinedAt: new Date().toLocaleDateString(),
+          },
+          {
+            id: 2,
+            name: "John Kimani",
+            email: "john@example.com",
+            role: "FARMER",
+            status: "ACTIVE",
+            joinedAt: new Date().toLocaleDateString(),
+          },
+        ],
+      }));
+      toast.error("Using demo user data - API unavailable");
     }
   };
 
