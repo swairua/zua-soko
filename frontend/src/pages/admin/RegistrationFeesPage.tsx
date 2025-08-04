@@ -74,12 +74,7 @@ export default function RegistrationFeesPage() {
       console.log("💰 Fetching unpaid farmers data");
 
       // Fetch settings first
-      const settingsResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL}/admin/settings`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const settingsResponse = await apiService.get("/admin/settings");
 
       if (
         settingsResponse.data.success &&
@@ -89,12 +84,7 @@ export default function RegistrationFeesPage() {
       }
 
       // Fetch unpaid farmers
-      const farmersResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL}/admin/registration-fees/unpaid`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const farmersResponse = await apiService.get("/admin/registration-fees/unpaid");
 
       if (farmersResponse.data.success) {
         const farmersData = farmersResponse.data.farmers;
