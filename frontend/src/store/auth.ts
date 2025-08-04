@@ -40,40 +40,13 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true });
 
-          console.log("🔑 Login attempt:", {
-            phone,
-            apiUrl: import.meta.env.VITE_API_URL,
-            fullUrl: `${import.meta.env.VITE_API_URL}/auth/login`,
-          });
+          console.log("🔑 Login attempt:", { phone });
 
-          console.log(
-            "📤 Request payload:",
-            JSON.stringify({ phone, password }),
-          );
+          const response = await apiService.login({ phone, password });
 
-          // FORCE REAL API CALLS - No more bypasses
-          console.log("🔥 FORCING REAL DATABASE CALLS - All bypasses disabled");
+          console.log("✅ Login success:", response);
 
-          const response = await axios.post(
-            `${import.meta.env.VITE_API_URL}/auth/login`,
-            {
-              phone: phone,
-              password: password,
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-              timeout: 10000,
-            },
-          );
-
-          console.log("📥 Response status:", response.status);
-          console.log("📥 Response headers:", response.headers);
-
-          console.log("✅ Login success:", response.data);
-
-          const { user, token } = response.data;
+          const { user, token } = response;
 
           localStorage.setItem("token", token);
           set({
