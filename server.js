@@ -387,7 +387,7 @@ app.get("/api/marketplace/counties", async (req, res) => {
 // Admin settings endpoints
 app.get("/api/admin/settings", async (req, res) => {
   try {
-    console.log("��️ Fetching admin settings");
+    console.log("⚙️ Fetching admin settings");
 
     // Return default settings since we don't have a settings table yet
     const defaultSettings = {
@@ -673,25 +673,49 @@ if (fs.existsSync(path.join(__dirname, "index.html"))) {
 app.get("*", (req, res) => {
   // Skip API routes
   if (req.path.startsWith("/api/")) {
-    return res.status(404).json({ error: "API endpoint not found" });
-  }
-
-  // Try to serve index.html if available
-  const indexPath = require('fs').existsSync(distPath)
-    ? path.join(distPath, "index.html")
-    : require('fs').existsSync(frontendDistPath)
-    ? path.join(frontendDistPath, "index.html")
-    : null;
-
-  if (indexPath) {
-    res.sendFile(indexPath);
-  } else {
-    res.json({
-      message: "Zuasoko API Server",
-      status: "running",
-      note: "Frontend not built yet - run 'npm run build' first"
+    return res.status(404).json({
+      error: "API endpoint not found",
+      path: req.path,
+      availableEndpoints: [
+        "GET /api/status",
+        "GET /api/admin/users",
+        "GET /api/admin/analytics/stats",
+        "GET /api/admin/activity",
+        "GET /api/admin/settings",
+        "POST /api/auth/login",
+        "POST /api/auth/register",
+        "GET /api/products",
+        "GET /api/marketplace/products"
+      ]
     });
   }
+
+  // Try to serve index.html from different locations
+  const possiblePaths = [
+    path.join(__dirname, "index.html"),
+    path.join(distPath, "index.html"),
+    path.join(frontendDistPath, "index.html")
+  ];
+
+  for (const indexPath of possiblePaths) {
+    if (fs.existsSync(indexPath)) {
+      return res.sendFile(indexPath);
+    }
+  }
+
+  // If no index.html found, return API info
+  res.json({
+    message: "Zuasoko API Server",
+    status: "running",
+    database: "connected",
+    note: "API endpoints available - Frontend build not found",
+    endpoints: [
+      "GET /api/status",
+      "GET /api/admin/users",
+      "GET /api/admin/analytics/stats",
+      "GET /api/admin/activity"
+    ]
+  });
 });
 
 // Start server
