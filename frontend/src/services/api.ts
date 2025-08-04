@@ -3,6 +3,13 @@ import axios from "axios";
 // Configure axios based on environment
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
+console.log("🔧 API Configuration:", {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  API_BASE_URL,
+  MODE: import.meta.env.MODE,
+  PROD: import.meta.env.PROD
+});
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
