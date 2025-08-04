@@ -319,7 +319,7 @@ export default function AnalyticsPage() {
                   Active Drivers
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats.activeDrivers}
+                  {stats.activeDrivers || 0}
                 </p>
               </div>
               <div className="p-3 bg-orange-100 rounded-lg">
