@@ -48,8 +48,14 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       host: true,
-      // In the GitHub repo structure, API calls are handled differently
-      // Remove proxy configuration for cleaner setup
+      // Proxy API calls to backend server
+      proxy: {
+        "/api": {
+          target: "http://localhost:5002",
+          changeOrigin: true,
+          secure: false,
+        },
+      },
     },
   };
 });
