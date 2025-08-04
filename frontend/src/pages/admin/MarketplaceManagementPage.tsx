@@ -513,59 +513,101 @@ export default function MarketplaceManagementPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Package className="w-6 h-6 text-blue-600" />
+          <div
+            onClick={() => {
+              setActiveTab("products");
+              setStatusFilter("all");
+              setCategoryFilter("all");
+              setSearchTerm("");
+            }}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                  <Package className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                    {stats.totalProducts}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Total Products</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.totalProducts}
-                </h3>
-                <p className="text-gray-600 text-sm">Total Products</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+          <div
+            onClick={() => {
+              setActiveTab("products");
+              setStatusFilter("active");
+              setCategoryFilter("all");
+              setSearchTerm("");
+            }}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-green-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
+                    {stats.activeProducts}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Active Products</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.activeProducts}
-                </h3>
-                <p className="text-gray-600 text-sm">Active Products</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <ShoppingCart className="w-6 h-6 text-purple-600" />
+          <div
+            onClick={() => {
+              setActiveTab("orders");
+              setStatusFilter("all");
+              setSearchTerm("");
+            }}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-purple-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                  <ShoppingCart className="w-6 h-6 text-purple-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                    {stats.totalOrders}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Total Orders</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.totalOrders}
-                </h3>
-                <p className="text-gray-600 text-sm">Total Orders</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-yellow-100 rounded-lg">
-                <DollarSign className="w-6 h-6 text-yellow-600" />
+          <div
+            onClick={() => {
+              setActiveTab("orders");
+              setStatusFilter("completed");
+              setSearchTerm("");
+            }}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-yellow-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors">
+                  <DollarSign className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors">
+                    KSh {stats.totalRevenue.toLocaleString()}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Total Revenue</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  KSh {stats.totalRevenue.toLocaleString()}
-                </h3>
-                <p className="text-gray-600 text-sm">Total Revenue</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-yellow-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
         </div>
