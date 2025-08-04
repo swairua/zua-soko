@@ -108,12 +108,12 @@ export default function MarketplaceManagementPage() {
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
 
   // Track which endpoints are available to avoid unnecessary calls
-  // Initialize as false since we know these endpoints don't exist in current production server
+  // Initialize as null (unknown) to test endpoints first
   const [endpointAvailability, setEndpointAvailability] = useState({
-    createProduct: false, // false = known unavailable, true = available
-    updateProduct: false,
-    deleteProduct: false,
-    bulkActivate: false,
+    createProduct: null as boolean | null, // false = known unavailable, true = available, null = unknown
+    updateProduct: null as boolean | null,
+    deleteProduct: null as boolean | null,
+    bulkActivate: null as boolean | null,
   });
 
   // Utility function to check if error is due to missing endpoint
