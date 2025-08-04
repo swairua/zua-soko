@@ -30,12 +30,122 @@ function verifyPassword(password, hash) {
   return hashPassword(password) === hash;
 }
 
-// Test database connection
-pool.connect((err, client, release) => {
+// Test database connection and initialize tables
+pool.connect(async (err, client, release) => {
   if (err) {
     console.error("❌ Database connection error:", err);
   } else {
     console.log("✅ Connected to PostgreSQL database");
+
+    // Auto-initialize database tables
+    try {
+      console.log("🔄 Auto-initializing database tables...");
+
+      // Create users table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          first_name VARCHAR(100) NOT NULL,
+          last_name VARCHAR(100) NOT NULL,
+          email VARCHAR(255) UNIQUE NOT NULL,
+          phone VARCHAR(20) UNIQUE NOT NULL,
+          password_hash VARCHAR(255) NOT NULL,
+          role VARCHAR(20) NOT NULL DEFAULT 'CUSTOMER',
+          county VARCHAR(100),
+          verified BOOLEAN DEFAULT false,
+          registration_fee_paid BOOLEAN DEFAULT false,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      // Create products table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS products (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          category VARCHAR(100),
+          price_per_unit DECIMAL(10,2) NOT NULL,
+          unit VARCHAR(20) DEFAULT 'kg',
+          description TEXT,
+          stock_quantity INTEGER DEFAULT 0,
+          is_featured BOOLEAN DEFAULT false,
+          is_active BOOLEAN DEFAULT true,
+          farmer_name VARCHAR(255),
+          farmer_county VARCHAR(100),
+          images TEXT[],
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      // Create orders table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS orders (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER REFERENCES users(id),
+          total_amount DECIMAL(10,2) NOT NULL,
+          status VARCHAR(20) DEFAULT 'PENDING',
+          payment_status VARCHAR(20) DEFAULT 'PENDING',
+          delivery_address TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      // Insert sample admin user if none exists
+      const adminCheck = await client.query(
+        "SELECT COUNT(*) FROM users WHERE role = 'ADMIN'"
+      );
+
+      if (parseInt(adminCheck.rows[0].count) === 0) {
+        await client.query(`
+          INSERT INTO users (
+            first_name, last_name, email, phone, password_hash,
+            role, county, verified, registration_fee_paid
+          ) VALUES (
+            'Admin', 'User', 'admin@zuasoko.com', '+254712345678', $1,
+            'ADMIN', 'Nairobi', true, true
+          );
+        `, [hashPassword("password123")]);
+        console.log("✅ Admin user created");
+      }
+
+      // Insert sample data if none exists
+      const userCheck = await client.query("SELECT COUNT(*) FROM users");
+      if (parseInt(userCheck.rows[0].count) <= 1) {
+        await client.query(`
+          INSERT INTO users (
+            first_name, last_name, email, phone, password_hash,
+            role, county, verified, registration_fee_paid
+          ) VALUES
+          ('John', 'Kimani', 'john.farmer@zuasoko.com', '+254710123456', $1, 'FARMER', 'Nakuru', true, true),
+          ('Jane', 'Wanjiku', 'jane.customer@zuasoko.com', '+254720234567', $1, 'CUSTOMER', 'Nairobi', true, true),
+          ('Peter', 'Kamau', 'peter.driver@zuasoko.com', '+254730345678', $1, 'DRIVER', 'Kiambu', true, true);
+        `, [hashPassword("password123")]);
+        console.log("✅ Sample users created");
+      }
+
+      const productCheck = await client.query("SELECT COUNT(*) FROM products");
+      if (parseInt(productCheck.rows[0].count) === 0) {
+        await client.query(`
+          INSERT INTO products (
+            name, category, price_per_unit, unit, description,
+            stock_quantity, is_featured, farmer_name, farmer_county
+          ) VALUES
+          ('Fresh Tomatoes', 'Vegetables', 130, 'kg', 'Organic red tomatoes, Grade A quality', 85, true, 'John Kimani', 'Nakuru'),
+          ('Sweet Potatoes', 'Root Vegetables', 80, 'kg', 'Fresh sweet potatoes, rich in nutrients', 45, true, 'Jane Wanjiku', 'Meru'),
+          ('Spinach', 'Leafy Greens', 50, 'bunch', 'Fresh organic spinach leaves', 30, false, 'Peter Kamau', 'Kiambu');
+        `);
+        console.log("✅ Sample products created");
+      }
+
+      console.log("🎉 Database auto-initialization completed!");
+
+    } catch (initError) {
+      console.warn("⚠️ Database auto-initialization failed:", initError.message);
+    }
+
     release();
   }
 });
