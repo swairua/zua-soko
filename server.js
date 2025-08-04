@@ -44,7 +44,7 @@ pool.connect(async (err, client, release) => {
 
     // Auto-initialize database tables
     try {
-      console.log("🔄 Auto-initializing database tables...");
+      console.log("���� Auto-initializing database tables...");
 
       // Create users table
       await client.query(`
@@ -565,7 +565,7 @@ app.get("/api/admin/analytics/stats", async (req, res) => {
 // Admin activity endpoint
 app.get("/api/admin/activity", async (req, res) => {
   try {
-    console.log("🔄 Fetching admin activity");
+    console.log("���� Fetching admin activity");
 
     const activities = [];
 
@@ -628,6 +628,17 @@ app.get("/api/admin/activity", async (req, res) => {
       details: err.message,
     });
   }
+});
+
+// Health check endpoint for production
+app.get("/health", (req, res) => {
+  res.json({
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    service: "zuasoko-api",
+    environment: process.env.NODE_ENV || "production",
+    port: PORT
+  });
 });
 
 // Status endpoint
