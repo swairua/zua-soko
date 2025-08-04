@@ -71,40 +71,10 @@ pool.connect((err, client, release) => {
 });
 
 // =================================================
-// EARLY LOGIN ROUTE (FOR DEBUGGING)
+// ROUTE DEBUGGING INFO
 // =================================================
-app.post("/api/auth/login", async (req, res) => {
-  console.log("🔥🔥🔥 EARLY LOGIN ROUTE HIT! 🔥🔥🔥");
-
-  try {
-    const { phone, password } = req.body || {};
-
-    if (!phone || !password) {
-      console.log("❌ Missing credentials");
-      return res.status(400).json({
-        success: false,
-        message: "Phone and password are required",
-      });
-    }
-
-    console.log(`📱 Login attempt for: ${phone}`);
-
-    // Simple success response for debugging
-    return res.json({
-      success: true,
-      message: "Login endpoint is working!",
-      received: { phone, password: "[HIDDEN]" },
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error("❌ Early login error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-      error: error.message,
-    });
-  }
-});
+console.log("📝 Setting up API routes...");
+console.log("🔍 Main login route will be defined below...");
 
 // =================================================
 // ROOT ROUTE - REDIRECT TO FRONTEND
