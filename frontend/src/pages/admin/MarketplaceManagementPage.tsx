@@ -234,8 +234,9 @@ export default function MarketplaceManagementPage() {
           console.log("✅ Admin products state updated successfully");
           return;
         }
-      } catch (adminError) {
-        console.log("⚠️ Admin endpoint failed, trying marketplace endpoint");
+      } catch (adminError: any) {
+        console.log("⚠️ Admin endpoint failed:", adminError.message || adminError);
+        console.log("🔄 Trying marketplace endpoint as fallback");
       }
 
       // Fallback to marketplace endpoint
@@ -682,7 +683,7 @@ export default function MarketplaceManagementPage() {
   const handleSTKPush = async (order: Order) => {
     try {
       // Note: Admin STK push endpoint doesn't exist, simulating success
-      console.log("���� Simulating STK push (admin endpoint not available):", {
+      console.log("💳 Simulating STK push (admin endpoint not available):", {
         orderId: order.id,
         phone: order.customer_phone,
         amount: order.total_amount,
