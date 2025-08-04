@@ -24,7 +24,7 @@ app.use(express.static(".", { index: false }));
 
 // Comprehensive request logging middleware
 app.use((req, res, next) => {
-  console.log(`🚀 ============ NEW REQUEST ============`);
+  console.log(`��� ============ NEW REQUEST ============`);
   console.log(`📥 ${req.method} ${req.url}`);
   console.log(`📍 Path: ${req.path}`);
   console.log(`📍 Base URL: ${req.baseUrl}`);
@@ -118,12 +118,13 @@ app.post("/api/test", (req, res) => {
 // =================================================
 app.post("/api/auth/login", async (req, res) => {
   try {
-    console.log("🔥🔥🔥 LOGIN ENDPOINT HIT! 🔥🔥🔥");
+    console.log("🔥🔥🔥 MAIN LOGIN ENDPOINT HIT! 🔥🔥🔥");
     console.log("🚀 Login request received");
     console.log(`📝 Method: ${req.method}`);
     console.log(`📝 URL: ${req.url}`);
     console.log(`📝 Path: ${req.path}`);
     console.log(`📝 Body:`, req.body);
+    console.log(`📝 Headers:`, req.headers);
 
     const { phone, password } = req.body;
 
