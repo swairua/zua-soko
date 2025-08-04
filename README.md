@@ -1,244 +1,167 @@
-# Zuasoko Agricultural Marketplace
+# Zuasoko - Agricultural Marketplace
 
-A comprehensive full-stack agricultural marketplace platform connecting farmers, customers, drivers, and administrators in Kenya.
+Zuasoko is a comprehensive agricultural marketplace platform that connects farmers directly with buyers, providing a transparent and efficient trading environment.
 
-## 🌾 Overview
+## Features
 
-Zuasoko is a complete consignment-based agricultural marketplace that facilitates the entire supply chain from farm to consumer. The platform implements a sophisticated workflow where farmers submit produce for approval, admins manage the approval process, drivers handle transportation, and customers can purchase fresh produce.
+- **User Authentication**: Secure login/registration for farmers, buyers, and admins
+- **Product Marketplace**: Browse and search agricultural products by category and location
+- **Admin Dashboard**: Comprehensive management tools for platform administration
+- **Mobile Responsive**: Optimized for both desktop and mobile devices
+- **Real-time Data**: Live product listings and market information
 
-## 🏗️ Architecture
+## Tech Stack
 
-- **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS
-- **Backend**: Node.js + Express + In-Memory Database
-- **Authentication**: JWT-based with role-based access control
-- **State Management**: React Context API + React Query
+### Frontend
+- **React 18.2.0** - Modern React with hooks
+- **TypeScript** - Type-safe development
+- **Vite** - Fast build tool and dev server
+- **Tailwind CSS** - Utility-first CSS framework
+- **React Router** - Client-side routing
+- **Zustand** - State management
+- **React Query** - Data fetching and caching
+- **Axios** - HTTP client
 
-## 👥 User Roles & Features
+### Backend
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **PostgreSQL** - Database
+- **JWT** - Authentication tokens
+- **CORS** - Cross-origin resource sharing
 
-### 🌱 Farmers
-
-- **Consignment Management**: Submit produce with proposed prices for admin approval
-- **Wallet System**: Track earnings and withdraw via M-Pesa STK Push
-- **Status Tracking**: Monitor consignment approval and payment status
-- **Dashboard**: View earnings, active consignments, and performance metrics
-
-### 🛒 Customers
-
-- **Marketplace Shopping**: Browse and purchase from warehouse-stocked products
-- **Shopping Cart**: Add/remove items with real-time stock validation
-- **Order Management**: Place orders with comprehensive checkout process
-- **Account Management**: View order history and track deliveries
-
-### 🚛 Drivers
-
-- **Assignment Management**: Receive and manage transport assignments
-- **Warehouse Operations**: Process delivered produce for marketplace listing
-- **Status Updates**: Update transport and delivery status in real-time
-- **Inventory Management**: Add delivered products to marketplace with pricing
-
-### 🔧 Administrators
-
-- **Consignment Approval**: Review, approve, reject, or suggest price modifications
-- **Driver Assignment**: Assign approved consignments to available drivers
-- **User Management**: Manage platform users and their permissions
-- **Analytics Dashboard**: Comprehensive platform insights and metrics
-- **Workflow Oversight**: Monitor entire consignment-to-sale process
-
-## 🔄 Complete Workflow
-
-### 1. Farmer Submission
-
-- Farmer creates consignment with produce details and proposed pricing
-- System generates unique consignment ID and sets status to PENDING
-
-### 2. Admin Review
-
-- Admin reviews consignment details and quality
-- Options: Approve, Reject, or Suggest alternative pricing
-- If price suggested, farmer can accept or decline
-
-### 3. Driver Assignment
-
-- Admin assigns approved consignments to available drivers
-- Driver receives notification and pickup instructions
-- Farmer wallet is credited upon driver assignment
-
-### 4. Transportation
-
-- Driver collects produce from farmer
-- Updates status to IN_TRANSIT during transport
-- Marks as DELIVERED upon warehouse arrival
-
-### 5. Warehouse Processing
-
-- Driver processes delivered produce for marketplace
-- Sets final market pricing and product attributes
-- Adds high-quality images and detailed descriptions
-
-### 6. Customer Purchase
-
-- Products appear in marketplace for customer browsing
-- Customers add to cart and complete checkout process
-- Orders are processed and fulfilled
-
-## 📱 Mobile-First Design
-
-- Responsive design optimized for mobile devices
-- Touch-friendly interfaces and navigation
-- Mobile bottom navigation for authenticated users
-- Optimized forms and user interactions
-
-## 🔐 Security Features
-
-- JWT-based authentication with secure token management
-- Role-based access control (RBAC)
-- Input validation and sanitization
-- CORS protection and security headers
-- Password hashing with Argon2
-
-## 🚀 Getting Started
+## Quick Start
 
 ### Prerequisites
-
-- Node.js 16+
+- Node.js 18+
+- PostgreSQL database
 - npm or yarn
 
 ### Installation
 
 1. **Clone the repository**
-
    ```bash
-   git clone <repository-url>
-   cd zuasoko-app
+   git clone https://github.com/swairua/zua-soko.git
+   cd zua-soko
    ```
 
 2. **Install dependencies**
-
    ```bash
-   npm install
+   npm run setup
    ```
 
-3. **Start development servers**
+3. **Environment Configuration**
+   ```bash
+   cp .env.example .env
+   ```
+   Update the `.env` file with your database credentials and other configuration.
+
+4. **Start Development Server**
    ```bash
    npm run dev
    ```
 
-This will start both frontend (http://localhost:3000) and backend (http://localhost:5001) servers.
+   This will start:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:3000/api
 
-### Demo Credentials
+### Available Scripts
 
-The application includes demo accounts for testing all user roles:
+- `npm run dev` - Start development server (frontend only)
+- `npm run dev:server` - Start backend server
+- `npm run dev:frontend` - Start frontend development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run start:minimal` - Start minimal static server
+- `npm run type-check` - Run TypeScript type checking
 
-- **Admin**: `+254712345678` / `password123`
-- **Farmer**: `+254734567890` / `password123`
-- **Customer**: `+254756789012` / `password123`
-- **Driver**: `+254778901234` / `password123`
-
-## 📊 Key Features Implemented
-
-### ✅ Core Functionality
-
-- [x] User authentication and role-based access control
-- [x] Farmer consignment submission and management
-- [x] Admin approval workflow with price suggestions
-- [x] Driver assignment and transport management
-- [x] Farmer wallet with M-Pesa withdrawals
-- [x] Warehouse inventory management
-- [x] Marketplace product catalog
-- [x] Shopping cart and checkout process
-- [x] Order management system
-
-### ✅ Admin Features
-
-- [x] Comprehensive admin dashboard
-- [x] User management with status controls
-- [x] Consignment approval workflow
-- [x] Analytics and reporting dashboard
-- [x] Driver assignment system
-
-### ✅ Mobile Experience
-
-- [x] Responsive design for all screen sizes
-- [x] Mobile-optimized navigation
-- [x] Touch-friendly interfaces
-- [x] Mobile bottom navigation
-
-### ✅ Additional Features
-
-- [x] Real-time status updates
-- [x] Comprehensive error handling
-- [x] Loading states and feedback
-- [x] Form validation
-- [x] Currency formatting (KES)
-
-## 🗂️ Project Structure
+## Project Structure
 
 ```
-zuasoko-app/
-├── frontend/                 # React frontend application
+zua-soko/
+├── frontend/          # React frontend application
 │   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   ���   ├── contexts/        # React Context providers
-│   │   ├── pages/          # Page components
-│   │   └── ...
-├── backend/                 # Node.js backend API
-│   ├── src/
-│   │   ├── routes/         # API route handlers
-│   │   └── server.js       # Main server file
-└── README.md
+│   │   ├── components/    # Reusable UI components
+│   │   ├── pages/         # Page components
+│   │   ├── services/      # API services
+│   │   ├── store/         # State management
+│   │   └── utils/         # Utility functions
+│   ├── package.json
+│   └── vite.config.ts
+├── api/               # Additional API configurations
+├── backend/           # Backend specific files
+├── database/          # Database scripts and migrations
+├── scripts/           # Utility scripts
+├── server.js          # Main Express server
+├── minimal-server.js  # Minimal static server
+└── package.json       # Root package.json
 ```
 
-## 🔧 Development
+## Environment Variables
 
-### Frontend Development
+Create a `.env` file in the root directory:
 
-```bash
-cd frontend
-npm run dev
+```env
+# Database
+DATABASE_URL=postgresql://username:password@localhost:5432/zuasoko
+
+# Security
+JWT_SECRET=your_super_secure_secret_key
+
+# Server
+NODE_ENV=development
+PORT=3000
+
+# Frontend
+VITE_API_URL=http://localhost:3000/api
 ```
 
-### Backend Development
+## Database Setup
 
-```bash
-cd backend
-npm run dev
-```
+1. Create a PostgreSQL database named `zuasoko`
+2. Update the `DATABASE_URL` in your `.env` file
+3. The application will automatically create the necessary tables on first run
 
-### Build for Production
+## Deployment
 
+### Production Build
 ```bash
 npm run build
+npm run start
 ```
 
-## 🌟 Highlights
+### Minimal Static Deployment
+```bash
+npm run build
+npm run start:minimal
+```
 
-- **Complete Workflow**: End-to-end consignment-based marketplace
-- **Role-Based Design**: Tailored experiences for each user type
-- **Mobile-First**: Optimized for Kenyan mobile-first market
-- **Real-Time Updates**: Live status tracking throughout workflow
-- **Scalable Architecture**: Clean separation of concerns
-- **Kenya-Focused**: Currency, regions, and M-Pesa integration ready
+## API Endpoints
 
-## 📈 Future Enhancements
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
 
-- Real-time notifications with WebSocket
-- Advanced analytics and reporting
-- Mobile app development
-- Payment gateway integration
-- Multi-language support
-- Advanced search and filtering
-- Rating and review system
+### Products
+- `GET /api/products` - Get all products
+- `GET /api/marketplace/products` - Get marketplace products with filters
+- `GET /api/marketplace/categories` - Get product categories
+- `GET /api/marketplace/counties` - Get available counties
 
-## 🤝 Contributing
+### System
+- `GET /api/status` - Server health check
 
-This is a demonstration project showcasing a complete agricultural marketplace implementation. The codebase demonstrates best practices for full-stack development with modern technologies.
+## Contributing
 
-## 📄 License
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Commit your changes: `git commit -am 'Add feature'`
+4. Push to the branch: `git push origin feature-name`
+5. Submit a pull request
 
-This project is a demonstration application for portfolio purposes.
+## License
 
----
+This project is licensed under the MIT License.
 
-**Built with ❤️ for Kenya's Agricultural Community**
+## Support
 
-_Empowering farmers, connecting communities, delivering fresh produce._
+For support and questions, please contact the development team or create an issue in the repository.
