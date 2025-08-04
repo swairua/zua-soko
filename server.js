@@ -1151,9 +1151,11 @@ if (fs.existsSync(path.join(__dirname, "index.html"))) {
 app.get("*", (req, res) => {
   // Skip API routes
   if (req.path.startsWith("/api/")) {
+    console.log(`❌ 404 API endpoint not found: ${req.method} ${req.path}`);
     return res.status(404).json({
       error: "API endpoint not found",
       path: req.path,
+      method: req.method,
       availableEndpoints: [
         "GET /api/status",
         "GET /api/admin/users",
