@@ -22,6 +22,7 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
+  ArrowRight,
 } from "lucide-react";
 import { useAuthStore } from "../../store/auth";
 import { apiService } from "../../services/api";
