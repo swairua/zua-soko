@@ -103,6 +103,10 @@ export default function MarketplaceManagementPage() {
     images: [],
   });
 
+  // Image upload state
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+
   // Stats
   const [stats, setStats] = useState({
     totalProducts: 0,
