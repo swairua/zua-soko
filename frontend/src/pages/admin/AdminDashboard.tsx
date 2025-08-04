@@ -388,61 +388,85 @@ export default function AdminDashboard() {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Users className="w-6 h-6 text-blue-600" />
+          <Link
+            to="/admin/users"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                  <Users className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                    {stats.totalUsers}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Total Users</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.totalUsers}
-                </h3>
-                <p className="text-gray-600 text-sm">Total Users</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-yellow-100 rounded-lg">
-                <AlertCircle className="w-6 h-6 text-yellow-600" />
+          <Link
+            to="/admin/users?filter=pending"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-yellow-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors">
+                  <AlertCircle className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors">
+                    {stats.pendingApprovals}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Pending Approvals</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.pendingApprovals}
-                </h3>
-                <p className="text-gray-600 text-sm">Pending Approvals</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-yellow-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <Package className="w-6 h-6 text-green-600" />
+          <Link
+            to="/admin/consignments"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-green-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                  <Package className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
+                    {stats.activeConsignments}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Active Consignments</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.activeConsignments}
-                </h3>
-                <p className="text-gray-600 text-sm">Active Consignments</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <DollarSign className="w-6 h-6 text-purple-600" />
+          <Link
+            to="/admin/analytics"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-purple-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                  <DollarSign className="w-6 h-6 text-purple-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                    {formatCurrency(stats.monthlyRevenue)}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Monthly Revenue</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {formatCurrency(stats.monthlyRevenue)}
-                </h3>
-                <p className="text-gray-600 text-sm">Monthly Revenue</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Quick Actions */}
