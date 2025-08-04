@@ -351,7 +351,7 @@ export default function MarketplaceManagementPage() {
         // Update existing product using real API
         console.log("🔄 Updating existing product:", editingProduct.id);
 
-        response = await apiService.post(`/products/${editingProduct.id}`, productData);
+        response = await apiService.put(`/products/${editingProduct.id}`, productData);
 
         if (response.data.success) {
           // Update local state with server response
