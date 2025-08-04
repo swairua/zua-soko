@@ -403,11 +403,13 @@ export default function MarketplaceManagementPage() {
         } else {
           throw new Error(response.data.message || "Failed to delete product");
         }
-      } catch (apiError) {
-        console.log("⚠️ Delete API endpoint not available, using local delete");
-        // Fallback to local state deletion
+      } catch (apiError: any) {
+        console.log("⚠️ Delete API endpoint not available (DELETE /products/:id), using local delete");
+        console.log("Error details:", apiError.response?.status, apiError.message);
+
+        // Fallback to local state deletion for any API error
         setProducts(prev => prev.filter(p => p.id !== productId));
-        toast.success("Product removed locally (database endpoint not available)");
+        toast.success("Product removed locally (server endpoint not available)");
       }
     } catch (error) {
       console.error("❌ Error deleting product:", error);
