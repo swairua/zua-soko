@@ -44,7 +44,7 @@ pool.connect(async (err, client, release) => {
 
     // Auto-initialize database tables
     try {
-      console.log("���� Auto-initializing database tables...");
+      console.log("🔄 Auto-initializing database tables...");
 
       // Create users table
       await client.query(`
@@ -467,6 +467,25 @@ app.get("/api/admin/users", async (req, res) => {
   try {
     console.log("👥 Fetching users via admin endpoint");
 
+    // First check if users table exists
+    const tableCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name = 'users'
+      );
+    `);
+
+    if (!tableCheck.rows[0].exists) {
+      console.log("⚠️ Users table does not exist, returning empty result");
+      return res.json({
+        success: true,
+        users: [],
+        count: 0,
+        message: "Users table not found - database may need initialization"
+      });
+    }
+
     const result = await pool.query(`
       SELECT id, first_name, last_name, email, phone, role, county,
              verified, registration_fee_paid, created_at, updated_at
@@ -484,7 +503,7 @@ app.get("/api/admin/users", async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Failed to fetch users",
-      details: err.message,
+      details: process.env.NODE_ENV === 'production' ? 'Database error' : err.message,
     });
   }
 });
@@ -565,7 +584,7 @@ app.get("/api/admin/analytics/stats", async (req, res) => {
 // Admin activity endpoint
 app.get("/api/admin/activity", async (req, res) => {
   try {
-    console.log("���� Fetching admin activity");
+    console.log("🔄 Fetching admin activity");
 
     const activities = [];
 
@@ -621,7 +640,7 @@ app.get("/api/admin/activity", async (req, res) => {
       activities: activities.slice(0, 10),
     });
   } catch (err) {
-    console.error("❌ Error fetching admin activity:", err);
+    console.error("�� Error fetching admin activity:", err);
     res.status(500).json({
       success: false,
       error: "Failed to fetch activity",
