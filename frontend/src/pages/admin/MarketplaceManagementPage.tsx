@@ -461,27 +461,38 @@ export default function MarketplaceManagementPage() {
     if (!confirm("Are you sure you want to delete this product?")) return;
 
     try {
-      console.log("🗑️ Attempting to delete product:", productId);
+      console.log("🗑️ Deleting product:", productId);
 
-      try {
-        const response = await apiService.delete(`/products/${productId}`);
-        if (response.data.success) {
-          setProducts(prev => prev.filter(p => p.id !== productId));
-          toast.success("Product deleted successfully from database!");
-        } else {
-          throw new Error(response.data.message || "Failed to delete product");
-        }
-      } catch (apiError: any) {
-        if (isEndpointMissingError(apiError)) {
-          console.log("⚠️ DELETE /products/:id endpoint not available, using local delete");
-        } else {
-          console.log("⚠️ API error during product deletion, using local fallback");
-          console.error("Deletion error:", apiError);
-        }
-
-        // Fallback to local state deletion for any API error
+      // Check if we know the endpoint is unavailable
+      if (endpointAvailability.deleteProduct === false) {
+        console.log("⚠️ DELETE /products/:id endpoint known to be unavailable, using local delete");
+        // Direct local deletion - no API call
         setProducts(prev => prev.filter(p => p.id !== productId));
         toast.success("Product removed locally (server endpoint not available)");
+      } else {
+        // Try API call if endpoint availability is unknown or known to be available
+        try {
+          const response = await apiService.delete(`/products/${productId}`);
+          if (response.data.success) {
+            markEndpointAvailable('deleteProduct');
+            setProducts(prev => prev.filter(p => p.id !== productId));
+            toast.success("Product deleted successfully from database!");
+          } else {
+            throw new Error(response.data.message || "Failed to delete product");
+          }
+        } catch (apiError: any) {
+          if (isEndpointMissingError(apiError)) {
+            console.log("⚠️ DELETE /products/:id endpoint not available, marking as unavailable");
+            markEndpointUnavailable('deleteProduct');
+          } else {
+            console.log("⚠️ API error during product deletion, using local fallback");
+            console.error("Deletion error:", apiError);
+          }
+
+          // Fallback to local state deletion
+          setProducts(prev => prev.filter(p => p.id !== productId));
+          toast.success("Product removed locally (server endpoint not available)");
+        }
       }
     } catch (error) {
       console.error("❌ Error deleting product:", error);
