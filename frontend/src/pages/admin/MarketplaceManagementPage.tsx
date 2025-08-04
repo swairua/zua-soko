@@ -207,9 +207,9 @@ export default function MarketplaceManagementPage() {
             .length,
         }));
 
-        console.log("�� Marketplace products state updated successfully");
+        console.log("✅ Marketplace products state updated successfully");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Error fetching products:", error);
 
       // Set empty array if API fails
@@ -220,7 +220,17 @@ export default function MarketplaceManagementPage() {
         activeProducts: 0,
       }));
 
-      toast.error("Failed to fetch products from database");
+      // Get user-friendly error message
+      let errorMessage = "Failed to fetch products from database";
+      if (error.friendlyMessage) {
+        errorMessage = `Failed to fetch products: ${error.friendlyMessage}`;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message && error.message !== "[object Object]") {
+        errorMessage = `Failed to fetch products: ${error.message}`;
+      }
+
+      toast.error(errorMessage);
     }
   };
 
