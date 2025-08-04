@@ -19,8 +19,6 @@ app.use((err, req, res, next) => {
   }
   next();
 });
-// Serve static files only for non-API routes
-app.use(express.static(".", { index: false }));
 
 // Comprehensive request logging middleware
 app.use((req, res, next) => {
