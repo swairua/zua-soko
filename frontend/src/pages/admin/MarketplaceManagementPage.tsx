@@ -355,6 +355,7 @@ export default function MarketplaceManagementPage() {
         stock_quantity: parseInt(formData.stock_quantity) || 0,
         images: imageUrls,
         is_active: true,
+        is_featured: formData.is_featured,
       };
 
       console.log("📝 Saving product data:", productData);
@@ -667,7 +668,7 @@ export default function MarketplaceManagementPage() {
           }
         } catch (apiError: any) {
           if (isEndpointMissingError(apiError)) {
-            console.log("⚠️ PATCH /products/bulk-activate endpoint not available, marking as unavailable");
+            console.log("���️ PATCH /products/bulk-activate endpoint not available, marking as unavailable");
             markEndpointUnavailable('bulkActivate');
           } else {
             console.log("⚠️ API error during product activation, using local fallback");
