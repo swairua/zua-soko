@@ -652,7 +652,18 @@ export default function MarketplaceManagementPage() {
       }
     } catch (error: any) {
       console.error("❌ Error refreshing database:", error);
-      toast.error("Failed to refresh database with sample products");
+
+      // Get user-friendly error message
+      let errorMessage = "Failed to refresh database with sample products";
+      if (error.friendlyMessage) {
+        errorMessage = error.friendlyMessage;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message && error.message !== "[object Object]") {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
