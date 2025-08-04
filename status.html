@@ -259,6 +259,36 @@
             await testEndpoint('Categories', '/api/marketplace/categories', 'categoriesStatus');
             await testEndpoint('Counties', '/api/marketplace/counties', 'countiesStatus');
 
+            // Registration fees API tests
+            await testEndpoint('Unpaid Farmers', '/api/admin/registration-fees/unpaid', 'unpaidFarmersStatus');
+            await testEndpoint('Registration Settings', '/api/admin/registration-fees/settings', 'regSettingsStatus');
+
+            // Test STK Push with mock data
+            try {
+                log('Testing STK Push: /api/admin/registration-fees/stk-push');
+                const stkResponse = await fetch('/api/admin/registration-fees/stk-push', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        farmer_id: 'test-farmer',
+                        phone_number: '+254712345678',
+                        amount: 1000
+                    })
+                });
+                const stkData = await stkResponse.json();
+
+                if (stkResponse.ok) {
+                    updateStatus('stkPushStatus', 'success', `OK (${stkResponse.status})`);
+                    log('✅ STK Push: Success');
+                } else {
+                    updateStatus('stkPushStatus', 'error', `Error ${stkResponse.status}`);
+                    log(`❌ STK Push: HTTP ${stkResponse.status}`);
+                }
+            } catch (error) {
+                updateStatus('stkPushStatus', 'error', 'Network Error');
+                log(`❌ STK Push: ${error.message}`);
+            }
+
             log('✅ All tests completed');
         }
 
