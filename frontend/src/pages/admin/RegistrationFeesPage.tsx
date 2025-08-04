@@ -194,15 +194,11 @@ export default function RegistrationFeesPage() {
     try {
       console.log(`💳 Initiating STK push for farmer ${farmer.id}`);
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/admin/registration-fees/stk-push`,
-        {
-          farmer_id: farmer.id,
-          phone_number: farmer.phone,
-          amount: feeSettings.farmerRegistrationFee,
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      const response = await apiService.post("/admin/registration-fees/stk-push", {
+        farmer_id: farmer.id,
+        phone_number: farmer.phone,
+        amount: feeSettings.farmerRegistrationFee,
+      });
 
       if (response.data.success) {
         toast.success(
