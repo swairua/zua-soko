@@ -161,53 +161,15 @@ export default function MarketplaceManagementPage() {
     } catch (error) {
       console.error("❌ Error fetching products:", error);
 
-      // Set fallback products with sample images for demo
-      const fallbackProducts = [
-        {
-          id: 1,
-          name: "Fresh Organic Tomatoes",
-          category: "Vegetables",
-          price_per_unit: 130,
-          unit: "kg",
-          description: "Fresh, organic tomatoes grown without pesticides. Perfect for cooking and salads.",
-          stock_quantity: 50,
-          is_featured: true,
-          farmer_name: "John Kimani",
-          farmer_county: "Nakuru",
-          images: [
-            "https://images.unsplash.com/photo-1546470427-e26264be0b37?w=400&h=300&fit=crop",
-            "https://images.unsplash.com/photo-1561136594-7f68413e711c?w=400&h=300&fit=crop"
-          ],
-          created_at: new Date().toISOString(),
-          is_active: true,
-        },
-        {
-          id: 2,
-          name: "Sweet Potatoes",
-          category: "Root Vegetables",
-          price_per_unit: 80,
-          unit: "kg",
-          description: "Nutritious sweet potatoes, rich in vitamins and minerals.",
-          stock_quantity: 30,
-          is_featured: false,
-          farmer_name: "Mary Wanjiku",
-          farmer_county: "Meru",
-          images: [
-            "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=300&fit=crop"
-          ],
-          created_at: new Date().toISOString(),
-          is_active: true,
-        }
-      ];
-
-      setProducts(fallbackProducts);
+      // Set empty array if API fails - use live data only
+      setProducts([]);
       setStats(prev => ({
         ...prev,
-        totalProducts: fallbackProducts.length,
-        activeProducts: fallbackProducts.filter(p => p.is_active).length,
+        totalProducts: 0,
+        activeProducts: 0,
       }));
 
-      toast.error("Using demo products with images");
+      toast.error("Failed to fetch products from database");
     }
   };
 
