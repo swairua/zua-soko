@@ -362,8 +362,12 @@ export default function MarketplaceManagementPage() {
               toast.success("Product created successfully in database!");
             }
           } catch (apiError: any) {
-            console.log("⚠️ API endpoint not available (POST /products), using local creation");
-            console.log("Error details:", apiError.response?.status, apiError.message);
+            if (isEndpointMissingError(apiError)) {
+              console.log("⚠️ POST /products endpoint not available, using local creation");
+            } else {
+              console.log("⚠️ API error during product creation, using local fallback");
+              console.error("Creation error:", apiError);
+            }
 
             // Fallback to local state creation for any API error
             const newProduct = {
