@@ -1160,7 +1160,9 @@ app.get("*", (req, res) => {
         "GET /api/admin/analytics/stats",
         "GET /api/admin/activity",
         "GET /api/admin/settings",
+        "PUT /api/admin/settings",
         "GET /api/admin/products",
+        "POST /api/admin/refresh-products",
         "GET /api/admin/registration-fees/unpaid",
         "POST /api/admin/registration-fees/stk-push",
         "GET /api/admin/registration-fees/settings",
@@ -1171,7 +1173,9 @@ app.get("*", (req, res) => {
         "PUT /api/products/:id",
         "DELETE /api/products/:id",
         "PATCH /api/products/bulk-activate",
-        "GET /api/marketplace/products"
+        "GET /api/marketplace/products",
+        "GET /api/marketplace/categories",
+        "GET /api/marketplace/counties"
       ]
     });
   }
