@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 
 const app = express();
-const PORT = process.env.PORT || 5002;
+const PORT = process.env.BACKEND_PORT || process.env.PORT || 5003;
 
 // Middleware
 app.use(cors());
@@ -43,7 +43,7 @@ pool.connect(async (err, client, release) => {
     return;
   }
 
-  console.log("✅ Connected to PostgreSQL database");
+  console.log("�� Connected to PostgreSQL database");
 
   try {
     // Check if products table exists and initialize with real integer IDs
@@ -206,7 +206,7 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    console.log(`👤 Found user: ${user.first_name} ${user.last_name}`);
+    console.log(`�� Found user: ${user.first_name} ${user.last_name}`);
 
     // Verify password
     const isValidPassword = verifyPassword(password, user.password_hash);
@@ -670,7 +670,7 @@ app.get("/api/marketplace/categories", async (req, res) => {
       });
     } catch (queryError) {
       console.log(
-        `📁 Query failed, using demo categories:`,
+        `���� Query failed, using demo categories:`,
         queryError.message,
       );
       const demoCategories = [
@@ -808,7 +808,7 @@ app.get("/api/farmer/:id/categories", async (req, res) => {
 
 // JWT middleware for admin routes
 const authenticateAdmin = (req, res, next) => {
-  console.log('🔐 Admin auth middleware called for:', req.method, req.path);
+  console.log('�� Admin auth middleware called for:', req.method, req.path);
 
   const authHeader = req.headers.authorization;
   console.log('🔐 Auth header:', authHeader ? 'Present' : 'Missing');
@@ -1773,7 +1773,7 @@ initializeFarmerCategoriesTables();
 // GET /api/admin/farmer-categories - Get all farmer categories with stats
 app.get("/api/admin/farmer-categories", authenticateAdmin, async (req, res) => {
   try {
-    console.log("📂 Admin farmer categories request received");
+    console.log("��� Admin farmer categories request received");
 
     const result = await pool.query(`
       SELECT
