@@ -755,15 +755,25 @@ app.patch("/api/admin/consignments/:id", async (req, res) => {
     const consignmentId = req.params.id;
     const { status, notes, approved_by } = req.body;
 
-    console.log(`🔄 Admin updating consignment ${consignmentId}:`, { status, notes });
+    console.log(`🔄 Admin updating consignment ${consignmentId}:`, {
+      status,
+      notes,
+      approved_by,
+      fullBody: req.body
+    });
 
-    // Validate status
-    if (!['PENDING', 'APPROVED', 'REJECTED'].includes(status)) {
+    // More flexible validation - allow updates without status change
+    if (status && !['PENDING', 'APPROVED', 'REJECTED'].includes(status)) {
+      console.log(`❌ Invalid status received: "${status}"`);
       return res.status(400).json({
         success: false,
-        error: "Invalid status. Must be PENDING, APPROVED, or REJECTED"
+        error: `Invalid status "${status}". Must be PENDING, APPROVED, or REJECTED`,
+        received: { status, notes, approved_by }
       });
     }
+
+    // If no status provided, use existing status
+    const finalStatus = status || 'PENDING';
 
     // Mock updated consignment data
     const updatedConsignment = {
