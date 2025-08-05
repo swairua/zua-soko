@@ -41,14 +41,20 @@ interface Consignment {
 }
 
 interface Driver {
-  id: string;
-  userId: string;
-  name: string;
-  licenseNumber: string;
-  vehicleType: string;
-  vehicleRegNo: string;
-  isAvailable: boolean;
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  license_number: string;
+  vehicle_type: string;
+  vehicle_registration: string;
+  status: string;
+  location: string;
+  total_deliveries: number;
   rating: number;
+  earnings: number;
+  verified: boolean;
 }
 
 const statusConfig = {
