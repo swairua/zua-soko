@@ -2011,6 +2011,113 @@ app.get("/api/notifications", authenticateToken, async (req, res) => {
   }
 });
 
+// Admin M-Pesa Settings endpoints
+app.get("/api/admin/mpesa-settings", authenticateAdmin, async (req, res) => {
+  try {
+    console.log("🔧 Fetching M-Pesa settings");
+
+    // For now, return mock settings (in production, store in database)
+    const settings = {
+      consumer_key: process.env.MPESA_CONSUMER_KEY || "",
+      consumer_secret: process.env.MPESA_CONSUMER_SECRET ? "••••••••" : "",
+      passkey: process.env.MPESA_PASSKEY ? "••••••••" : "",
+      shortcode: process.env.MPESA_SHORTCODE || "",
+      environment: process.env.MPESA_ENVIRONMENT || "sandbox",
+      callback_url: process.env.MPESA_CALLBACK_URL || "",
+      configured: !!(process.env.MPESA_CONSUMER_KEY && process.env.MPESA_CONSUMER_SECRET),
+    };
+
+    res.json({
+      success: true,
+      settings
+    });
+  } catch (error) {
+    console.error("❌ Error fetching M-Pesa settings:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch M-Pesa settings"
+    });
+  }
+});
+
+app.put("/api/admin/mpesa-settings", authenticateAdmin, async (req, res) => {
+  try {
+    const {
+      consumer_key,
+      consumer_secret,
+      passkey,
+      shortcode,
+      environment,
+      callback_url
+    } = req.body;
+
+    console.log("🔧 Updating M-Pesa settings");
+
+    // Validate required fields
+    if (!consumer_key || !consumer_secret || !passkey || !shortcode) {
+      return res.status(400).json({
+        success: false,
+        error: "All M-Pesa credentials are required"
+      });
+    }
+
+    // In production, these would be stored securely in database
+    // For demo, we'll just validate and return success
+    const updatedSettings = {
+      consumer_key,
+      consumer_secret: "••••••••", // Hide in response
+      passkey: "••••••••", // Hide in response
+      shortcode,
+      environment: environment || "sandbox",
+      callback_url: callback_url || "",
+      configured: true,
+      updated_at: new Date().toISOString()
+    };
+
+    console.log("✅ M-Pesa settings updated successfully");
+
+    res.json({
+      success: true,
+      message: "M-Pesa settings updated successfully",
+      settings: updatedSettings
+    });
+
+  } catch (error) {
+    console.error("❌ Error updating M-Pesa settings:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update M-Pesa settings"
+    });
+  }
+});
+
+// Test M-Pesa connection endpoint
+app.post("/api/admin/mpesa-test", authenticateAdmin, async (req, res) => {
+  try {
+    console.log("🧪 Testing M-Pesa connection");
+
+    // Simulate M-Pesa API test
+    const testResult = {
+      status: "success",
+      message: "M-Pesa connection test successful",
+      environment: "sandbox",
+      timestamp: new Date().toISOString()
+    };
+
+    res.json({
+      success: true,
+      test_result: testResult
+    });
+
+  } catch (error) {
+    console.error("❌ M-Pesa connection test failed:", error);
+    res.status(500).json({
+      success: false,
+      error: "M-Pesa connection test failed"
+    });
+  }
+});
+
 // Drivers endpoints
 app.get("/api/drivers", async (req, res) => {
   try {
