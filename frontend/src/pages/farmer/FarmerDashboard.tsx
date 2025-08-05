@@ -481,7 +481,7 @@ function ConsignmentsSection({
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("authToken");
+      const authToken = localStorage.getItem("authToken");
       
       // Convert images to base64
       const imageUrls = [];
