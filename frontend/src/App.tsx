@@ -49,9 +49,6 @@ import WarehousePage from "./pages/driver/WarehousePage";
 import ComingSoonPage from "./pages/ComingSoonPage";
 import TestMpesaPage from "./pages/TestMpesaPage";
 
-// Development Components
-import EnvironmentTest from "./components/EnvironmentTest";
-
 // Context Providers (using Zustand stores)
 import { CartProvider } from "./contexts/CartContext";
 
