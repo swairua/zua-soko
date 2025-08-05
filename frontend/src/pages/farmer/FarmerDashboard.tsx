@@ -473,37 +473,7 @@ export default function FarmerDashboard() {
           )}
 
           {activeSection === "wallet" && (
-            <div className="space-y-6">
-              <h1 className="text-3xl font-bold text-gray-900">Wallet</h1>
-              
-              <div className="bg-white p-6 rounded-lg shadow-sm border">
-                <h3 className="text-lg font-semibold mb-4">Current Balance</h3>
-                <p className="text-3xl font-bold text-green-600">
-                  KSh {wallet?.balance?.toLocaleString() || 0}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm border">
-                <div className="p-6 border-b">
-                  <h3 className="text-lg font-semibold">Recent Transactions</h3>
-                </div>
-                <div className="divide-y">
-                  {wallet?.transactions?.map((transaction) => (
-                    <div key={transaction.id} className="p-6 flex justify-between items-center">
-                      <div>
-                        <p className="font-medium">{transaction.description}</p>
-                        <p className="text-sm text-gray-500">{new Date(transaction.date).toLocaleDateString()}</p>
-                      </div>
-                      <div className={`text-lg font-semibold ${
-                        transaction.type === "CREDIT" ? "text-green-600" : "text-red-600"
-                      }`}>
-                        {transaction.type === "CREDIT" ? "+" : "-"}KSh {transaction.amount.toLocaleString()}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <WalletSection wallet={wallet} token={token} />
           )}
 
           {activeSection === "notifications" && (
