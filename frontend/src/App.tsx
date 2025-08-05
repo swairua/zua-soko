@@ -246,10 +246,7 @@ function App() {
               
               <Footer />
               <MobileBottomNav />
-              
-              {/* Development Tools */}
-              {import.meta.env.DEV && <EnvironmentTest />}
-              
+
               {/* Toast Notifications */}
               <Toaster
                 position="top-right"
