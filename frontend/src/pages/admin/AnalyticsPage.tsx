@@ -435,27 +435,36 @@ export default function AnalyticsPage() {
             Quick Actions
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <Users className="w-6 h-6 text-blue-600 mb-2" />
-              <h4 className="font-medium text-gray-900">Manage Users</h4>
+            <button
+              onClick={() => navigate('/admin/users')}
+              className="p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left group"
+            >
+              <Users className="w-6 h-6 text-blue-600 mb-2 group-hover:scale-110 transition-transform" />
+              <h4 className="font-medium text-gray-900 group-hover:text-blue-700">Manage Users</h4>
               <p className="text-sm text-gray-500">
                 View and manage platform users
               </p>
             </button>
 
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <Package className="w-6 h-6 text-green-600 mb-2" />
-              <h4 className="font-medium text-gray-900">Review Consignments</h4>
+            <button
+              onClick={() => navigate('/admin/consignments')}
+              className="p-4 border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 transition-colors text-left group"
+            >
+              <Package className="w-6 h-6 text-green-600 mb-2 group-hover:scale-110 transition-transform" />
+              <h4 className="font-medium text-gray-900 group-hover:text-green-700">Review Consignments</h4>
               <p className="text-sm text-gray-500">
                 Approve pending consignments
               </p>
             </button>
 
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <Download className="w-6 h-6 text-purple-600 mb-2" />
-              <h4 className="font-medium text-gray-900">Generate Reports</h4>
+            <button
+              onClick={() => navigate('/admin/registration-fees')}
+              className="p-4 border border-gray-200 rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors text-left group"
+            >
+              <Download className="w-6 h-6 text-purple-600 mb-2 group-hover:scale-110 transition-transform" />
+              <h4 className="font-medium text-gray-900 group-hover:text-purple-700">Registration Fees</h4>
               <p className="text-sm text-gray-500">
-                Download detailed analytics
+                Manage farmer registration fees
               </p>
             </button>
           </div>
