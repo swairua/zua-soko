@@ -300,6 +300,14 @@ export default function AdminDashboard() {
       count: null,
     },
     {
+      title: "M-Pesa Settings",
+      description: "Configure M-Pesa API credentials",
+      icon: CreditCard,
+      color: "bg-indigo-500",
+      link: "/admin/mpesa-settings",
+      count: null,
+    },
+    {
       title: "System Settings",
       description: "Configure platform settings",
       icon: Settings,
