@@ -118,7 +118,7 @@ export default function ConsignmentManagementPage() {
     try {
       console.log("📦 Fetching consignments from live database");
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/consignments`,
+        `/api/admin/consignments`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
