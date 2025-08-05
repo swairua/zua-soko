@@ -576,7 +576,7 @@ export default function ConsignmentManagementPage() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Current proposed price: KSh{" "}
-                        {selectedConsignment.proposedPricePerUnit} per{" "}
+                        {selectedConsignment.proposedPricePerUnit || (selectedConsignment as any).price_per_unit || 0} per{" "}
                         {selectedConsignment.unit}
                       </label>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
