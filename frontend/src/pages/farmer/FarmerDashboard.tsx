@@ -57,6 +57,184 @@ interface Wallet {
   }>;
 }
 
+// Wallet Section Component with STK Withdrawal
+function WalletSection({ wallet, token }: { wallet: any, token: string | null }) {
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawPhone, setWithdrawPhone] = useState("");
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+
+  const handleWithdraw = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!withdrawAmount || !withdrawPhone) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    if (parseFloat(withdrawAmount) < 10) {
+      toast.error("Minimum withdrawal amount is KSh 10");
+      return;
+    }
+
+    if (parseFloat(withdrawAmount) > (wallet?.balance || 0)) {
+      toast.error("Insufficient balance");
+      return;
+    }
+
+    setIsWithdrawing(true);
+
+    try {
+      const authToken = localStorage.getItem("authToken") || token;
+
+      await axios.post("/api/wallet/withdraw", {
+        amount: parseFloat(withdrawAmount),
+        phone: withdrawPhone
+      }, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+
+      toast.success("STK withdrawal request sent! Check your phone.");
+      setShowWithdrawModal(false);
+      setWithdrawAmount("");
+      setWithdrawPhone("");
+    } catch (error: any) {
+      console.error("❌ Withdrawal error:", error);
+      toast.error(error.response?.data?.error || "Failed to process withdrawal");
+    } finally {
+      setIsWithdrawing(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">Wallet</h1>
+        <button
+          onClick={() => setShowWithdrawModal(true)}
+          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
+        >
+          <DollarSign className="w-4 h-4 mr-2" />
+          Withdraw
+        </button>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <h3 className="text-lg font-semibold mb-4">Current Balance</h3>
+        <p className="text-3xl font-bold text-green-600">
+          KSh {wallet?.balance?.toLocaleString() || 0}
+        </p>
+        <p className="text-sm text-gray-500 mt-2">
+          Available for withdrawal
+        </p>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="p-6 border-b">
+          <h3 className="text-lg font-semibold">Recent Transactions</h3>
+        </div>
+        <div className="divide-y">
+          {wallet?.transactions?.map((transaction: any) => (
+            <div key={transaction.id} className="p-6 flex justify-between items-center">
+              <div>
+                <p className="font-medium">{transaction.description}</p>
+                <p className="text-sm text-gray-500">{new Date(transaction.date).toLocaleDateString()}</p>
+              </div>
+              <div className={`text-lg font-semibold ${
+                transaction.type === "CREDIT" ? "text-green-600" : "text-red-600"
+              }`}>
+                {transaction.type === "CREDIT" ? "+" : "-"}KSh {transaction.amount.toLocaleString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* STK Withdrawal Modal */}
+      {showWithdrawModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  STK Withdrawal
+                </h3>
+                <button
+                  onClick={() => setShowWithdrawModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleWithdraw} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Amount (KSh) *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="10"
+                  max={wallet?.balance || 0}
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  placeholder="Enter amount to withdraw"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Available: KSh {wallet?.balance?.toLocaleString() || 0}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={withdrawPhone}
+                  onChange={(e) => setWithdrawPhone(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  placeholder="+254712345678"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  STK push will be sent to this number
+                </p>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-sm text-yellow-800">
+                  <strong>Note:</strong> You will receive an STK push on your phone to complete the withdrawal.
+                </p>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowWithdrawModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isWithdrawing}
+                  className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {isWithdrawing ? "Processing..." : "Send STK Push"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function FarmerDashboard() {
   const { user, token } = useAuthStore();
   const [activeSection, setActiveSection] = useState("overview");
