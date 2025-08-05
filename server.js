@@ -788,10 +788,10 @@ app.patch("/api/admin/consignments/:id", async (req, res) => {
       unit: "kg",
       price_per_unit: 130,
       total_value: 6500,
-      status: status,
+      status: finalStatus,
       submission_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      approval_date: status !== 'PENDING' ? new Date().toISOString() : null,
-      approved_by: status !== 'PENDING' ? (approved_by || "Admin User") : null,
+      approval_date: finalStatus !== 'PENDING' ? new Date().toISOString() : null,
+      approved_by: finalStatus !== 'PENDING' ? (approved_by || "Admin User") : null,
       notes: notes || "Updated by admin",
       images: [],
       farmer_county: "Nakuru",
@@ -799,16 +799,24 @@ app.patch("/api/admin/consignments/:id", async (req, res) => {
     };
 
     // If approved, we could theoretically add it to products table
-    if (status === 'APPROVED') {
+    if (finalStatus === 'APPROVED') {
       console.log(`✅ Consignment ${consignmentId} approved - would create product listing`);
-    } else if (status === 'REJECTED') {
+    } else if (finalStatus === 'REJECTED') {
       console.log(`❌ Consignment ${consignmentId} rejected`);
     }
 
+    console.log(`✅ Consignment ${consignmentId} updated successfully to ${finalStatus}`);
+
     res.json({
       success: true,
-      message: `Consignment ${status.toLowerCase()} successfully`,
+      message: `Consignment ${finalStatus.toLowerCase()} successfully`,
       consignment: updatedConsignment,
+      debug: {
+        received_status: status,
+        final_status: finalStatus,
+        notes: notes,
+        approved_by: approved_by
+      }
     });
   } catch (err) {
     console.error("❌ Error updating consignment:", err);
