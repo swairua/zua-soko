@@ -611,11 +611,11 @@ export default function ConsignmentManagementPage() {
                         <option value="">Choose a driver</option>
                         {Array.isArray(drivers)
                           ? drivers
-                              .filter((d) => d.isAvailable)
+                              .filter((d) => d.status === "ACTIVE" && d.verified)
                               .map((driver) => (
-                                <option key={driver.id} value={driver.userId}>
-                                  {driver.name} - {driver.vehicleType} (
-                                  {driver.vehicleRegNo}) - Rating:{" "}
+                                <option key={driver.id} value={driver.id}>
+                                  {driver.first_name} {driver.last_name} - {driver.vehicle_type} (
+                                  {driver.vehicle_registration}) - Rating:{" "}
                                   {driver.rating}⭐
                                 </option>
                               ))
