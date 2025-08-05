@@ -508,7 +508,7 @@ function ConsignmentsSection({
       };
       
       await axios.post("/api/consignments", payload, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${authToken}` }
       });
 
       toast.success("Consignment submitted successfully!");
