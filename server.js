@@ -1103,6 +1103,221 @@ app.get("/api/admin/registration-fees/settings", async (req, res) => {
   }
 });
 
+// Consignments endpoints
+app.get("/api/consignments", async (req, res) => {
+  try {
+    console.log("📦 Fetching consignments");
+
+    // For now, return mock data until we create consignments table
+    const mockConsignments = [
+      {
+        id: 1,
+        farmer_id: 2,
+        farmer_name: "John Kimani",
+        product_name: "Fresh Tomatoes",
+        category: "Vegetables",
+        quantity: 50,
+        unit: "kg",
+        price_per_unit: 130,
+        total_value: 6500,
+        status: "PENDING",
+        submission_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        approval_date: null,
+        notes: "Grade A organic tomatoes from Nakuru"
+      },
+      {
+        id: 2,
+        farmer_id: 2,
+        farmer_name: "Jane Wanjiku",
+        product_name: "Sweet Potatoes",
+        category: "Root Vegetables",
+        quantity: 30,
+        unit: "kg",
+        price_per_unit: 80,
+        total_value: 2400,
+        status: "APPROVED",
+        submission_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        approval_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        notes: "High quality sweet potatoes from Meru"
+      },
+      {
+        id: 3,
+        farmer_id: 3,
+        farmer_name: "Peter Kamau",
+        product_name: "Spinach",
+        category: "Leafy Greens",
+        quantity: 20,
+        unit: "bunches",
+        price_per_unit: 50,
+        total_value: 1000,
+        status: "REJECTED",
+        submission_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        approval_date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        notes: "Quality standards not met - wilted leaves"
+      }
+    ];
+
+    res.json({
+      success: true,
+      consignments: mockConsignments,
+      count: mockConsignments.length,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching consignments:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch consignments",
+      details: err.message,
+    });
+  }
+});
+
+app.post("/api/consignments", async (req, res) => {
+  try {
+    console.log("➕ Creating new consignment");
+    const { product_name, category, quantity, unit, price_per_unit, notes } = req.body;
+
+    // For now, return success with mock ID
+    const newConsignment = {
+      id: Date.now(),
+      farmer_id: 2, // Mock farmer ID
+      farmer_name: "Current Farmer",
+      product_name,
+      category,
+      quantity: parseInt(quantity),
+      unit,
+      price_per_unit: parseFloat(price_per_unit),
+      total_value: parseInt(quantity) * parseFloat(price_per_unit),
+      status: "PENDING",
+      submission_date: new Date().toISOString(),
+      approval_date: null,
+      notes: notes || ""
+    };
+
+    res.status(201).json({
+      success: true,
+      message: "Consignment submitted successfully",
+      consignment: newConsignment,
+    });
+  } catch (err) {
+    console.error("❌ Error creating consignment:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to create consignment",
+      details: err.message,
+    });
+  }
+});
+
+// Drivers endpoints
+app.get("/api/drivers", async (req, res) => {
+  try {
+    console.log("🚛 Fetching drivers");
+
+    // Return mock driver data
+    const mockDrivers = [
+      {
+        id: 1,
+        first_name: "David",
+        last_name: "Kiprotich",
+        email: "david.driver@zuasoko.com",
+        phone: "+254730345678",
+        license_number: "DL12345678",
+        vehicle_type: "Pickup Truck",
+        vehicle_registration: "KCA 123D",
+        status: "ACTIVE",
+        location: "Nakuru",
+        total_deliveries: 45,
+        rating: 4.8,
+        created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        last_delivery: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 2,
+        first_name: "Grace",
+        last_name: "Mwangi",
+        email: "grace.driver@zuasoko.com",
+        phone: "+254741234567",
+        license_number: "DL87654321",
+        vehicle_type: "Van",
+        vehicle_registration: "KBZ 456E",
+        status: "ACTIVE",
+        location: "Nairobi",
+        total_deliveries: 62,
+        rating: 4.9,
+        created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+        last_delivery: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 3,
+        first_name: "Samuel",
+        last_name: "Njoroge",
+        email: "samuel.driver@zuasoko.com",
+        phone: "+254752345678",
+        license_number: "DL11223344",
+        vehicle_type: "Motorcycle",
+        vehicle_registration: "KMEW 789F",
+        status: "OFFLINE",
+        location: "Kiambu",
+        total_deliveries: 28,
+        rating: 4.6,
+        created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+        last_delivery: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+
+    res.json({
+      success: true,
+      drivers: mockDrivers,
+      count: mockDrivers.length,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching drivers:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch drivers",
+      details: err.message,
+    });
+  }
+});
+
+app.post("/api/drivers", async (req, res) => {
+  try {
+    console.log("➕ Creating new driver");
+    const { first_name, last_name, email, phone, license_number, vehicle_type, vehicle_registration } = req.body;
+
+    const newDriver = {
+      id: Date.now(),
+      first_name,
+      last_name,
+      email,
+      phone,
+      license_number,
+      vehicle_type,
+      vehicle_registration,
+      status: "ACTIVE",
+      location: "Nairobi",
+      total_deliveries: 0,
+      rating: 5.0,
+      created_at: new Date().toISOString(),
+      last_delivery: null
+    };
+
+    res.status(201).json({
+      success: true,
+      message: "Driver created successfully",
+      driver: newDriver,
+    });
+  } catch (err) {
+    console.error("❌ Error creating driver:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to create driver",
+      details: err.message,
+    });
+  }
+});
+
 // Status endpoint
 app.get("/api/status", async (req, res) => {
   try {
