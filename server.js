@@ -164,6 +164,10 @@ pool.connect(async (err, client, release) => {
 
       console.log("🎉 Database auto-initialization completed!");
 
+      // Auto-seed admin users
+      console.log("🌱 Seeding default users...");
+      await seedDefaultUsers(client);
+
     } catch (initError) {
       console.warn("⚠️ Database auto-initialization failed:", initError.message);
     }
