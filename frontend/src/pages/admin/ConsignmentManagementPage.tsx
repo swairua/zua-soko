@@ -176,7 +176,9 @@ export default function ConsignmentManagementPage() {
     setShowActionModal(true);
 
     if (action === "suggest_price") {
-      setSuggestedPrice(consignment.proposedPricePerUnit?.toString() || "0");
+      // Handle both field names for compatibility
+      const currentPrice = consignment.proposedPricePerUnit || (consignment as any).price_per_unit || 0;
+      setSuggestedPrice(currentPrice.toString());
     }
   };
 
