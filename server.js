@@ -1319,7 +1319,7 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
 });
 
 // Admin analytics endpoint
-app.get("/api/admin/analytics/stats", async (req, res) => {
+app.get("/api/admin/analytics/stats", authenticateAdmin, async (req, res) => {
   try {
     console.log("📊 Fetching analytics stats via admin endpoint");
 
