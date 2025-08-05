@@ -775,11 +775,22 @@ app.patch("/api/admin/consignments/:id", async (req, res) => {
     });
 
     // More flexible validation - allow updates without status change
-    if (status && !['PENDING', 'APPROVED', 'REJECTED'].includes(status)) {
+    const validStatuses = [
+      'PENDING',
+      'APPROVED',
+      'REJECTED',
+      'PRICE_SUGGESTED',
+      'DRIVER_ASSIGNED',
+      'IN_TRANSIT',
+      'DELIVERED',
+      'COMPLETED'
+    ];
+
+    if (status && !validStatuses.includes(status)) {
       console.log(`❌ Invalid status received: "${status}"`);
       return res.status(400).json({
         success: false,
-        error: `Invalid status "${status}". Must be PENDING, APPROVED, or REJECTED`,
+        error: `Invalid status "${status}". Must be one of: ${validStatuses.join(', ')}`,
         received: { status, notes, approved_by }
       });
     }
