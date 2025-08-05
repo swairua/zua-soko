@@ -218,6 +218,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/admin/mpesa-settings"
+                element={
+                  <ProtectedRoute allowedRoles={["ADMIN"]}>
+                    <MpesaSettingsPage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Driver routes */}
               <Route
