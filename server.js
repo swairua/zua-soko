@@ -636,7 +636,7 @@ app.get("/api/marketplace/counties", async (req, res) => {
 // Admin-specific product endpoint (returns all products including inactive)
 app.get("/api/admin/products", async (req, res) => {
   try {
-    console.log("�� Fetching all products for admin (including inactive)");
+    console.log("👥 Fetching all products for admin (including inactive)");
     const result = await pool.query(`
       SELECT id, name, category, price_per_unit, unit, description,
              stock_quantity, COALESCE(is_featured, false) as is_featured,
@@ -1688,63 +1688,51 @@ app.get("/api/admin/registration-fees/settings", async (req, res) => {
 });
 
 // Consignments endpoints
-app.get("/api/consignments", async (req, res) => {
+app.get("/api/consignments", authenticateToken, async (req, res) => {
   try {
-    console.log("📦 Fetching consignments");
+    console.log("📦 Fetching consignments for user:", req.user.userId);
 
-    // For now, return mock data until we create consignments table
-    const mockConsignments = [
-      {
-        id: 1,
-        farmer_id: 2,
-        farmer_name: "John Kimani",
-        product_name: "Fresh Tomatoes",
-        category: "Vegetables",
-        quantity: 50,
-        unit: "kg",
-        price_per_unit: 130,
-        total_value: 6500,
-        status: "PENDING",
-        submission_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        approval_date: null,
-        notes: "Grade A organic tomatoes from Nakuru"
-      },
-      {
-        id: 2,
-        farmer_id: 2,
-        farmer_name: "Jane Wanjiku",
-        product_name: "Sweet Potatoes",
-        category: "Root Vegetables",
-        quantity: 30,
-        unit: "kg",
-        price_per_unit: 80,
-        total_value: 2400,
-        status: "APPROVED",
-        submission_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        approval_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        notes: "High quality sweet potatoes from Meru"
-      },
-      {
-        id: 3,
-        farmer_id: 3,
-        farmer_name: "Peter Kamau",
-        product_name: "Spinach",
-        category: "Leafy Greens",
-        quantity: 20,
-        unit: "bunches",
-        price_per_unit: 50,
-        total_value: 1000,
-        status: "REJECTED",
-        submission_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        approval_date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-        notes: "Quality standards not met - wilted leaves"
-      }
-    ];
+    // Fetch consignments from database for the authenticated user
+    const result = await pool.query(`
+      SELECT
+        c.*,
+        u.first_name as farmer_first_name,
+        u.last_name as farmer_last_name
+      FROM consignments c
+      LEFT JOIN users u ON c.farmer_id = u.id
+      WHERE c.farmer_id = $1
+      ORDER BY c.created_at DESC
+    `, [req.user.userId]);
+
+    const consignments = result.rows.map(row => ({
+      id: row.id,
+      farmer_id: row.farmer_id,
+      farmer_name: `${row.farmer_first_name} ${row.farmer_last_name}`,
+      product_name: row.product_name,
+      category: row.category,
+      quantity: row.quantity,
+      unit: row.unit,
+      price_per_unit: row.price_per_unit,
+      total_value: row.total_value,
+      status: row.status,
+      notes: row.notes,
+      location: row.location,
+      harvest_date: row.harvest_date,
+      expiry_date: row.expiry_date,
+      images: JSON.parse(row.images || '[]'),
+      admin_notes: row.admin_notes,
+      approved_by: row.approved_by,
+      approved_at: row.approved_at,
+      created_at: row.created_at,
+      updated_at: row.updated_at
+    }));
+
+    console.log(`✅ Found ${consignments.length} consignments for user ${req.user.userId}`);
 
     res.json({
       success: true,
-      consignments: mockConsignments,
-      count: mockConsignments.length,
+      consignments,
+      count: consignments.length,
     });
   } catch (err) {
     console.error("❌ Error fetching consignments:", err);
