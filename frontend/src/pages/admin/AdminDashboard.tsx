@@ -379,8 +379,8 @@ export default function AdminDashboard() {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Link
-            to="/admin/users"
+          <div
+            onClick={() => navigate('/admin/users')}
             className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer group"
           >
             <div className="flex items-center justify-between">
@@ -397,10 +397,10 @@ export default function AdminDashboard() {
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
-          </Link>
+          </div>
 
-          <Link
-            to="/admin/users?filter=pending"
+          <div
+            onClick={() => navigate('/admin/users?filter=pending')}
             className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-yellow-300 transition-all duration-200 cursor-pointer group"
           >
             <div className="flex items-center justify-between">
@@ -417,10 +417,10 @@ export default function AdminDashboard() {
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-yellow-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
-          </Link>
+          </div>
 
-          <Link
-            to="/admin/consignments"
+          <div
+            onClick={() => navigate('/admin/consignments')}
             className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-green-300 transition-all duration-200 cursor-pointer group"
           >
             <div className="flex items-center justify-between">
@@ -437,10 +437,10 @@ export default function AdminDashboard() {
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
-          </Link>
+          </div>
 
-          <Link
-            to="/admin/analytics"
+          <div
+            onClick={() => navigate('/admin/analytics')}
             className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-purple-300 transition-all duration-200 cursor-pointer group"
           >
             <div className="flex items-center justify-between">
@@ -457,7 +457,7 @@ export default function AdminDashboard() {
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
-          </Link>
+          </div>
         </div>
 
         {/* Quick Actions */}
