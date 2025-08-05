@@ -219,8 +219,13 @@ export default function Navbar() {
                       <div className="text-sm font-medium text-gray-900">
                         {user?.firstName} {user?.lastName}
                       </div>
-                      <div className="text-xs text-gray-500 capitalize">
+                      <div className="text-xs text-gray-500 capitalize flex items-center gap-2">
                         {user?.role?.toLowerCase()}
+                        {user?.role === 'admin' && (
+                          <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-medium">
+                            Full Access
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
