@@ -27,8 +27,8 @@ export default function ProtectedRoute({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (roles && user && !roles.includes(user.role)) {
-    // User doesn't have permission
+  if (roles && user && !roles.includes(user.role) && user.role !== 'admin') {
+    // User doesn't have permission (admin can access everything)
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -37,6 +37,9 @@ export default function ProtectedRoute({
           </h1>
           <p className="text-gray-600">
             You don't have permission to access this page.
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Required roles: {roles.join(', ')} | Your role: {user.role}
           </p>
         </div>
       </div>
