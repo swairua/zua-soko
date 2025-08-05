@@ -191,6 +191,32 @@ pool.connect(async (err, client, release) => {
         );
       `);
 
+      // Create consignments table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS consignments (
+          id SERIAL PRIMARY KEY,
+          farmer_id INTEGER REFERENCES users(id),
+          product_name VARCHAR(255) NOT NULL,
+          category VARCHAR(100) NOT NULL,
+          quantity DECIMAL(10,2) NOT NULL,
+          unit VARCHAR(50) NOT NULL,
+          price_per_unit DECIMAL(10,2) NOT NULL,
+          total_value DECIMAL(10,2) NOT NULL,
+          status VARCHAR(50) DEFAULT 'PENDING',
+          notes TEXT,
+          location VARCHAR(255),
+          harvest_date DATE,
+          expiry_date DATE,
+          images JSONB DEFAULT '[]',
+          admin_notes TEXT,
+          approved_by INTEGER REFERENCES users(id),
+          approved_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+      console.log("✅ Consignments table created");
+
       // Insert sample admin user if none exists
       const adminCheck = await client.query(
         "SELECT COUNT(*) FROM users WHERE role = 'ADMIN'"
@@ -1986,7 +2012,7 @@ if (fs.existsSync(path.join(__dirname, "index.html"))) {
 app.get("*", (req, res) => {
   // Skip API routes
   if (req.path.startsWith("/api/")) {
-    console.log(`❌ 404 API endpoint not found: ${req.method} ${req.path}`);
+    console.log(`��� 404 API endpoint not found: ${req.method} ${req.path}`);
     return res.status(404).json({
       error: "API endpoint not found",
       path: req.path,
