@@ -52,8 +52,7 @@ import TestMpesaPage from "./pages/TestMpesaPage";
 // Development Components
 import EnvironmentTest from "./components/EnvironmentTest";
 
-// Context Providers
-import { AuthProvider } from "./contexts/AuthContext";
+// Context Providers (using Zustand stores)
 import { CartProvider } from "./contexts/CartContext";
 
 // Protected Route Component
@@ -62,9 +61,8 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <CartProvider>
-          <Router>
+      <CartProvider>
+        <Router>
             <div className="min-h-screen flex flex-col bg-gray-50">
               <Navbar />
               
@@ -278,7 +276,6 @@ function App() {
             </div>
           </Router>
         </CartProvider>
-      </AuthProvider>
     </ErrorBoundary>
   );
 }
