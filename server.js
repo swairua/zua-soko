@@ -176,8 +176,10 @@ pool.connect(async (err, client, release) => {
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { phone, password } = req.body;
+    console.log(`🔐 Login attempt for phone: ${phone}`);
 
     if (!phone || !password) {
+      console.log("❌ Missing phone or password");
       return res.status(400).json({ message: "Phone and password are required" });
     }
 
@@ -186,8 +188,22 @@ app.post("/api/auth/login", async (req, res) => {
       [phone.trim()]
     );
 
+    console.log(`📊 Database query returned ${result.rows.length} users`);
+
     const user = result.rows[0];
-    if (!user || !verifyPassword(password, user.password_hash)) {
+    if (!user) {
+      console.log(`❌ No user found for phone: ${phone}`);
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    console.log(`👤 Found user: ${user.first_name} ${user.last_name} (${user.role})`);
+    console.log(`🔐 Verifying password for user: ${user.phone}`);
+
+    const passwordValid = verifyPassword(password, user.password_hash);
+    console.log(`✅ Password validation result: ${passwordValid}`);
+
+    if (!passwordValid) {
+      console.log(`❌ Invalid password for user: ${phone}`);
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
