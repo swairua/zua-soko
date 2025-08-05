@@ -1893,6 +1893,78 @@ app.get("/api/wallet", authenticateToken, async (req, res) => {
   }
 });
 
+// STK Withdrawal endpoint
+app.post("/api/wallet/withdraw", authenticateToken, async (req, res) => {
+  try {
+    const { amount, phone } = req.body;
+    const userId = req.user.userId;
+
+    console.log(`💸 STK Withdrawal request: KSh ${amount} to ${phone} for user ${userId}`);
+
+    // Validate amount
+    if (!amount || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid withdrawal amount"
+      });
+    }
+
+    if (amount < 10) {
+      return res.status(400).json({
+        success: false,
+        error: "Minimum withdrawal amount is KSh 10"
+      });
+    }
+
+    if (amount > 100000) {
+      return res.status(400).json({
+        success: false,
+        error: "Maximum withdrawal amount is KSh 100,000"
+      });
+    }
+
+    // Validate phone number
+    if (!phone || !phone.match(/^\+254[0-9]{9}$/)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid phone number format. Use +254XXXXXXXXX"
+      });
+    }
+
+    // For now, simulate the withdrawal process
+    // In real implementation, integrate with M-Pesa API
+
+    const withdrawal = {
+      id: Date.now(),
+      user_id: userId,
+      amount: parseFloat(amount),
+      phone,
+      status: "PENDING",
+      reference: `WD${Date.now()}`,
+      created_at: new Date().toISOString()
+    };
+
+    // Simulate processing delay
+    setTimeout(() => {
+      console.log(`✅ STK withdrawal processed: ${withdrawal.reference}`);
+    }, 2000);
+
+    res.json({
+      success: true,
+      message: "STK withdrawal request initiated successfully",
+      withdrawal,
+      reference: withdrawal.reference
+    });
+
+  } catch (error) {
+    console.error("❌ Error processing STK withdrawal:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to process withdrawal request"
+    });
+  }
+});
+
 // Notifications endpoint
 app.get("/api/notifications", authenticateToken, async (req, res) => {
   try {
