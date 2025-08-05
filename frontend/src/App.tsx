@@ -42,6 +42,7 @@ import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
 import MarketplaceManagementPage from "./pages/admin/MarketplaceManagementPage";
 import RegistrationFeesPage from "./pages/admin/RegistrationFeesPage";
+import MpesaSettingsPage from "./pages/admin/MpesaSettingsPage";
 
 // Driver pages
 import DriverDashboard from "./pages/driver/DriverDashboard";
@@ -257,7 +258,7 @@ function App() {
               {/* Test routes */}
               <Route path="/test-mpesa" element={<TestMpesaPage />} />
 
-              {/* Builder.io route removed for stability */}
+                            {/* Builder.io route removed for stability */}
 
               {/* Catch-all route */}
               <Route path="*" element={<ComingSoonPage />} />
