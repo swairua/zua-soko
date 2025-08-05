@@ -659,6 +659,178 @@ app.post("/api/admin/refresh-products", async (req, res) => {
   }
 });
 
+// Admin consignment management endpoints
+app.get("/api/admin/consignments", async (req, res) => {
+  try {
+    console.log("👥 Fetching all consignments for admin");
+
+    // Return all consignments with additional admin info
+    const adminConsignments = [
+      {
+        id: 1,
+        farmer_id: 2,
+        farmer_name: "John Kimani",
+        farmer_email: "john.farmer@zuasoko.com",
+        farmer_phone: "+254710123456",
+        product_name: "Fresh Tomatoes",
+        category: "Vegetables",
+        quantity: 50,
+        unit: "kg",
+        price_per_unit: 130,
+        total_value: 6500,
+        status: "PENDING",
+        submission_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        approval_date: null,
+        approved_by: null,
+        notes: "Grade A organic tomatoes from Nakuru",
+        images: [],
+        farmer_county: "Nakuru"
+      },
+      {
+        id: 2,
+        farmer_id: 3,
+        farmer_name: "Jane Wanjiku",
+        farmer_email: "jane.farmer@zuasoko.com",
+        farmer_phone: "+254720234567",
+        product_name: "Sweet Potatoes",
+        category: "Root Vegetables",
+        quantity: 30,
+        unit: "kg",
+        price_per_unit: 80,
+        total_value: 2400,
+        status: "APPROVED",
+        submission_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        approval_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        approved_by: "Admin User",
+        notes: "High quality sweet potatoes from Meru",
+        images: [],
+        farmer_county: "Meru"
+      },
+      {
+        id: 3,
+        farmer_id: 4,
+        farmer_name: "Peter Kamau",
+        farmer_email: "peter.farmer@zuasoko.com",
+        farmer_phone: "+254730345678",
+        product_name: "Spinach",
+        category: "Leafy Greens",
+        quantity: 20,
+        unit: "bunches",
+        price_per_unit: 50,
+        total_value: 1000,
+        status: "REJECTED",
+        submission_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        approval_date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        approved_by: "Admin User",
+        notes: "Quality standards not met - wilted leaves",
+        images: [],
+        farmer_county: "Kiambu"
+      }
+    ];
+
+    res.json({
+      success: true,
+      consignments: adminConsignments,
+      count: adminConsignments.length,
+      statistics: {
+        total: adminConsignments.length,
+        pending: adminConsignments.filter(c => c.status === 'PENDING').length,
+        approved: adminConsignments.filter(c => c.status === 'APPROVED').length,
+        rejected: adminConsignments.filter(c => c.status === 'REJECTED').length,
+        total_value: adminConsignments.reduce((sum, c) => sum + c.total_value, 0)
+      }
+    });
+  } catch (err) {
+    console.error("❌ Error fetching admin consignments:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch consignments",
+      details: err.message,
+    });
+  }
+});
+
+app.patch("/api/admin/consignments/:id", async (req, res) => {
+  try {
+    const consignmentId = req.params.id;
+    const { status, notes, approved_by } = req.body;
+
+    console.log(`🔄 Admin updating consignment ${consignmentId}:`, { status, notes });
+
+    // Validate status
+    if (!['PENDING', 'APPROVED', 'REJECTED'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid status. Must be PENDING, APPROVED, or REJECTED"
+      });
+    }
+
+    // Mock updated consignment data
+    const updatedConsignment = {
+      id: parseInt(consignmentId),
+      farmer_id: 2,
+      farmer_name: "John Kimani",
+      farmer_email: "john.farmer@zuasoko.com",
+      farmer_phone: "+254710123456",
+      product_name: "Fresh Tomatoes",
+      category: "Vegetables",
+      quantity: 50,
+      unit: "kg",
+      price_per_unit: 130,
+      total_value: 6500,
+      status: status,
+      submission_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      approval_date: status !== 'PENDING' ? new Date().toISOString() : null,
+      approved_by: status !== 'PENDING' ? (approved_by || "Admin User") : null,
+      notes: notes || "Updated by admin",
+      images: [],
+      farmer_county: "Nakuru",
+      updated_at: new Date().toISOString()
+    };
+
+    // If approved, we could theoretically add it to products table
+    if (status === 'APPROVED') {
+      console.log(`✅ Consignment ${consignmentId} approved - would create product listing`);
+    } else if (status === 'REJECTED') {
+      console.log(`❌ Consignment ${consignmentId} rejected`);
+    }
+
+    res.json({
+      success: true,
+      message: `Consignment ${status.toLowerCase()} successfully`,
+      consignment: updatedConsignment,
+    });
+  } catch (err) {
+    console.error("❌ Error updating consignment:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update consignment",
+      details: err.message,
+    });
+  }
+});
+
+app.delete("/api/admin/consignments/:id", async (req, res) => {
+  try {
+    const consignmentId = req.params.id;
+    console.log(`🗑️ Admin deleting consignment ${consignmentId}`);
+
+    // Mock deletion response
+    res.json({
+      success: true,
+      message: "Consignment deleted successfully",
+      deleted_id: parseInt(consignmentId),
+    });
+  } catch (err) {
+    console.error("❌ Error deleting consignment:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to delete consignment",
+      details: err.message,
+    });
+  }
+});
+
 // Admin settings endpoints
 app.get("/api/admin/settings", async (req, res) => {
   try {
