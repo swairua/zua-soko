@@ -47,6 +47,63 @@ function verifyPassword(password, hash) {
   return hashPassword(password) === hash;
 }
 
+// Seed default users
+async function seedDefaultUsers(client) {
+  try {
+    const adminPasswordHash = hashPassword("password123");
+    const farmerPasswordHash = hashPassword("password123");
+
+    // Insert admin user
+    await client.query(
+      `INSERT INTO users (first_name, last_name, email, phone, password_hash, role, county, verified, registration_fee_paid)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       ON CONFLICT (phone) DO UPDATE SET
+         password_hash = EXCLUDED.password_hash,
+         verified = EXCLUDED.verified,
+         registration_fee_paid = EXCLUDED.registration_fee_paid`,
+      [
+        "Admin",
+        "User",
+        "admin@zuasoko.com",
+        "+254712345678",
+        adminPasswordHash,
+        "ADMIN",
+        "Nairobi",
+        true,
+        true,
+      ]
+    );
+
+    // Insert farmer user
+    await client.query(
+      `INSERT INTO users (first_name, last_name, email, phone, password_hash, role, county, verified, registration_fee_paid)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       ON CONFLICT (phone) DO UPDATE SET
+         password_hash = EXCLUDED.password_hash,
+         verified = EXCLUDED.verified,
+         registration_fee_paid = EXCLUDED.registration_fee_paid`,
+      [
+        "Test",
+        "Farmer",
+        "farmer@zuasoko.com",
+        "+254734567890",
+        farmerPasswordHash,
+        "FARMER",
+        "Nakuru",
+        true,
+        true,
+      ]
+    );
+
+    console.log("✅ Default users seeded:");
+    console.log("   📱 Admin: +254712345678 / password123");
+    console.log("   📱 Farmer: +254734567890 / password123");
+
+  } catch (error) {
+    console.error("❌ Error seeding default users:", error.message);
+  }
+}
+
 // Test database connection and initialize tables
 pool.connect(async (err, client, release) => {
   if (err) {
