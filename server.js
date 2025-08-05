@@ -1409,7 +1409,7 @@ app.get("/api/admin/analytics/stats", authenticateAdmin, async (req, res) => {
 });
 
 // Admin activity endpoint
-app.get("/api/admin/activity", async (req, res) => {
+app.get("/api/admin/activity", authenticateAdmin, async (req, res) => {
   try {
     console.log("🔄 Fetching admin activity");
 
