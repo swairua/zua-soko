@@ -812,7 +812,7 @@ app.patch("/api/admin/consignments/:id", async (req, res) => {
 
     // If approved, we could theoretically add it to products table
     if (finalStatus === 'APPROVED') {
-      console.log(`��� Consignment ${consignmentId} approved - would create product listing`);
+      console.log(`✅ Consignment ${consignmentId} approved - would create product listing`);
     } else if (finalStatus === 'REJECTED') {
       console.log(`❌ Consignment ${consignmentId} rejected`);
     }
@@ -1651,6 +1651,31 @@ app.post("/api/drivers", async (req, res) => {
       success: false,
       error: "Failed to create driver",
       details: err.message,
+    });
+  }
+});
+
+// Test endpoint for debugging
+app.patch("/api/test/:id", async (req, res) => {
+  try {
+    console.log("🧪 Test PATCH endpoint called");
+    console.log("ID:", req.params.id);
+    console.log("Body:", req.body);
+
+    res.json({
+      success: true,
+      message: "Test PATCH endpoint working",
+      received: {
+        id: req.params.id,
+        body: req.body,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: "Test endpoint failed",
+      details: err.message
     });
   }
 });
