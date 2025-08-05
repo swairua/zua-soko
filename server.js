@@ -71,6 +71,24 @@ function authenticateAdmin(req, res, next) {
   }
 }
 
+// General authentication middleware
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'Access token required' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default-secret");
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(403).json({ success: false, message: 'Invalid or expired token' });
+  }
+}
+
 // Seed default users
 async function seedDefaultUsers(client) {
   try {
@@ -2012,7 +2030,7 @@ if (fs.existsSync(path.join(__dirname, "index.html"))) {
 app.get("*", (req, res) => {
   // Skip API routes
   if (req.path.startsWith("/api/")) {
-    console.log(`��� 404 API endpoint not found: ${req.method} ${req.path}`);
+    console.log(`❌ 404 API endpoint not found: ${req.method} ${req.path}`);
     return res.status(404).json({
       error: "API endpoint not found",
       path: req.path,
