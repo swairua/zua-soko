@@ -235,6 +235,83 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
+// Debug endpoint to create admin user
+app.post("/api/debug/seed-admin", async (req, res) => {
+  try {
+    console.log("🌱 Creating admin user...");
+
+    const adminPasswordHash = hashPassword("password123");
+    console.log(`🔐 Admin password hash: ${adminPasswordHash.substring(0, 10)}...`);
+
+    // Insert admin user (or update if exists)
+    const result = await pool.query(
+      `
+      INSERT INTO users (first_name, last_name, email, phone, password_hash, role, county, verified, registration_fee_paid)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      ON CONFLICT (phone)
+      DO UPDATE SET
+          password_hash = EXCLUDED.password_hash,
+          verified = EXCLUDED.verified,
+          registration_fee_paid = EXCLUDED.registration_fee_paid
+      RETURNING id, first_name, last_name, phone, role
+    `,
+      [
+        "Admin",
+        "User",
+        "admin@zuasoko.com",
+        "+254712345678",
+        adminPasswordHash,
+        "ADMIN",
+        "Nairobi",
+        true,
+        true,
+      ],
+    );
+
+    // Also create farmer user
+    const farmerPasswordHash = hashPassword("password123");
+    const farmerResult = await pool.query(
+      `
+      INSERT INTO users (first_name, last_name, email, phone, password_hash, role, county, verified, registration_fee_paid)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      ON CONFLICT (phone)
+      DO UPDATE SET
+          password_hash = EXCLUDED.password_hash,
+          verified = EXCLUDED.verified,
+          registration_fee_paid = EXCLUDED.registration_fee_paid
+      RETURNING id, first_name, last_name, phone, role
+    `,
+      [
+        "Test",
+        "Farmer",
+        "farmer@zuasoko.com",
+        "+254734567890",
+        farmerPasswordHash,
+        "FARMER",
+        "Nakuru",
+        true,
+        true,
+      ],
+    );
+
+    res.json({
+      success: true,
+      message: "Admin and farmer users created/updated",
+      users: [
+        result.rows[0],
+        farmerResult.rows[0]
+      ],
+      credentials: [
+        { phone: "+254712345678", password: "password123", role: "ADMIN" },
+        { phone: "+254734567890", password: "password123", role: "FARMER" }
+      ]
+    });
+  } catch (error) {
+    console.error("❌ Error creating admin:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post("/api/auth/register", async (req, res) => {
   try {
     const { firstName, lastName, email, phone, password, role, county } = req.body;
