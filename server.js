@@ -296,6 +296,11 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
+// Debug endpoint to test routing
+app.get("/api/debug/test", (req, res) => {
+  res.json({ success: true, message: "Debug endpoint working", timestamp: new Date().toISOString() });
+});
+
 // Debug endpoint to create admin user
 app.post("/api/debug/seed-admin", async (req, res) => {
   try {
