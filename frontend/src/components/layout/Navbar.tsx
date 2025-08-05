@@ -100,6 +100,11 @@ export default function Navbar() {
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-600">
                     {user?.firstName}
+                    {user?.role === 'admin' && (
+                      <span className="ml-1 text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
+                        Admin
+                      </span>
+                    )}
                   </span>
                   <button
                     onClick={handleLogout}
