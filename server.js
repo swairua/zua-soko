@@ -17,6 +17,18 @@ if (!process.env.NODE_ENV) {
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
+// Request logging middleware for debugging
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    console.log(`📡 ${req.method} ${req.path}`, {
+      body: req.method !== 'GET' ? req.body : undefined,
+      params: req.params,
+      query: req.query
+    });
+  }
+  next();
+});
+
 // Database connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -800,7 +812,7 @@ app.patch("/api/admin/consignments/:id", async (req, res) => {
 
     // If approved, we could theoretically add it to products table
     if (finalStatus === 'APPROVED') {
-      console.log(`✅ Consignment ${consignmentId} approved - would create product listing`);
+      console.log(`��� Consignment ${consignmentId} approved - would create product listing`);
     } else if (finalStatus === 'REJECTED') {
       console.log(`❌ Consignment ${consignmentId} rejected`);
     }
