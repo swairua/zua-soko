@@ -481,7 +481,14 @@ function ConsignmentsSection({
     setIsSubmitting(true);
 
     try {
-      const authToken = localStorage.getItem("authToken");
+      const authToken = localStorage.getItem("authToken") || token;
+
+      if (!authToken) {
+        toast.error("Authentication required. Please log in again.");
+        return;
+      }
+
+      console.log("🔐 Submitting with token:", authToken.substring(0, 20) + "...");
       
       // Convert images to base64
       const imageUrls = [];
