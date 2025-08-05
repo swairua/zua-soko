@@ -1678,6 +1678,8 @@ app.get("*", (req, res) => {
         "GET /api/admin/consignments",
         "PATCH /api/admin/consignments/:id",
         "DELETE /api/admin/consignments/:id",
+        "GET /api/admin/drivers",
+        "PATCH /api/admin/drivers/:id",
         "GET /api/admin/settings",
         "PUT /api/admin/settings",
         "GET /api/admin/products",
