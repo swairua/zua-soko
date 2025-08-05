@@ -636,7 +636,7 @@ app.get("/api/marketplace/counties", async (req, res) => {
 // Admin-specific product endpoint (returns all products including inactive)
 app.get("/api/admin/products", async (req, res) => {
   try {
-    console.log("👥 Fetching all products for admin (including inactive)");
+    console.log("�� Fetching all products for admin (including inactive)");
     const result = await pool.query(`
       SELECT id, name, category, price_per_unit, unit, description,
              stock_quantity, COALESCE(is_featured, false) as is_featured,
@@ -1756,7 +1756,7 @@ app.get("/api/consignments", async (req, res) => {
   }
 });
 
-app.post("/api/consignments", authenticateAdmin, async (req, res) => {
+app.post("/api/consignments", authenticateToken, async (req, res) => {
   try {
     console.log("➕ Creating new consignment");
     const {
