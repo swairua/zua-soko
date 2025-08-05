@@ -831,6 +831,133 @@ app.delete("/api/admin/consignments/:id", async (req, res) => {
   }
 });
 
+// Admin drivers management endpoints
+app.get("/api/admin/drivers", async (req, res) => {
+  try {
+    console.log("👥 Fetching all drivers for admin");
+
+    // Return all drivers with additional admin info
+    const adminDrivers = [
+      {
+        id: 1,
+        first_name: "David",
+        last_name: "Kiprotich",
+        email: "david.driver@zuasoko.com",
+        phone: "+254730345678",
+        license_number: "DL12345678",
+        vehicle_type: "Pickup Truck",
+        vehicle_registration: "KCA 123D",
+        status: "ACTIVE",
+        location: "Nakuru",
+        total_deliveries: 45,
+        rating: 4.8,
+        earnings: 125000,
+        created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        last_delivery: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        verified: true
+      },
+      {
+        id: 2,
+        first_name: "Grace",
+        last_name: "Mwangi",
+        email: "grace.driver@zuasoko.com",
+        phone: "+254741234567",
+        license_number: "DL87654321",
+        vehicle_type: "Van",
+        vehicle_registration: "KBZ 456E",
+        status: "ACTIVE",
+        location: "Nairobi",
+        total_deliveries: 62,
+        rating: 4.9,
+        earnings: 185000,
+        created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+        last_delivery: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        verified: true
+      },
+      {
+        id: 3,
+        first_name: "Samuel",
+        last_name: "Njoroge",
+        email: "samuel.driver@zuasoko.com",
+        phone: "+254752345678",
+        license_number: "DL11223344",
+        vehicle_type: "Motorcycle",
+        vehicle_registration: "KMEW 789F",
+        status: "OFFLINE",
+        location: "Kiambu",
+        total_deliveries: 28,
+        rating: 4.6,
+        earnings: 78000,
+        created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+        last_delivery: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        verified: false
+      }
+    ];
+
+    res.json({
+      success: true,
+      drivers: adminDrivers,
+      count: adminDrivers.length,
+      statistics: {
+        total: adminDrivers.length,
+        active: adminDrivers.filter(d => d.status === 'ACTIVE').length,
+        offline: adminDrivers.filter(d => d.status === 'OFFLINE').length,
+        verified: adminDrivers.filter(d => d.verified).length,
+        total_deliveries: adminDrivers.reduce((sum, d) => sum + d.total_deliveries, 0),
+        total_earnings: adminDrivers.reduce((sum, d) => sum + d.earnings, 0)
+      }
+    });
+  } catch (err) {
+    console.error("❌ Error fetching admin drivers:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch drivers",
+      details: err.message,
+    });
+  }
+});
+
+app.patch("/api/admin/drivers/:id", async (req, res) => {
+  try {
+    const driverId = req.params.id;
+    const { status, verified } = req.body;
+
+    console.log(`🔄 Admin updating driver ${driverId}:`, { status, verified });
+
+    // Mock updated driver data
+    const updatedDriver = {
+      id: parseInt(driverId),
+      first_name: "David",
+      last_name: "Kiprotich",
+      email: "david.driver@zuasoko.com",
+      phone: "+254730345678",
+      license_number: "DL12345678",
+      vehicle_type: "Pickup Truck",
+      vehicle_registration: "KCA 123D",
+      status: status || "ACTIVE",
+      location: "Nakuru",
+      total_deliveries: 45,
+      rating: 4.8,
+      earnings: 125000,
+      verified: verified !== undefined ? verified : true,
+      updated_at: new Date().toISOString()
+    };
+
+    res.json({
+      success: true,
+      message: "Driver updated successfully",
+      driver: updatedDriver,
+    });
+  } catch (err) {
+    console.error("❌ Error updating driver:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update driver",
+      details: err.message,
+    });
+  }
+});
+
 // Admin settings endpoints
 app.get("/api/admin/settings", async (req, res) => {
   try {
