@@ -826,11 +826,15 @@ app.patch("/api/admin/consignments/:id", async (req, res) => {
       assigned_driver_id: finalStatus === 'DRIVER_ASSIGNED' ? driverId : null
     };
 
-    // If approved, we could theoretically add it to products table
+    // Log specific actions taken
     if (finalStatus === 'APPROVED') {
       console.log(`✅ Consignment ${consignmentId} approved - would create product listing`);
     } else if (finalStatus === 'REJECTED') {
       console.log(`❌ Consignment ${consignmentId} rejected`);
+    } else if (finalStatus === 'PRICE_SUGGESTED') {
+      console.log(`💰 Price suggested for consignment ${consignmentId}: KSh ${suggestedPrice}`);
+    } else if (finalStatus === 'DRIVER_ASSIGNED') {
+      console.log(`🚛 Driver ${driverId} assigned to consignment ${consignmentId}`);
     }
 
     console.log(`✅ Consignment ${consignmentId} updated successfully to ${finalStatus}`);
