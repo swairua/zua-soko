@@ -1392,7 +1392,11 @@ app.get("*", (req, res) => {
         "PATCH /api/products/bulk-activate",
         "GET /api/marketplace/products",
         "GET /api/marketplace/categories",
-        "GET /api/marketplace/counties"
+        "GET /api/marketplace/counties",
+        "GET /api/consignments",
+        "POST /api/consignments",
+        "GET /api/drivers",
+        "POST /api/drivers"
       ]
     });
   }
