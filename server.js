@@ -820,7 +820,10 @@ app.patch("/api/admin/consignments/:id", async (req, res) => {
       notes: notes || "Updated by admin",
       images: [],
       farmer_county: "Nakuru",
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      // Add new fields for price suggestions and driver assignment
+      admin_suggested_price: finalStatus === 'PRICE_SUGGESTED' ? suggestedPrice : null,
+      assigned_driver_id: finalStatus === 'DRIVER_ASSIGNED' ? driverId : null
     };
 
     // If approved, we could theoretically add it to products table
