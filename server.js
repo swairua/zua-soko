@@ -765,12 +765,14 @@ app.get("/api/admin/consignments", async (req, res) => {
 app.patch("/api/admin/consignments/:id", async (req, res) => {
   try {
     const consignmentId = req.params.id;
-    const { status, notes, approved_by } = req.body;
+    const { status, notes, approved_by, suggestedPrice, driverId } = req.body;
 
     console.log(`🔄 Admin updating consignment ${consignmentId}:`, {
       status,
       notes,
       approved_by,
+      suggestedPrice,
+      driverId,
       fullBody: req.body
     });
 
