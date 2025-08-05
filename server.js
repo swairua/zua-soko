@@ -1836,6 +1836,102 @@ app.post("/api/consignments", authenticateToken, async (req, res) => {
   }
 });
 
+// Wallet endpoint
+app.get("/api/wallet", authenticateToken, async (req, res) => {
+  try {
+    console.log("💰 Fetching wallet for user:", req.user.userId);
+
+    // Mock wallet data for now
+    const wallet = {
+      id: req.user.userId,
+      balance: 15750.50,
+      transactions: [
+        {
+          id: 1,
+          type: "CREDIT",
+          amount: 13000,
+          description: "Payment for tomatoes consignment #1",
+          date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+          status: "COMPLETED"
+        },
+        {
+          id: 2,
+          type: "DEBIT",
+          amount: 300,
+          description: "Registration fee payment",
+          date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          status: "COMPLETED"
+        },
+        {
+          id: 3,
+          type: "CREDIT",
+          amount: 3050.50,
+          description: "Payment for sweet potatoes consignment #2",
+          date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+          status: "COMPLETED"
+        }
+      ]
+    };
+
+    res.json({
+      success: true,
+      wallet
+    });
+  } catch (error) {
+    console.error("❌ Error fetching wallet:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch wallet data"
+    });
+  }
+});
+
+// Notifications endpoint
+app.get("/api/notifications", authenticateToken, async (req, res) => {
+  try {
+    console.log("🔔 Fetching notifications for user:", req.user.userId);
+
+    // Mock notifications data
+    const notifications = [
+      {
+        id: 1,
+        title: "Consignment Approved",
+        message: "Your tomatoes consignment has been approved for KSh 130/kg",
+        type: "SUCCESS",
+        read: false,
+        created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 2,
+        title: "Payment Processed",
+        message: "Payment of KSh 13,000 has been credited to your wallet",
+        type: "INFO",
+        read: false,
+        created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 3,
+        title: "Welcome to Zuasoko",
+        message: "Thank you for joining our agricultural marketplace platform",
+        type: "INFO",
+        read: true,
+        created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+
+    res.json({
+      success: true,
+      notifications
+    });
+  } catch (error) {
+    console.error("❌ Error fetching notifications:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch notifications"
+    });
+  }
+});
+
 // Drivers endpoints
 app.get("/api/drivers", async (req, res) => {
   try {
