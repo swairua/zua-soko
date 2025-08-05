@@ -38,6 +38,7 @@ interface ChartData {
 
 export default function AnalyticsPage() {
   const { token } = useAuthStore();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("30");
   const [stats, setStats] = useState<DashboardStats>({
