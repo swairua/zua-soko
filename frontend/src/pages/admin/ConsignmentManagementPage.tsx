@@ -497,7 +497,7 @@ export default function ConsignmentManagementPage() {
                               </span>
                               <span>•</span>
                               <span>
-                                KSh {consignment.proposedPricePerUnit} per{" "}
+                                KSh {(consignment.proposedPricePerUnit || (consignment as any).price_per_unit || 0)} per{" "}
                                 {consignment.unit}
                               </span>
                               <span>•</span>
