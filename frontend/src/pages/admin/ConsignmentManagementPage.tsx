@@ -213,7 +213,7 @@ export default function ConsignmentManagementPage() {
       }
 
       await axios.patch(
-        `${import.meta.env.VITE_API_URL}/admin/consignments/${selectedConsignment.id}`,
+        `/api/admin/consignments/${selectedConsignment.id}`,
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
