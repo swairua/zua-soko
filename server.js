@@ -820,10 +820,18 @@ app.patch("/api/admin/consignments/:id", async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Error updating consignment:", err);
+    console.error("Request body was:", req.body);
+    console.error("Consignment ID:", req.params.id);
+
     res.status(500).json({
       success: false,
       error: "Failed to update consignment",
       details: err.message,
+      debug: {
+        consignmentId: req.params.id,
+        requestBody: req.body,
+        timestamp: new Date().toISOString()
+      }
     });
   }
 });
