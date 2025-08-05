@@ -1712,32 +1712,87 @@ app.get("/api/consignments", async (req, res) => {
   }
 });
 
-app.post("/api/consignments", async (req, res) => {
+app.post("/api/consignments", authenticateAdmin, async (req, res) => {
   try {
     console.log("➕ Creating new consignment");
-    const { product_name, category, quantity, unit, price_per_unit, notes } = req.body;
-
-    // For now, return success with mock ID
-    const newConsignment = {
-      id: Date.now(),
-      farmer_id: 2, // Mock farmer ID
-      farmer_name: "Current Farmer",
+    const {
       product_name,
       category,
-      quantity: parseInt(quantity),
+      quantity,
       unit,
-      price_per_unit: parseFloat(price_per_unit),
-      total_value: parseInt(quantity) * parseFloat(price_per_unit),
-      status: "PENDING",
-      submission_date: new Date().toISOString(),
-      approval_date: null,
-      notes: notes || ""
-    };
+      price_per_unit,
+      notes,
+      location,
+      harvest_date,
+      expiry_date,
+      images
+    } = req.body;
+
+    console.log("📦 Consignment data:", {
+      product_name,
+      category,
+      quantity,
+      unit,
+      price_per_unit,
+      notes: notes?.substring(0, 50) + "...",
+      location,
+      harvest_date,
+      expiry_date,
+      images_count: images?.length || 0
+    });
+
+    // Get current user from token
+    const farmer_id = req.user.userId;
+
+    // Insert into database
+    const result = await pool.query(`
+      INSERT INTO consignments (
+        farmer_id, product_name, category, quantity, unit,
+        price_per_unit, total_value, status, notes, location,
+        harvest_date, expiry_date, images, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      RETURNING *
+    `, [
+      farmer_id,
+      product_name,
+      category,
+      parseFloat(quantity),
+      unit,
+      parseFloat(price_per_unit),
+      parseFloat(quantity) * parseFloat(price_per_unit),
+      'PENDING',
+      notes || '',
+      location || '',
+      harvest_date || null,
+      expiry_date || null,
+      JSON.stringify(images || []),
+      new Date()
+    ]);
+
+    const newConsignment = result.rows[0];
+
+    console.log("✅ Consignment created successfully:", newConsignment.id);
 
     res.status(201).json({
       success: true,
       message: "Consignment submitted successfully",
-      consignment: newConsignment,
+      consignment: {
+        id: newConsignment.id,
+        farmer_id: newConsignment.farmer_id,
+        product_name: newConsignment.product_name,
+        category: newConsignment.category,
+        quantity: newConsignment.quantity,
+        unit: newConsignment.unit,
+        price_per_unit: newConsignment.price_per_unit,
+        total_value: newConsignment.total_value,
+        status: newConsignment.status,
+        notes: newConsignment.notes,
+        location: newConsignment.location,
+        harvest_date: newConsignment.harvest_date,
+        expiry_date: newConsignment.expiry_date,
+        images: JSON.parse(newConsignment.images || '[]'),
+        created_at: newConsignment.created_at
+      },
     });
   } catch (err) {
     console.error("❌ Error creating consignment:", err);
