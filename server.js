@@ -1273,7 +1273,7 @@ app.put("/api/admin/settings", async (req, res) => {
 });
 
 // Admin users endpoint
-app.get("/api/admin/users", async (req, res) => {
+app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
   try {
     console.log("👥 Fetching users via admin endpoint");
 
