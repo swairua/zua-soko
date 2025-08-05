@@ -446,10 +446,10 @@ export default function ConsignmentManagementPage() {
                 const statusInfo =
                   statusConfig[consignment.status as keyof typeof statusConfig];
                 const StatusIcon = statusInfo?.icon || Package;
-                const totalValue =
-                  (consignment.finalPricePerUnit ||
-                    consignment.proposedPricePerUnit ||
-                    0) * (consignment.quantity || 0);
+                const currentPrice = consignment.finalPricePerUnit ||
+                  consignment.proposedPricePerUnit ||
+                  (consignment as any).price_per_unit || 0;
+                const totalValue = currentPrice * (consignment.quantity || 0);
 
                 return (
                   <div key={consignment.id} className="p-6 hover:bg-gray-50">
