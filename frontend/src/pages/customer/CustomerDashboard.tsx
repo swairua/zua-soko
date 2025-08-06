@@ -15,6 +15,7 @@ import {
   Mail,
   Star,
   Truck,
+  ArrowRight,
 } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
