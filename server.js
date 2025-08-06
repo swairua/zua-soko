@@ -2322,6 +2322,167 @@ app.post("/api/auth/force-reset", (req, res) => {
   });
 });
 
+// Login endpoint
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { phone, password } = req.body;
+    console.log("🔐 Login attempt:", { phone });
+
+    if (!phone || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone and password are required"
+      });
+    }
+
+    // Find user by phone
+    const userResult = await pool.query(
+      "SELECT * FROM users WHERE phone = $1",
+      [phone]
+    );
+
+    if (userResult.rows.length === 0) {
+      console.log("❌ User not found:", phone);
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials"
+      });
+    }
+
+    const user = userResult.rows[0];
+
+    // Verify password
+    const isValidPassword = verifyPassword(password, user.password_hash);
+    if (!isValidPassword) {
+      console.log("❌ Invalid password for user:", phone);
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials"
+      });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user.id, phone: user.phone, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    console.log("✅ Login successful:", { userId: user.id, role: user.role });
+
+    res.json({
+      success: true,
+      message: "Login successful",
+      user: {
+        id: user.id,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        county: user.county,
+        verified: user.verified,
+        registrationFeePaid: user.registration_fee_paid
+      },
+      token
+    });
+
+  } catch (error) {
+    console.error("❌ Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error during login",
+      error: error.message
+    });
+  }
+});
+
+// Register endpoint
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const { firstName, lastName, phone, email, password, role, county } = req.body;
+    console.log("📝 Registration attempt:", { phone, role });
+
+    // Validate required fields
+    if (!firstName || !lastName || !phone || !password || !role) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields"
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await pool.query(
+      "SELECT id FROM users WHERE phone = $1 OR email = $2",
+      [phone, email]
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "User with this phone or email already exists"
+      });
+    }
+
+    // Hash password
+    const passwordHash = hashPassword(password);
+
+    // Insert new user
+    const result = await pool.query(
+      `INSERT INTO users (first_name, last_name, phone, email, password_hash, role, county, verified, registration_fee_paid)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING id`,
+      [
+        firstName,
+        lastName,
+        phone,
+        email || `${phone.replace('+', '')}@zuasoko.com`,
+        passwordHash,
+        role.toUpperCase(),
+        county || 'Nairobi',
+        false, // verified
+        false  // registration_fee_paid
+      ]
+    );
+
+    const userId = result.rows[0].id;
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId, phone, role: role.toUpperCase() },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    console.log("✅ Registration successful:", { userId, role });
+
+    res.status(201).json({
+      success: true,
+      message: "Registration successful",
+      user: {
+        id: userId,
+        firstName,
+        lastName,
+        email: email || `${phone.replace('+', '')}@zuasoko.com`,
+        phone,
+        role: role.toUpperCase(),
+        county: county || 'Nairobi',
+        verified: false,
+        registrationFeePaid: false
+      },
+      token
+    });
+
+  } catch (error) {
+    console.error("❌ Registration error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error during registration",
+      error: error.message
+    });
+  }
+});
+
 // Farmer consignments endpoint
 app.get("/api/consignments", authenticateToken, async (req, res) => {
   try {
