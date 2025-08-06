@@ -32,53 +32,123 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Add response interceptor for error handling
+// Add response interceptor for detailed error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle different types of error responses more gracefully
+    // Comprehensive error information extraction
     const status = error.response?.status;
+    const statusText = error.response?.statusText;
     const data = error.response?.data;
+    const config = error.config;
+    const url = config?.url;
+    const method = config?.method?.toUpperCase();
 
-    // Handle 403 authentication errors by clearing tokens
-    if (status === 403) {
-      console.warn('🔄 Authentication failed - clearing tokens and redirecting to login');
+    // Create detailed error information
+    const errorDetails = {
+      timestamp: new Date().toISOString(),
+      request: {
+        method,
+        url: `${API_BASE_URL}${url}`,
+        fullUrl: config?.url,
+        headers: config?.headers,
+        timeout: config?.timeout
+      },
+      response: {
+        status,
+        statusText,
+        data,
+        headers: error.response?.headers
+      },
+      network: {
+        code: error.code,
+        message: error.message,
+        name: error.name,
+        isNetworkError: !error.response
+      }
+    };
+
+    // Enhanced logging with full details
+    console.group(`🚨 API ERROR DETAILS - ${method} ${url}`);
+    console.error('📍 Status:', status || 'Network Error');
+    console.error('📝 Status Text:', statusText || 'No status text');
+    console.error('🔗 URL:', `${API_BASE_URL}${url}`);
+    console.error('⚠️ Error Code:', error.code);
+    console.error('💬 Error Message:', error.message);
+    console.error('📦 Response Data:', data);
+    console.error('🌐 Network Error:', !error.response);
+    console.error('🔍 Full Error Details:', errorDetails);
+    console.groupEnd();
+
+    // Show user-friendly error notification with details
+    const showDetailedError = (title: string, details: string) => {
+      // Create detailed error display
+      const errorDisplay = `
+${title}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 Status: ${status || 'Network Error'}
+🔗 URL: ${method} ${url}
+⚠️ Code: ${error.code || 'Unknown'}
+💬 Message: ${error.message}
+📦 Data: ${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}
+━━━━━��━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+      console.error(errorDisplay);
+
+      // Also show in UI if possible
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('api-error-details', {
+          detail: { title, details: errorDisplay, errorDetails }
+        }));
+      }
+    };
+
+    // Handle different types of errors with detailed information
+    if (!error.response) {
+      // Network error (server not responding)
+      const details = `Server is not responding. Check if backend is running on the expected port.`;
+      showDetailedError('🌐 NETWORK ERROR', details);
+      error.friendlyMessage = `Network Error: Cannot connect to server (${error.code})`;
+
+    } else if (status === 403) {
+      // Authentication error
+      console.warn('🔄 Authentication failed - clearing tokens');
       localStorage.removeItem('authToken');
       localStorage.removeItem('auth-storage');
 
-      // Only redirect if we're not already on login page
       if (!window.location.pathname.includes('/auth/login')) {
         window.location.href = '/auth/login';
       }
-    }
 
-    // Check if response is HTML (like Express error pages)
-    const isHtmlResponse = typeof data === 'string' && data.includes('<!DOCTYPE html>');
+      showDetailedError('🔐 AUTHENTICATION ERROR', 'Token invalid or expired');
+      error.friendlyMessage = 'Authentication failed - please login again';
 
-    if (isHtmlResponse) {
-      // Extract error message from HTML if possible
-      const match = data.match(/<pre>(.*?)<\/pre>/);
-      const htmlError = match ? match[1] : 'Server endpoint not found';
-      console.error(`API Error (${status}):`, htmlError);
+    } else if (status === 404) {
+      // Endpoint not found
+      showDetailedError('🔍 ENDPOINT NOT FOUND', `API endpoint does not exist`);
+      error.friendlyMessage = `API endpoint not found: ${method} ${url}`;
 
-      // Create a more user-friendly error object
-      error.friendlyMessage = htmlError;
-      error.isEndpointMissing = status === 404;
+    } else if (status === 500) {
+      // Server error
+      const serverError = typeof data === 'object' ? (data.message || data.error) : data;
+      showDetailedError('🔥 SERVER ERROR', `Internal server error occurred`);
+      error.friendlyMessage = `Server Error (500): ${serverError || 'Internal server error'}`;
 
-      // Override the error message to prevent [object Object]
-      error.message = htmlError;
-    } else if (typeof data === 'object' && data !== null) {
-      // Handle JSON error objects
-      const errorMessage = data.message || data.error || 'Unknown server error';
-      console.error(`API Error (${status}):`, errorMessage);
-      error.friendlyMessage = errorMessage;
-      error.message = errorMessage;
+    } else if (status === 502) {
+      // Bad gateway
+      showDetailedError('🚧 BAD GATEWAY', 'Server is temporarily unavailable');
+      error.friendlyMessage = 'Server temporarily unavailable (502)';
+
     } else {
-      // Handle other error types
-      const errorMessage = data || error.message || 'Network error';
-      console.error(`API Error (${status}):`, errorMessage);
-      error.friendlyMessage = errorMessage;
+      // Other HTTP errors
+      const errorMessage = typeof data === 'object' ? (data.message || data.error) : data;
+      showDetailedError(`❌ HTTP ERROR ${status}`, errorMessage || statusText);
+      error.friendlyMessage = `HTTP ${status}: ${errorMessage || statusText}`;
     }
+
+    // Attach detailed error info to error object
+    error.errorDetails = errorDetails;
+    error.detailedMessage = error.friendlyMessage;
 
     return Promise.reject(error);
   }
