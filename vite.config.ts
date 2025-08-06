@@ -1,0 +1,61 @@
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+
+export default defineConfig(({ mode }) => {
+  const isProduction = mode === "production";
+
+  return {
+    plugins: [
+      react({
+        ...(isProduction
+          ? {
+              jsxRuntime: "classic",
+              jsxFactory: "React.createElement",
+              jsxFragment: "React.Fragment",
+            }
+          : {
+              jsxRuntime: "automatic",
+            }),
+      }),
+    ],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
+    },
+    build: {
+      outDir: "dist",
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ["react", "react-dom"],
+            router: ["react-router-dom"],
+            ui: ["lucide-react", "react-hot-toast"],
+          },
+        },
+      },
+      target: "esnext",
+      minify: isProduction ? "esbuild" : false,
+    },
+    define: {
+      __APP_VERSION__: JSON.stringify(
+        process.env.npm_package_version || "0.1.0",
+      ),
+      "process.env.NODE_ENV": JSON.stringify(mode),
+    },
+    server: {
+      port: 5173,
+      host: true,
+      // Proxy API calls to backend server
+      proxy: {
+        "/api": {
+          target: "http://localhost:3000",
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+    },
+  };
+});
