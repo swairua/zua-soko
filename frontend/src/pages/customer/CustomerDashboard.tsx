@@ -46,7 +46,6 @@ interface Order {
 export default function CustomerDashboard() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
-  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
