@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuthStore } from "../../store/auth";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 import {
@@ -67,7 +68,7 @@ export default function DriverDashboard() {
           },
         ];
         setDeliveries(demoAssignments);
-        toast.success("Using demo data - backend deployment needed");
+                toast.success("Using demo data - backend deployment needed");
       } else {
         toast.error("Failed to fetch assignments");
       }
@@ -91,7 +92,7 @@ export default function DriverDashboard() {
     } catch (error: any) {
       console.error("Error updating delivery status:", error);
       if (error.response?.status === 404) {
-        toast.success("Demo mode: Status update simulated");
+                toast.success("Demo mode: Status update simulated");
         // In demo mode, just refresh to simulate the change
         fetchAssignments();
       } else {
@@ -114,7 +115,7 @@ export default function DriverDashboard() {
     } catch (error: any) {
       console.error("Error updating delivery status:", error);
       if (error.response?.status === 404) {
-        toast.success("Demo mode: Delivery marked as completed");
+                toast.success("Demo mode: Delivery marked as completed");
         // In demo mode, just refresh to simulate the change
         fetchAssignments();
       } else {
