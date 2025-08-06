@@ -10,6 +10,7 @@ import {
   DollarSign,
   CheckCircle,
   AlertCircle,
+  ArrowRight,
 } from "lucide-react";
 
 export default function DriverDashboard() {
