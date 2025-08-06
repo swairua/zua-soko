@@ -91,10 +91,16 @@ function authenticateToken(req, res, next) {
   console.log(`🔐 Auth check for ${req.method} ${req.path}`);
   console.log(`📝 Auth header: ${authHeader ? 'Present' : 'Missing'}`);
   console.log(`🎫 Token: ${token ? token.substring(0, 20) + '...' : 'Missing'}`);
+  console.log(`🔑 JWT_SECRET configured: ${process.env.JWT_SECRET ? 'Yes' : 'No (using default)'}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
 
   if (!token) {
-    console.log("❌ No token provided");
-    return res.status(401).json({ success: false, message: 'Access token required' });
+    console.log("❌ No token provided - returning 401");
+    return res.status(401).json({
+      success: false,
+      message: 'Access token required',
+      debug: { hasAuthHeader: !!authHeader, endpoint: req.path }
+    });
   }
 
   try {
@@ -104,7 +110,17 @@ function authenticateToken(req, res, next) {
     next();
   } catch (error) {
     console.log(`❌ Token verification failed: ${error.message}`);
-    return res.status(403).json({ success: false, message: 'Invalid or expired token' });
+    console.log(`🔍 Token details: ${token.substring(0, 50)}...`);
+    return res.status(403).json({
+      success: false,
+      message: 'Invalid or expired token',
+      debug: {
+        error: error.message,
+        tokenLength: token.length,
+        jwtSecretConfigured: !!process.env.JWT_SECRET,
+        environment: process.env.NODE_ENV
+      }
+    });
   }
 }
 
@@ -2078,7 +2094,7 @@ app.put("/api/admin/mpesa-settings", authenticateAdmin, async (req, res) => {
     const updatedSettings = {
       consumer_key,
       consumer_secret: "••••••••", // Hide in response
-      passkey: "••••••••", // Hide in response
+      passkey: "•��••••••", // Hide in response
       shortcode,
       environment: environment || "sandbox",
       callback_url: callback_url || "",
