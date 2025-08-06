@@ -1,6 +1,6 @@
-# Zuasoko Agricultural Platform - Local Deployment Guide
+# Zuasoko Agricultural Platform - Deployment Guide
 
-This guide will help you deploy the Zuasoko agricultural marketplace platform on your local server for subsequent hosting.
+This guide will help you deploy the Zuasoko agricultural marketplace platform on your local server for subsequent hosting to the production domain: **https://app.zuasoko.com**
 
 ## 📋 Prerequisites
 
