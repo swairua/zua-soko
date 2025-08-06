@@ -114,13 +114,14 @@ function authenticateToken(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default-secret");
+    const decoded = jwt.verify(token, JWT_SECRET);
     console.log(`✅ Token valid for user: ${decoded.userId} (${decoded.role})`);
     req.user = decoded;
     next();
   } catch (error) {
     console.log(`❌ Token verification failed: ${error.message}`);
     console.log(`🔍 Token details: ${token.substring(0, 50)}...`);
+    console.log(`🔑 JWT_SECRET being used: ${JWT_SECRET.substring(0, 10)}...`);
     return res.status(403).json({
       success: false,
       message: 'Invalid or expired token',
@@ -128,7 +129,8 @@ function authenticateToken(req, res, next) {
         error: error.message,
         tokenLength: token.length,
         jwtSecretConfigured: !!process.env.JWT_SECRET,
-        environment: process.env.NODE_ENV
+        environment: process.env.NODE_ENV,
+        secretUsed: JWT_SECRET.substring(0, 10) + "..."
       }
     });
   }
@@ -1252,7 +1254,7 @@ app.patch("/api/admin/drivers/:id", async (req, res) => {
     const driverId = req.params.id;
     const { status, verified } = req.body;
 
-    console.log(`���� Admin updating driver ${driverId}:`, { status, verified });
+    console.log(`🔄 Admin updating driver ${driverId}:`, { status, verified });
 
     // Mock updated driver data
     const updatedDriver = {
