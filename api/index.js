@@ -300,20 +300,57 @@ app.get('/api/marketplace/counties', async (req, res) => {
   });
 });
 
-// Demo login endpoint (works without database)
+// Login endpoint with JWT token generation
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { phone, password } = req.body;
-    
+
     if (!phone || !password) {
       return res.status(400).json({
         success: false,
         message: 'Phone and password are required'
       });
     }
-    
-    // Demo mode - accept any credentials
+
+    // Demo admin credentials for testing
+    if (phone === 'admin' && password === 'admin') {
+      const adminToken = jwt.sign(
+        {
+          userId: 'admin-1',
+          role: 'ADMIN',
+          phone: '+254700000000'
+        },
+        process.env.JWT_SECRET || 'zuasoko-production-secret-2024',
+        { expiresIn: '24h' }
+      );
+
+      return res.json({
+        success: true,
+        message: 'Admin login successful',
+        user: {
+          id: 'admin-1',
+          firstName: 'Admin',
+          lastName: 'User',
+          phone: '+254700000000',
+          role: 'ADMIN',
+          county: 'Nairobi'
+        },
+        token: adminToken
+      });
+    }
+
+    // Demo mode - accept any other credentials as customer
     if (!pool) {
+      const customerToken = jwt.sign(
+        {
+          userId: 'demo-user',
+          role: 'CUSTOMER',
+          phone: phone
+        },
+        process.env.JWT_SECRET || 'zuasoko-production-secret-2024',
+        { expiresIn: '24h' }
+      );
+
       return res.json({
         success: true,
         message: 'Login successful (demo mode)',
@@ -325,12 +362,22 @@ app.post('/api/auth/login', async (req, res) => {
           role: 'CUSTOMER',
           county: 'Nairobi'
         },
-        token: 'demo-jwt-token'
+        token: customerToken
       });
     }
-    
+
     // Real database authentication would go here
-    // For now, return demo response
+    // For now, return demo response with JWT
+    const token = jwt.sign(
+      {
+        userId: 'demo-user',
+        role: 'CUSTOMER',
+        phone: phone
+      },
+      process.env.JWT_SECRET || 'zuasoko-production-secret-2024',
+      { expiresIn: '24h' }
+    );
+
     res.json({
       success: true,
       message: 'Login successful',
@@ -342,9 +389,9 @@ app.post('/api/auth/login', async (req, res) => {
         role: 'CUSTOMER',
         county: 'Nairobi'
       },
-      token: 'demo-jwt-token'
+      token: token
     });
-    
+
   } catch (error) {
     console.error('❌ Login error:', error);
     res.status(500).json({
