@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuthStore } from "../../store/auth";
 import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   User,
   ShoppingBag,
@@ -100,7 +101,7 @@ export default function CustomerDashboard() {
       // If 404, provide fallback demo data until backend is deployed
       if (error.response?.status === 404) {
         console.log("🛒 Using fallback demo orders (endpoint not found)");
-        const demoOrders = [
+                const demoOrders = [
           {
             id: "order_1",
             orderNumber: "ORD-2024-001",
@@ -125,8 +126,8 @@ export default function CustomerDashboard() {
                 product: {
                   id: "prod_1",
                   name: "Organic Tomatoes",
-                  images: [],
-                },
+                  images: []
+                }
               },
             ],
           },
@@ -154,8 +155,8 @@ export default function CustomerDashboard() {
                 product: {
                   id: "prod_2",
                   name: "Premium Maize",
-                  images: [],
-                },
+                  images: []
+                }
               },
             ],
           },
@@ -168,7 +169,7 @@ export default function CustomerDashboard() {
           totalSpent: 2500,
           pendingOrders: 1,
         });
-        toast.success("Using demo data - backend deployment needed");
+                toast.success("Using demo data - backend deployment needed");
       } else {
         toast.error("Failed to load orders");
       }
