@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/auth";
 import { Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
+import AuthResetNotification from "../../components/AuthResetNotification";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
