@@ -79,7 +79,7 @@ function authenticateAdmin(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default-secret");
+    const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
 
     // Check if user is admin
@@ -767,7 +767,7 @@ app.post("/api/products", async (req, res) => {
 app.put("/api/products/:id", async (req, res) => {
   try {
     const productId = req.params.id;
-    console.log("�� Updating product:", productId);
+    console.log("🔄 Updating product:", productId);
 
     const {
       name,
@@ -1252,7 +1252,7 @@ app.patch("/api/admin/drivers/:id", async (req, res) => {
     const driverId = req.params.id;
     const { status, verified } = req.body;
 
-    console.log(`🔄 Admin updating driver ${driverId}:`, { status, verified });
+    console.log(`���� Admin updating driver ${driverId}:`, { status, verified });
 
     // Mock updated driver data
     const updatedDriver = {
