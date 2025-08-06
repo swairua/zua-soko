@@ -14,6 +14,7 @@ import {
 
 export default function DriverDashboard() {
   const { user, token } = useAuthStore();
+  const navigate = useNavigate();
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
 
