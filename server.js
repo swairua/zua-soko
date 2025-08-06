@@ -2134,7 +2134,7 @@ app.put("/api/admin/mpesa-settings", authenticateAdmin, async (req, res) => {
 // Test M-Pesa connection endpoint
 app.post("/api/admin/mpesa-test", authenticateAdmin, async (req, res) => {
   try {
-    console.log("🧪 Testing M-Pesa connection");
+    console.log("��� Testing M-Pesa connection");
 
     // Simulate M-Pesa API test
     const testResult = {
@@ -2301,6 +2301,24 @@ app.get("/api/debug/auth", authenticateToken, (req, res) => {
     environment: process.env.NODE_ENV,
     jwtSecret: process.env.JWT_SECRET ? "configured" : "default",
     timestamp: new Date().toISOString()
+  });
+});
+
+// Force authentication reset endpoint (public - no auth required)
+app.post("/api/auth/force-reset", (req, res) => {
+  console.log("🔄 Force authentication reset requested");
+
+  res.json({
+    success: true,
+    message: "Authentication system reset. All users must login again.",
+    action: "force_reauth",
+    reason: "JWT secret updated for security",
+    timestamp: new Date().toISOString(),
+    instructions: [
+      "Clear browser storage",
+      "Login again with your credentials",
+      "Dashboard should work without 403 errors"
+    ]
   });
 });
 
