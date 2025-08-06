@@ -8,6 +8,12 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Force production environment on Fly.dev
+if (process.env.FLY_APP_NAME || process.env.FLY_REGION) {
+  process.env.NODE_ENV = 'production';
+  console.log("🚀 Detected Fly.dev deployment - forcing production mode");
+}
+
 // Set NODE_ENV to production if not set
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'production';
