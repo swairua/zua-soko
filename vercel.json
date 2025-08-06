@@ -19,11 +19,62 @@
       "dest": "/server.js"
     },
     {
+      "src": "/downloads/(.*)",
+      "dest": "/frontend/dist/downloads/$1"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "/frontend/dist/manifest.json"
+    },
+    {
+      "src": "/sw.js",
+      "dest": "/frontend/dist/sw.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/frontend/dist/$1"
     }
   ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        }
+      ]
+    },
+    {
+      "source": "/downloads/(.*).apk",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/vnd.android.package-archive"
+        },
+        {
+          "key": "Content-Disposition",
+          "value": "attachment; filename=\"zuasoko-app.apk\""
+        }
+      ]
+    }
+  ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "APP_URL": "https://app.zuasoko.com",
+    "APP_DOMAIN": "app.zuasoko.com"
   }
 }
