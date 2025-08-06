@@ -40,6 +40,18 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const data = error.response?.data;
 
+    // Handle 403 authentication errors by clearing tokens
+    if (status === 403) {
+      console.warn('🔄 Authentication failed - clearing tokens and redirecting to login');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('auth-storage');
+
+      // Only redirect if we're not already on login page
+      if (!window.location.pathname.includes('/auth/login')) {
+        window.location.href = '/auth/login';
+      }
+    }
+
     // Check if response is HTML (like Express error pages)
     const isHtmlResponse = typeof data === 'string' && data.includes('<!DOCTYPE html>');
 
