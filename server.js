@@ -2320,8 +2320,10 @@ app.get("/api/status", async (req, res) => {
         port: PORT,
         has_database_url: !!process.env.DATABASE_URL,
         has_jwt_secret: !!process.env.JWT_SECRET,
+        jwt_secret_source: process.env.JWT_SECRET ? "environment" : "default",
         domain: req.get('host'),
-        protocol: req.protocol
+        protocol: req.protocol,
+        fly_app: process.env.FLY_APP_NAME || "not_detected"
       }
     });
   } catch (err) {
