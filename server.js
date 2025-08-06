@@ -2276,6 +2276,13 @@ app.get("/api/status", async (req, res) => {
       database_type: "neon_postgresql",
       database_time: dbResult.rows[0].current_time,
       environment: process.env.NODE_ENV || "development",
+      config: {
+        port: PORT,
+        has_database_url: !!process.env.DATABASE_URL,
+        has_jwt_secret: !!process.env.JWT_SECRET,
+        domain: req.get('host'),
+        protocol: req.protocol
+      }
     });
   } catch (err) {
     res.json({
@@ -2283,6 +2290,12 @@ app.get("/api/status", async (req, res) => {
       timestamp: new Date().toISOString(),
       database: "error",
       error: err.message,
+      config: {
+        port: PORT,
+        has_database_url: !!process.env.DATABASE_URL,
+        has_jwt_secret: !!process.env.JWT_SECRET,
+        database_url_length: process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0
+      },
       environment: process.env.NODE_ENV || "development",
     });
   }
