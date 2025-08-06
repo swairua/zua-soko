@@ -19,6 +19,18 @@ psql --version    # Should show PostgreSQL 12+
 git --version     # Should show Git version
 ```
 
+## 🌐 Production Domain Configuration
+
+The application is configured to run on the production domain: **https://app.zuasoko.com**
+
+### Key Production Features:
+- **PWA (Progressive Web App)** with offline functionality
+- **Android APK download** available at `/downloads/zuasoko-app.apk`
+- **Service Worker** for offline caching and push notifications
+- **M-Pesa integration** for payments
+- **Responsive design** optimized for mobile devices
+- **SEO optimization** with proper meta tags and Open Graph support
+
 ## 🚀 Quick Start Deployment
 
 ### 1. Clone the Repository
