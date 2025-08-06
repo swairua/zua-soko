@@ -5,6 +5,8 @@ primary_region = "jnb"
 
 [env]
   NODE_ENV = "production"
+  PORT = "3000"
+  JWT_SECRET = "your-production-jwt-secret-change-this"
 
 [http_service]
   internal_port = 3000
