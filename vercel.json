@@ -6,7 +6,7 @@
       "use": "@vercel/node"
     },
     {
-      "src": "frontend/package.json",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
@@ -20,19 +20,19 @@
     },
     {
       "src": "/downloads/(.*)",
-      "dest": "/frontend/dist/downloads/$1"
+      "dest": "/dist/downloads/$1"
     },
     {
       "src": "/manifest.json",
-      "dest": "/frontend/dist/manifest.json"
+      "dest": "/dist/manifest.json"
     },
     {
       "src": "/sw.js",
-      "dest": "/frontend/dist/sw.js"
+      "dest": "/dist/sw.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/frontend/dist/$1"
+      "dest": "/dist/$1"
     }
   ],
   "headers": [
