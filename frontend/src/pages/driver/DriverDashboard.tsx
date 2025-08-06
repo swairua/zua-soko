@@ -203,24 +203,28 @@ export default function DriverDashboard() {
       value: "8",
       icon: <Truck className="w-6 h-6" />,
       color: "bg-blue-500",
+      onClick: () => navigate('/driver/assignments?filter=today'),
     },
     {
       title: "Total Earnings",
       value: "KES 12,500",
       icon: <DollarSign className="w-6 h-6" />,
       color: "bg-green-500",
+      onClick: () => navigate('/driver/earnings'),
     },
     {
       title: "Average Rating",
       value: "4.8",
       icon: <CheckCircle className="w-6 h-6" />,
       color: "bg-yellow-500",
+      onClick: () => navigate('/driver/profile'),
     },
     {
       title: "Pending Pickups",
       value: "3",
       icon: <AlertCircle className="w-6 h-6" />,
       color: "bg-red-500",
+      onClick: () => navigate('/driver/assignments?filter=pending'),
     },
   ];
 
