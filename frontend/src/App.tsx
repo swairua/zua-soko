@@ -10,6 +10,7 @@ import { useAuthStore } from "./store/auth";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { setupGlobalErrorHandling } from "./utils/errorHandler";
 import ApiErrorDisplay from "./components/ApiErrorDisplay";
+import ApiErrorTester from "./components/ApiErrorTester";
 
 // Builder.io removed for stability
 
