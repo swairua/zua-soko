@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node start-production.js",
     "start:minimal": "node minimal-server.js",
-    "dev": "cd frontend && npm run dev",
+    "dev": "node dev-start.js",
+    "dev:frontend-only": "cd frontend && npm run dev",
     "build": "cd frontend && npm install && npm run build:prod && cp -r frontend/dist/* .",
     "deploy-db": "node deploy-database.js",
     "setup": "npm install && cd frontend && npm install",
