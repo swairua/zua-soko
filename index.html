@@ -4,7 +4,42 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- PWA Configuration -->
     <meta name="theme-color" content="#22c55e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Zuasoko" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- SEO and Social -->
+    <meta name="description" content="Agricultural marketplace connecting farmers to markets in Kenya" />
+    <meta name="keywords" content="agriculture, farming, marketplace, Kenya, farmers, crops, produce" />
+    <meta name="author" content="Zuasoko Team" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Zuasoko - Agricultural Platform" />
+    <meta property="og:description" content="Agricultural marketplace connecting farmers to markets in Kenya" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://app.zuasoko.com" />
+    <meta property="og:site_name" content="Zuasoko" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Zuasoko - Agricultural Platform" />
+    <meta name="twitter:description" content="Agricultural marketplace connecting farmers to markets in Kenya" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://app.zuasoko.com" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
+
     <title>Zuasoko - Agricultural Platform</title>
     <script type="module" crossorigin src="/assets/index-JFCJR0AB.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/vendor-9bZoipD1.js">
@@ -14,5 +49,19 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+              console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, function(err) {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
