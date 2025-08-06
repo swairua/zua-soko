@@ -2094,7 +2094,7 @@ app.put("/api/admin/mpesa-settings", authenticateAdmin, async (req, res) => {
     const updatedSettings = {
       consumer_key,
       consumer_secret: "••••••••", // Hide in response
-      passkey: "•��••••••", // Hide in response
+      passkey: "••••••••", // Hide in response
       shortcode,
       environment: environment || "sandbox",
       callback_url: callback_url || "",
@@ -2278,6 +2278,18 @@ app.patch("/api/test/:id", async (req, res) => {
       details: err.message
     });
   }
+});
+
+// Debug auth endpoint
+app.get("/api/debug/auth", authenticateToken, (req, res) => {
+  res.json({
+    success: true,
+    message: "Authentication working",
+    user: req.user,
+    environment: process.env.NODE_ENV,
+    jwtSecret: process.env.JWT_SECRET ? "configured" : "default",
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Status endpoint
