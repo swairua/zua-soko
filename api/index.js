@@ -355,6 +355,164 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// JWT middleware for admin routes
+const authenticateAdmin = (req, res, next) => {
+  console.log('🔐 Admin auth middleware called for:', req.method, req.path);
+
+  const authHeader = req.headers.authorization;
+  console.log('🔐 Auth header:', authHeader ? 'Present' : 'Missing');
+
+  const token = authHeader && authHeader.split(' ')[1];
+  console.log('🔐 Token extracted:', token ? 'Present' : 'Missing');
+
+  if (!token) {
+    console.log('❌ No token provided');
+    return res.status(401).json({ message: 'Access token required' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'zuasoko-production-secret-2024');
+    console.log('🔐 Token decoded successfully:', { userId: decoded.userId, role: decoded.role });
+
+    if (decoded.role !== 'ADMIN') {
+      console.log('❌ User role is not ADMIN:', decoded.role);
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+
+    req.user = decoded;
+    console.log('✅ Admin authentication successful');
+    next();
+  } catch (error) {
+    console.log('❌ Token verification failed:', error.message);
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+};
+
+// GET /api/admin/users
+app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
+  try {
+    console.log("👥 Admin users request received");
+
+    if (!pool) {
+      // Demo mode - return demo users
+      return res.json({
+        success: true,
+        users: [
+          {
+            id: '1',
+            first_name: 'Demo',
+            last_name: 'Admin',
+            email: 'admin@zuasoko.com',
+            phone: '+254712345678',
+            role: 'ADMIN',
+            county: 'Nairobi',
+            verified: true,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: '2',
+            first_name: 'John',
+            last_name: 'Farmer',
+            email: 'farmer@example.com',
+            phone: '+254712345679',
+            role: 'FARMER',
+            county: 'Nakuru',
+            verified: true,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: '3',
+            first_name: 'Jane',
+            last_name: 'Customer',
+            email: 'customer@example.com',
+            phone: '+254712345680',
+            role: 'CUSTOMER',
+            county: 'Mombasa',
+            verified: false,
+            created_at: new Date().toISOString()
+          }
+        ]
+      });
+    }
+
+    // First check what columns exist in the users table
+    const columnsResult = await pool.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_name = 'users' AND table_schema = 'public'
+    `);
+
+    const columns = columnsResult.rows.map(row => row.column_name);
+    console.log("👥 Available user columns:", columns);
+
+    // Build query based on available columns
+    let selectColumns = "id, first_name, last_name, email, phone, role, county, verified, created_at";
+
+    if (columns.includes('registration_fee_paid')) {
+      selectColumns += ", registration_fee_paid";
+    }
+
+    const result = await pool.query(`
+      SELECT ${selectColumns}
+      FROM users
+      ORDER BY created_at DESC
+    `);
+
+    console.log(`👥 Found ${result.rows.length} users`);
+
+    res.json({
+      success: true,
+      users: result.rows,
+    });
+  } catch (err) {
+    console.error("❌ Admin users error:", err);
+    res.status(500).json({
+      message: "Failed to fetch users",
+      details: err.message,
+    });
+  }
+});
+
+// POST /api/admin/users/:id/approve
+app.post("/api/admin/users/:id/approve", authenticateAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`✅ Admin approving user: ${id}`);
+
+    if (!pool) {
+      return res.json({
+        success: true,
+        message: 'User approved successfully (demo mode)'
+      });
+    }
+
+    const result = await pool.query(
+      'UPDATE users SET verified = true WHERE id = $1 RETURNING *',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'User approved successfully',
+      user: result.rows[0]
+    });
+  } catch (err) {
+    console.error("❌ Admin approve user error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to approve user",
+      details: err.message,
+    });
+  }
+});
+
 // Catch-all for undefined routes
 app.use('*', (req, res) => {
   res.status(404).json({
