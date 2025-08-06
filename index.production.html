@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#22c55e" />
+    <title>Zuasoko - Agricultural Platform</title>
+    <script>
+      // Comprehensive Vite HMR blocking for production
+      (function() {
+        'use strict';
+
+        // Block all Vite-related globals
+        window.__vite_is_modern_browser = false;
+        window.__vite_plugin_checker_runtime_config = null;
+        window.__HMR_PROTOCOL__ = null;
+        window.__HMR_HOSTNAME__ = null;
+        window.__HMR_PORT__ = null;
+        window.__HMR_DIRECT_TARGET__ = null;
+        window.__HMR_BASE__ = null;
+        window.__HMR_TIMEOUT__ = null;
+        window.__HMR_ENABLE_OVERLAY__ = false;
+
+        // List of Vite/HMR related patterns to block
+        const blockedPatterns = [
+          'vite', 'hmr', '@vite', 'ws:', 'wss:', 'ping', 'hot-update',
+          'client.mjs', 'client.js', '__vite_ping', 'messageHandler',
+          'fs.js', 'edge.fullstory.com', '__hot', 'socket.io',
+          'fast-refresh', 'react-refresh'
+        ];
+
+        // Enhanced WebSocket blocking
+        if (typeof WebSocket !== 'undefined') {
+          const OriginalWebSocket = WebSocket;
+          window.WebSocket = function(url, protocols) {
+            const urlString = url ? url.toString().toLowerCase() : '';
+            const shouldBlock = blockedPatterns.some(pattern => urlString.includes(pattern.toLowerCase()));
+
+            if (shouldBlock) {
+              console.warn('🚫 Production: Blocked WebSocket connection to:', url);
+              // Return a mock WebSocket that does nothing
+              return {
+                close: () => {},
+                send: () => {},
+                addEventListener: () => {},
+                removeEventListener: () => {},
+                dispatchEvent: () => false,
+                readyState: 3, // CLOSED
+                CLOSED: 3,
+                CONNECTING: 0,
+                OPEN: 1,
+                CLOSING: 2,
+                onopen: null,
+                onclose: null,
+                onmessage: null,
+                onerror: null,
+                protocol: '',
+                url: '',
+                bufferedAmount: 0,
+                extensions: ''
+              };
+            }
+
+            return new OriginalWebSocket(url, protocols);
+          };
+
+          // Copy static properties
+          Object.setPrototypeOf(window.WebSocket, OriginalWebSocket);
+          window.WebSocket.CONNECTING = 0;
+          window.WebSocket.OPEN = 1;
+          window.WebSocket.CLOSING = 2;
+          window.WebSocket.CLOSED = 3;
+        }
+
+        // Enhanced fetch blocking
+        if (typeof fetch !== 'undefined') {
+          const originalFetch = fetch;
+          window.fetch = function(url, options) {
+            const urlString = url ? url.toString().toLowerCase() : '';
+            const shouldBlock = blockedPatterns.some(pattern => urlString.includes(pattern.toLowerCase()));
+
+            if (shouldBlock) {
+              console.warn('🚫 Production: Blocked fetch request to:', url);
+              return Promise.resolve(new Response(JSON.stringify({
+                ok: true,
+                status: 'blocked',
+                message: 'HMR request blocked in production'
+              }), {
+                status: 200,
+                statusText: 'OK',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Blocked-By': 'Production-HMR-Blocker'
+                }
+              }));
+            }
+
+            return originalFetch.call(this, url, options);
+          };
+        }
+
+        // Block XMLHttpRequest to Vite endpoints
+        if (typeof XMLHttpRequest !== 'undefined') {
+          const OriginalXHR = XMLHttpRequest;
+          window.XMLHttpRequest = function() {
+            const xhr = new OriginalXHR();
+            const originalOpen = xhr.open;
+
+            xhr.open = function(method, url, ...args) {
+              const urlString = url ? url.toString().toLowerCase() : '';
+              const shouldBlock = blockedPatterns.some(pattern => urlString.includes(pattern.toLowerCase()));
+
+              if (shouldBlock) {
+                console.warn('🚫 Production: Blocked XHR request to:', url);
+                // Create a mock response
+                Object.defineProperty(this, 'readyState', { value: 4 });
+                Object.defineProperty(this, 'status', { value: 200 });
+                Object.defineProperty(this, 'response', { value: '{"blocked": true}' });
+                Object.defineProperty(this, 'responseText', { value: '{"blocked": true}' });
+                setTimeout(() => {
+                  if (this.onreadystatechange) this.onreadystatechange();
+                  if (this.onload) this.onload();
+                }, 0);
+                return;
+              }
+
+              return originalOpen.apply(this, [method, url, ...args]);
+            };
+
+            return xhr;
+          };
+        }
+
+        // Disable common HMR functions
+        window.__vite_ping = () => Promise.resolve();
+        window.__HMR__ = { accept: () => {}, dispose: () => {}, decline: () => {} };
+
+        // Block event listeners for HMR events
+        const originalAddEventListener = window.addEventListener;
+        window.addEventListener = function(type, listener, options) {
+          if (type && typeof type === 'string') {
+            const typeString = type.toLowerCase();
+            if (blockedPatterns.some(pattern => typeString.includes(pattern))) {
+              console.warn('🚫 Production: Blocked event listener for:', type);
+              return;
+            }
+          }
+          return originalAddEventListener.call(this, type, listener, options);
+        };
+
+        console.log('✅ Production HMR blocker activated');
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
