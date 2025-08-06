@@ -50,6 +50,27 @@
   <body>
     <div id="root"></div>
 
+    <!-- Authentication Version Check - Force token refresh on 403 errors -->
+    <script>
+      (function() {
+        const AUTH_VERSION = "v2025-08-06-403fix";
+        const STORED_AUTH_VERSION = localStorage.getItem('auth-version');
+
+        if (STORED_AUTH_VERSION !== AUTH_VERSION) {
+          console.log('🔄 Auth version changed - clearing all tokens to fix 403 errors');
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('auth-storage');
+          localStorage.setItem('auth-version', AUTH_VERSION);
+
+          // Show user-friendly message
+          if (window.location.pathname !== '/auth/login' && !window.location.pathname.includes('/auth/')) {
+            alert('Authentication system updated. Please login again.');
+            window.location.href = '/auth/login?reason=token_refresh';
+          }
+        }
+      })();
+    </script>
+
     <!-- Service Worker Registration -->
     <script>
       if ('serviceWorker' in navigator) {
