@@ -283,6 +283,7 @@ function App() {
 
           <Toaster position="top-right" />
           <ApiErrorDisplay />
+          {process.env.NODE_ENV === 'development' && <ApiErrorTester />}
         </div>
       </Router>
     </ErrorBoundary>
