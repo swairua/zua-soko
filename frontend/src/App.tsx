@@ -9,6 +9,7 @@ import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/auth";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { setupGlobalErrorHandling } from "./utils/errorHandler";
+import ApiErrorDisplay from "./components/ApiErrorDisplay";
 
 // Builder.io removed for stability
 
