@@ -227,55 +227,79 @@ export default function CustomerDashboard() {
 
         {/* Quick stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <div className="flex items-center">
-              <ShoppingBag className="w-8 h-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">
-                  Total Orders
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.totalOrders}
-                </p>
+          <div
+            onClick={() => navigate('/customer/orders')}
+            className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <ShoppingBag className="w-8 h-8 text-blue-600 group-hover:scale-110 transition-transform" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500 group-hover:text-blue-600">
+                    Total Orders
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 group-hover:text-blue-600">
+                    {stats.totalOrders}
+                  </p>
+                </div>
               </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <div className="flex items-center">
-              <Clock className="w-8 h-8 text-yellow-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">
-                  Pending Orders
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.pendingOrders}
-                </p>
+          <div
+            onClick={() => navigate('/customer/orders?filter=pending')}
+            className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md hover:border-yellow-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Clock className="w-8 h-8 text-yellow-600 group-hover:scale-110 transition-transform" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500 group-hover:text-yellow-600">
+                    Pending Orders
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 group-hover:text-yellow-600">
+                    {stats.pendingOrders}
+                  </p>
+                </div>
               </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-yellow-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <div className="flex items-center">
-              <Package className="w-8 h-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.completedOrders}
-                </p>
+          <div
+            onClick={() => navigate('/customer/orders?filter=completed')}
+            className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md hover:border-green-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Package className="w-8 h-8 text-green-600 group-hover:scale-110 transition-transform" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500 group-hover:text-green-600">Completed</p>
+                  <p className="text-2xl font-bold text-gray-900 group-hover:text-green-600">
+                    {stats.completedOrders}
+                  </p>
+                </div>
               </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <div className="flex items-center">
-              <CreditCard className="w-8 h-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Spent</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  KES {stats.totalSpent.toLocaleString()}
-                </p>
+          <div
+            onClick={() => navigate('/customer/profile')}
+            className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md hover:border-purple-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <CreditCard className="w-8 h-8 text-purple-600 group-hover:scale-110 transition-transform" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500 group-hover:text-purple-600">Total Spent</p>
+                  <p className="text-2xl font-bold text-gray-900 group-hover:text-purple-600">
+                    KES {stats.totalSpent.toLocaleString()}
+                  </p>
+                </div>
               </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
         </div>
