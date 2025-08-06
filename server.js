@@ -2134,7 +2134,7 @@ app.put("/api/admin/mpesa-settings", authenticateAdmin, async (req, res) => {
 // Test M-Pesa connection endpoint
 app.post("/api/admin/mpesa-test", authenticateAdmin, async (req, res) => {
   try {
-    console.log("��� Testing M-Pesa connection");
+    console.log("🧪 Testing M-Pesa connection");
 
     // Simulate M-Pesa API test
     const testResult = {
@@ -2320,6 +2320,135 @@ app.post("/api/auth/force-reset", (req, res) => {
       "Dashboard should work without 403 errors"
     ]
   });
+});
+
+// Farmer consignments endpoint
+app.get("/api/consignments", authenticateToken, async (req, res) => {
+  try {
+    console.log("🌾 Fetching consignments for user:", req.user.userId);
+
+    const result = await pool.query(
+      `SELECT c.*,
+              u.first_name, u.last_name, u.phone,
+              COALESCE(c.created_at, NOW()) as created_at
+       FROM consignments c
+       LEFT JOIN users u ON c.user_id = u.id
+       WHERE c.user_id = $1
+       ORDER BY c.created_at DESC`,
+      [req.user.userId]
+    );
+
+    res.json({
+      success: true,
+      consignments: result.rows,
+      total: result.rows.length
+    });
+  } catch (error) {
+    console.error("❌ Error fetching consignments:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch consignments",
+      error: error.message
+    });
+  }
+});
+
+// Farmer wallet endpoint
+app.get("/api/wallet", authenticateToken, async (req, res) => {
+  try {
+    console.log("💰 Fetching wallet data for user:", req.user.userId);
+
+    // For now, return mock data - you can implement real wallet logic later
+    const walletData = {
+      balance: 15750, // Sample balance in KES
+      transactions: [
+        {
+          id: 1,
+          type: "CREDIT",
+          amount: 5000,
+          description: "Consignment payment - Tomatoes",
+          date: "2025-08-05T10:30:00Z",
+          status: "COMPLETED"
+        },
+        {
+          id: 2,
+          type: "CREDIT",
+          amount: 8500,
+          description: "Consignment payment - Sukuma Wiki",
+          date: "2025-08-03T14:15:00Z",
+          status: "COMPLETED"
+        },
+        {
+          id: 3,
+          type: "DEBIT",
+          amount: 300,
+          description: "Registration fee",
+          date: "2025-07-30T09:00:00Z",
+          status: "COMPLETED"
+        }
+      ]
+    };
+
+    res.json({
+      success: true,
+      wallet: walletData
+    });
+  } catch (error) {
+    console.error("❌ Error fetching wallet data:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch wallet data",
+      error: error.message
+    });
+  }
+});
+
+// Farmer notifications endpoint
+app.get("/api/notifications", authenticateToken, async (req, res) => {
+  try {
+    console.log("🔔 Fetching notifications for user:", req.user.userId);
+
+    // Mock notifications data
+    const notifications = [
+      {
+        id: 1,
+        title: "Consignment Approved",
+        message: "Your tomatoes consignment has been approved and is now live in the marketplace",
+        type: "SUCCESS",
+        date: "2025-08-06T08:30:00Z",
+        read: false
+      },
+      {
+        id: 2,
+        title: "Payment Received",
+        message: "KES 5,000 has been credited to your wallet",
+        type: "INFO",
+        date: "2025-08-05T10:30:00Z",
+        read: false
+      },
+      {
+        id: 3,
+        title: "New Order",
+        message: "Someone placed an order for your sukuma wiki",
+        type: "SUCCESS",
+        date: "2025-08-04T16:45:00Z",
+        read: true
+      }
+    ];
+
+    res.json({
+      success: true,
+      notifications,
+      unreadCount: notifications.filter(n => !n.read).length
+    });
+  } catch (error) {
+    console.error("❌ Error fetching notifications:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch notifications",
+      error: error.message
+    });
+  }
 });
 
 // Status endpoint
