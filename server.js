@@ -35,10 +35,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// Set default JWT secret for production if not provided
+const JWT_SECRET = process.env.JWT_SECRET || "zuasoko-production-secret-2025";
+
 // Environment validation
 console.log("🔧 Environment Check:");
 console.log("  NODE_ENV:", process.env.NODE_ENV);
 console.log("  PORT:", PORT);
+console.log("  FLY_APP_NAME:", process.env.FLY_APP_NAME || "Not set");
 console.log("  DATABASE_URL:", process.env.DATABASE_URL ? "✅ Set" : "❌ Missing");
 console.log("  JWT_SECRET:", process.env.JWT_SECRET ? "✅ Set" : "❌ Using default");
 
