@@ -19,7 +19,7 @@ backend.on('error', (error) => {
 setTimeout(() => {
   console.log('🎨 Starting frontend dev server on port 5173...');
   const frontend = spawn('npm', ['run', 'dev'], {
-    cwd: path.join(process.cwd(), 'frontend'),
+    cwd: process.cwd(),
     stdio: 'inherit',
     shell: true
   });
@@ -30,7 +30,7 @@ setTimeout(() => {
 
   // Handle cleanup
   const cleanup = () => {
-    console.log('\n🛑 Shutting down servers...');
+    console.log('\n��� Shutting down servers...');
     backend.kill();
     frontend.kill();
     process.exit(0);
