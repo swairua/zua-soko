@@ -65,6 +65,8 @@ export default function UserManagementPage() {
   const fetchUsers = async () => {
     try {
       console.log("📊 Fetching users from real API");
+      console.log("🔐 Using token:", token ? "Present" : "Missing");
+
       const response = await axios.get("/api/admin/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
