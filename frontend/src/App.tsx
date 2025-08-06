@@ -281,6 +281,7 @@ function App() {
           <DatabaseStatus />
 
           <Toaster position="top-right" />
+          <ApiErrorDisplay />
         </div>
       </Router>
     </ErrorBoundary>
