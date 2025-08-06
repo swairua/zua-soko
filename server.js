@@ -29,6 +29,18 @@ app.use((req, res, next) => {
   next();
 });
 
+// Environment validation
+console.log("🔧 Environment Check:");
+console.log("  NODE_ENV:", process.env.NODE_ENV);
+console.log("  PORT:", PORT);
+console.log("  DATABASE_URL:", process.env.DATABASE_URL ? "✅ Set" : "❌ Missing");
+console.log("  JWT_SECRET:", process.env.JWT_SECRET ? "✅ Set" : "❌ Using default");
+
+if (!process.env.DATABASE_URL) {
+  console.error("❌ CRITICAL: DATABASE_URL environment variable is not set!");
+  console.error("   Please set your Neon database URL in fly.toml or Fly.dev secrets");
+}
+
 // Database connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
