@@ -40,6 +40,7 @@ import FarmerCategoriesPage from "./pages/admin/FarmerCategoriesPage";
 import MarketplaceManagementPage from "./pages/admin/MarketplaceManagementPage";
 import OrderAnalysisPage from "./pages/admin/OrderAnalysisPage";
 import RegistrationFeesPage from "./pages/admin/RegistrationFeesPage";
+import UserManagementPage from "./pages/admin/UserManagementPage";
 
 // Driver Pages
 import AssignmentsPage from "./pages/driver/AssignmentsPage";
