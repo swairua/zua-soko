@@ -527,7 +527,7 @@ app.post("/api/auth/register", async (req, res) => {
 
     const token = jwt.sign(
       { userId, phone, role },
-      process.env.JWT_SECRET || "default-secret",
+      JWT_SECRET,
       { expiresIn: "7d" }
     );
 
@@ -767,7 +767,7 @@ app.post("/api/products", async (req, res) => {
 app.put("/api/products/:id", async (req, res) => {
   try {
     const productId = req.params.id;
-    console.log("🔄 Updating product:", productId);
+    console.log("�� Updating product:", productId);
 
     const {
       name,
