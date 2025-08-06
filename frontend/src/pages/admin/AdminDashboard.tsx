@@ -19,7 +19,6 @@ import {
   ArrowRight,
   Plus,
   CreditCard,
-  Tag,
 } from "lucide-react";
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
@@ -69,58 +68,58 @@ export default function AdminDashboard() {
   const fetchUsers = async () => {
     try {
       console.log("👥 Fetching users from real database");
-      const response = await fetch("/api/admin/users", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await apiService.get("/admin/users");
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+      const data = response.data;
 
-      const data = await response.json();
-      console.log("👥 Raw API response:", data);
+      const userData = data.users || data;
+      console.log("👥 Users data received:", userData);
 
-      // Multiple layers of safe data extraction
-      let userData = [];
-
-      if (data && typeof data === 'object') {
-        if (Array.isArray(data.users)) {
-          userData = data.users;
-        } else if (Array.isArray(data)) {
-          userData = data;
-        } else if (data.users && typeof data.users === 'object') {
-          userData = [data.users]; // Single user object
-        }
-      }
-
-      console.log("👥 Processed users data:", userData);
-
-      // Ensure userData is always an array and filter safely
+      // Ensure userData is always an array to prevent filter errors
       const safeUserData = Array.isArray(userData) ? userData : [];
 
       setStats((prev) => ({
         ...prev,
         totalUsers: safeUserData.length,
-        pendingApprovals: safeUserData.filter(
-          (user: any) => user && (user.status === "PENDING" || user.verified === false),
-        ).length,
+        pendingApprovals: safeUserData.filter((user: any) => !user.verified).length,
         recentUsers: safeUserData.slice(0, 5).map((user: any) => ({
-          id: user?.id || 'unknown',
-          name: `${user?.first_name || user?.firstName || 'Unknown'} ${user?.last_name || user?.lastName || 'User'}`,
-          email: user?.email || 'No email',
-          role: user?.role || 'USER',
-          status: user?.verified ? "ACTIVE" : "PENDING",
-          joinedAt: user?.created_at || user?.createdAt
-            ? new Date(user.created_at || user.createdAt).toLocaleDateString()
-            : 'Unknown',
+          id: user.id,
+          name: `${user.first_name || user.firstName} ${user.last_name || user.lastName}`,
+          email: user.email,
+          role: user.role,
+          status: user.verified ? "ACTIVE" : "PENDING",
+          joinedAt: new Date(
+            user.created_at || user.createdAt,
+          ).toLocaleDateString(),
         })),
       }));
     } catch (error) {
       console.error("Error fetching users:", error);
-      toast.error("Failed to fetch users data");
+      // Set fallback user data
+      setStats((prev) => ({
+        ...prev,
+        totalUsers: 5,
+        pendingApprovals: 2,
+        recentUsers: [
+          {
+            id: 1,
+            name: "Admin User",
+            email: "admin@zuasoko.com",
+            role: "ADMIN",
+            status: "ACTIVE",
+            joinedAt: new Date().toLocaleDateString(),
+          },
+          {
+            id: 2,
+            name: "John Kimani",
+            email: "john@example.com",
+            role: "FARMER",
+            status: "ACTIVE",
+            joinedAt: new Date().toLocaleDateString(),
+          },
+        ],
+      }));
+      toast.error("Using demo user data - API unavailable");
     }
   };
 
@@ -128,15 +127,14 @@ export default function AdminDashboard() {
     try {
       console.log("🔄 Fetching recent activity from database");
       const response = await apiService.get("/admin/activity");
-      console.log("🔄 Raw activity response:", response);
 
-      if (response && response.data && response.data.success && Array.isArray(response.data.activities)) {
+      if (response.data.success) {
         const activities = response.data.activities.map((activity: any) => ({
-          id: activity?.id || Math.random(),
-          type: activity?.type || "system",
-          message: activity?.description || activity?.message || "Unknown activity",
-          time: activity?.timestamp ? new Date(activity.timestamp).toLocaleString() : "Unknown time",
-          status: activity?.status || "completed",
+          id: activity.id,
+          type: activity.type,
+          message: activity.description,
+          time: new Date(activity.timestamp).toLocaleString(),
+          status: activity.status,
         }));
 
         setStats((prev) => ({
@@ -145,9 +143,6 @@ export default function AdminDashboard() {
         }));
 
         console.log("✅ Recent activity loaded:", activities);
-      } else {
-        console.log("🔄 Activity response not in expected format, using fallback data");
-        throw new Error("Invalid response format");
       }
     } catch (error) {
       console.error("❌ Error fetching recent activity:", error);
@@ -191,26 +186,30 @@ export default function AdminDashboard() {
     try {
       console.log("📊 Fetching analytics stats from database");
       const response = await apiService.get("/admin/analytics/stats");
-      console.log("📊 Raw analytics response:", response);
 
-      if (response && response.data && response.data.success) {
-        const analyticsStats = response.data.stats || {};
+      if (response.data.success) {
+        const analyticsStats = response.data.stats;
         console.log("📊 Analytics stats received:", analyticsStats);
 
         setStats((prev) => ({
           ...prev,
-          totalUsers: parseInt(analyticsStats.totalUsers) || prev.totalUsers || 0,
-          pendingApprovals: parseInt(analyticsStats.pendingApprovals) || prev.pendingApprovals || 0,
-          activeConsignments: parseInt(analyticsStats.totalConsignments) || prev.activeConsignments || 0,
-          monthlyRevenue: parseFloat(analyticsStats.totalRevenue) || prev.monthlyRevenue || 0,
+          totalUsers: analyticsStats.totalUsers || 0,
+          pendingApprovals: analyticsStats.pendingApprovals || 0,
+          activeConsignments: analyticsStats.totalConsignments || 0,
+          monthlyRevenue: analyticsStats.totalRevenue || 0,
         }));
-      } else {
-        console.log("📊 Analytics response not in expected format, keeping existing stats");
       }
     } catch (error) {
       console.error("❌ Error fetching analytics stats:", error);
-      // Keep existing values and don't show error to user for this non-critical data
-      console.log("📊 Using fallback stats due to analytics fetch failure");
+      // Set fallback analytics data
+      setStats((prev) => ({
+        ...prev,
+        totalUsers: 5,
+        pendingApprovals: 2,
+        activeConsignments: 8,
+        monthlyRevenue: 45000,
+      }));
+      toast.error("Using demo analytics data - API unavailable");
     }
   };
 
@@ -293,19 +292,19 @@ export default function AdminDashboard() {
       count: null,
     },
     {
-      title: "Farmer Categories",
-      description: "Manage farming categories",
-      icon: Tag,
-      color: "bg-indigo-500",
-      link: "/admin/farmer-categories",
-      count: null,
-    },
-    {
       title: "View Analytics",
       description: "Platform insights and metrics",
       icon: BarChart3,
       color: "bg-purple-500",
       link: "/admin/analytics",
+      count: null,
+    },
+    {
+      title: "M-Pesa Settings",
+      description: "Configure M-Pesa API credentials",
+      icon: CreditCard,
+      color: "bg-indigo-500",
+      link: "/admin/mpesa-settings",
       count: null,
     },
     {
@@ -386,11 +385,11 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Key Metrics with Enhanced Drill-down */}
+        {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <button
-            onClick={() => navigate("/admin/users")}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow text-left group relative overflow-hidden"
+          <div
+            onClick={() => navigate('/admin/users')}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer group"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -398,62 +397,39 @@ export default function AdminDashboard() {
                   <Users className="w-6 h-6 text-blue-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                     {stats.totalUsers}
                   </h3>
                   <p className="text-gray-600 text-sm">Total Users</p>
                 </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <div className="flex justify-between text-xs text-gray-500 mb-1">
-                <span>Farmers: {Math.floor(stats.totalUsers * 0.6)}</span>
-                <span>Customers: {Math.floor(stats.totalUsers * 0.35)}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                <div
-                  className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
-                  style={{ width: '60%' }}
-                ></div>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">Click to view user management</p>
-            </div>
-          </button>
+          </div>
 
-          <button
-            onClick={() => navigate("/admin/users?filter=pending")}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow text-left group relative"
+          <div
+            onClick={() => navigate('/admin/users?filter=pending')}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-yellow-300 transition-all duration-200 cursor-pointer group"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="p-3 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors relative">
+                <div className="p-3 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors">
                   <AlertCircle className="w-6 h-6 text-yellow-600" />
-                  {stats.pendingApprovals > 0 && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                  )}
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors">
                     {stats.pendingApprovals}
                   </h3>
                   <p className="text-gray-600 text-sm">Pending Approvals</p>
                 </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-yellow-600 transition-colors" />
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-yellow-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <div className="flex justify-between text-xs mb-2">
-                <span className="text-yellow-600">⏳ Farmers: {Math.floor(stats.pendingApprovals * 0.7)}</span>
-                <span className="text-yellow-600">🚛 Drivers: {Math.floor(stats.pendingApprovals * 0.3)}</span>
-              </div>
-              <p className="text-xs text-gray-500">Click to review pending users</p>
-            </div>
-          </button>
+          </div>
 
-          <button
-            onClick={() => navigate("/admin/consignments")}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow text-left group"
+          <div
+            onClick={() => navigate('/admin/consignments')}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-green-300 transition-all duration-200 cursor-pointer group"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -461,36 +437,19 @@ export default function AdminDashboard() {
                   <Package className="w-6 h-6 text-green-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
                     {stats.activeConsignments}
                   </h3>
                   <p className="text-gray-600 text-sm">Active Consignments</p>
                 </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-green-600 transition-colors" />
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <div className="grid grid-cols-3 gap-1 text-xs mb-2">
-                <div className="text-center">
-                  <div className="text-yellow-600 font-medium">{Math.floor(stats.activeConsignments * 0.3)}</div>
-                  <div className="text-gray-500">Pending</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-green-600 font-medium">{Math.floor(stats.activeConsignments * 0.5)}</div>
-                  <div className="text-gray-500">Active</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-blue-600 font-medium">{Math.floor(stats.activeConsignments * 0.2)}</div>
-                  <div className="text-gray-500">Transit</div>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500">Click to manage consignments</p>
-            </div>
-          </button>
+          </div>
 
-          <button
-            onClick={() => navigate("/admin/analytics")}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow text-left group"
+          <div
+            onClick={() => navigate('/admin/analytics')}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-purple-300 transition-all duration-200 cursor-pointer group"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -498,92 +457,14 @@ export default function AdminDashboard() {
                   <DollarSign className="w-6 h-6 text-purple-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
                     {formatCurrency(stats.monthlyRevenue)}
                   </h3>
                   <p className="text-gray-600 text-sm">Monthly Revenue</p>
                 </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-purple-600 transition-colors" />
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-green-600">↗ +12.5%</span>
-                <span className="text-gray-500">vs last month</span>
-              </div>
-              <div className="flex justify-between text-xs text-gray-500 mb-2">
-                <span>Commissions: {formatCurrency(stats.monthlyRevenue * 0.1)}</span>
-                <span>Fees: {formatCurrency(stats.monthlyRevenue * 0.05)}</span>
-              </div>
-              <p className="text-xs text-gray-500">Click to view revenue analytics</p>
-            </div>
-          </button>
-        </div>
-
-        {/* Detailed Metrics Breakdown */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">User Breakdown</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Total Users</span>
-                <span className="font-medium">{stats.totalUsers}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Farmers</span>
-                <span className="font-medium">{Math.floor(stats.totalUsers * 0.6)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Customers</span>
-                <span className="font-medium">{Math.floor(stats.totalUsers * 0.35)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Drivers</span>
-                <span className="font-medium">{Math.floor(stats.totalUsers * 0.05)}</span>
-              </div>
-              <div className="flex items-center justify-between border-t border-gray-200 pt-3">
-                <span className="text-sm text-red-600">Pending Verification</span>
-                <span className="font-medium text-red-600">{stats.pendingApprovals}</span>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate("/admin/users")}
-              className="mt-4 w-full bg-blue-50 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
-            >
-              Manage Users →
-            </button>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Consignment Status</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Total Consignments</span>
-                <span className="font-medium">{stats.activeConsignments}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Pending Review</span>
-                <span className="font-medium text-yellow-600">{Math.floor(stats.activeConsignments * 0.3)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Approved & Active</span>
-                <span className="font-medium text-green-600">{Math.floor(stats.activeConsignments * 0.5)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">In Transit</span>
-                <span className="font-medium text-blue-600">{Math.floor(stats.activeConsignments * 0.15)}</span>
-              </div>
-              <div className="flex items-center justify-between border-t border-gray-200 pt-3">
-                <span className="text-sm text-gray-600">Completed This Month</span>
-                <span className="font-medium text-green-600">{Math.floor(stats.activeConsignments * 0.8)}</span>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate("/admin/consignments")}
-              className="mt-4 w-full bg-green-50 text-green-600 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium"
-            >
-              Manage Consignments →
-            </button>
           </div>
         </div>
 
@@ -637,24 +518,15 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="divide-y divide-gray-200">
-              {(Array.isArray(stats.recentActivities) ? stats.recentActivities : []).map((activity) => (
-                <button
-                  key={activity.id}
-                  onClick={() => {
-                    if (activity.type === "user") navigate("/admin/users");
-                    else if (activity.type === "consignment") navigate("/admin/consignments");
-                    else if (activity.type === "order") navigate("/admin/marketplace");
-                    else if (activity.type === "driver") navigate("/admin/drivers");
-                  }}
-                  className="w-full p-6 text-left hover:bg-gray-50 transition-colors"
-                >
+              {stats.recentActivities.map((activity) => (
+                <div key={activity.id} className="p-6">
                   <div className="flex items-start">
                     <div
-                      className={`p-2 rounded-lg ${getStatusColor(activity.status)} mr-4 flex-shrink-0`}
+                      className={`p-2 rounded-lg ${getStatusColor(activity.status)} mr-4`}
                     >
                       {getActivityIcon(activity.type)}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">
                         {activity.message}
                       </p>
@@ -662,16 +534,13 @@ export default function AdminDashboard() {
                         {activity.time}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      {activity.status === "pending" && (
-                        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
-                          Action Required
-                        </span>
-                      )}
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                    </div>
+                    {activity.status === "pending" && (
+                      <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                        Action Required
+                      </span>
+                    )}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
             <div className="p-6 border-t border-gray-200">
@@ -695,42 +564,33 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="divide-y divide-gray-200">
-              {(Array.isArray(stats.pendingConsignments) ? stats.pendingConsignments : []).map((consignment) => (
-                <button
-                  key={consignment.id}
-                  onClick={() => handleReviewConsignment(consignment.id)}
-                  className="w-full p-6 text-left hover:bg-gray-50 transition-colors"
-                >
+              {stats.pendingConsignments.map((consignment) => (
+                <div key={consignment.id} className="p-6">
                   <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-gray-900 mb-1">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900">
                         {consignment.title}
                       </h4>
-                      <div className="flex items-center text-sm text-gray-500 mb-1">
-                        <span>👨‍🌾 {consignment.farmer}</span>
-                        <span className="mx-2">•</span>
-                        <span>📅 {consignment.submittedAt}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
-                          Pending Review
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          Click to review →
-                        </span>
-                      </div>
+                      <p className="text-sm text-gray-500">
+                        by {consignment.farmer}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {consignment.submittedAt}
+                      </p>
                     </div>
-                    <div className="text-right ml-4">
-                      <p className="text-lg font-semibold text-gray-900">
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">
                         {formatCurrency(consignment.value)}
                       </p>
-                      <div className="flex items-center text-xs text-gray-500 mt-1">
-                        <ArrowRight className="w-3 h-3 mr-1" />
-                        <span>Review Details</span>
-                      </div>
+                      <button
+                        onClick={() => handleReviewConsignment(consignment.id)}
+                        className="mt-2 bg-primary-600 text-white px-3 py-1 rounded text-xs hover:bg-primary-700"
+                      >
+                        Review
+                      </button>
                     </div>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
             <div className="p-6 border-t border-gray-200">
@@ -776,7 +636,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {(Array.isArray(stats.recentUsers) ? stats.recentUsers : []).map((user) => (
+                {stats.recentUsers.map((user) => (
                   <tr key={user.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
@@ -37,7 +37,6 @@ interface RegisterFormData {
   farmSize?: number;
   kraPin?: string;
   subCounty?: string;
-  categories?: number[]; // Farmer category IDs
 
   // Driver-specific
   licenseNumber?: string;
@@ -47,13 +46,6 @@ interface RegisterFormData {
 
   // Agent-specific
   assignedCounty?: string;
-}
-
-interface FarmerCategory {
-  id: number;
-  name: string;
-  description: string;
-  is_active: boolean;
 }
 
 const kenyanCounties = [
@@ -150,8 +142,6 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [farmerCategories, setFarmerCategories] = useState<FarmerCategory[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
   const {
     register,
@@ -164,38 +154,9 @@ export default function RegisterPage() {
   const watchRole = watch("role");
   const watchPassword = watch("password");
 
-  // Fetch farmer categories when component mounts
-  useEffect(() => {
-    const fetchFarmerCategories = async () => {
-      try {
-        const response = await axios.get("/api/farmer-categories");
-        setFarmerCategories(response.data.categories || []);
-      } catch (error) {
-        console.error("Failed to fetch farmer categories:", error);
-        toast.error("Failed to load farmer categories");
-      }
-    };
-
-    fetchFarmerCategories();
-  }, []);
-
-  const toggleCategory = (categoryId: number) => {
-    setSelectedCategories(prev =>
-      prev.includes(categoryId)
-        ? prev.filter(id => id !== categoryId)
-        : [...prev, categoryId]
-    );
-  };
-
   const onSubmit = async (data: RegisterFormData) => {
     if (data.password !== data.confirmPassword) {
       toast.error("Passwords do not match");
-      return;
-    }
-
-    // Validate farmer categories
-    if (data.role === "FARMER" && selectedCategories.length === 0) {
-      toast.error("Please select at least one farming category");
       return;
     }
 
@@ -217,7 +178,6 @@ export default function RegisterPage() {
         if (data.farmSize) registrationData.farmSize = data.farmSize;
         if (data.kraPin) registrationData.kraPin = data.kraPin;
         if (data.subCounty) registrationData.subCounty = data.subCounty;
-        registrationData.categories = selectedCategories;
       } else if (data.role === "DRIVER") {
         registrationData.licenseNumber = data.licenseNumber;
         registrationData.vehicleType = data.vehicleType;
@@ -244,53 +204,7 @@ export default function RegisterPage() {
       navigate("/login");
     } catch (error: any) {
       console.error("Registration error:", error);
-      console.log("Error response data:", error.response?.data);
-      console.log("Error status:", error.response?.status);
-      console.log("Error headers:", error.response?.headers);
-
-      // Enhanced error handling for different response formats
-      let message = "Registration failed";
-
-      if (error.response?.data) {
-        const data = error.response.data;
-        console.log("Full error data object:", data);
-
-        // Try different possible error message fields
-        message = data.message || data.error || data.details || data.msg || message;
-
-        // Special handling for 409 conflict errors
-        if (error.response.status === 409) {
-          if (message.toLowerCase().includes("phone")) {
-            message = "This phone number is already registered. Please use a different phone number or try logging in.";
-          } else if (message.toLowerCase().includes("email")) {
-            message = "This email address is already registered. Please use a different email or try logging in.";
-          } else if (message.toLowerCase().includes("user") || message.toLowerCase().includes("exist")) {
-            message = "An account with these details already exists. Please try logging in or use different credentials.";
-          } else {
-            message = `Registration conflict: ${message}`;
-          }
-
-          // Show error message with extra duration for 409 conflicts
-          toast.error(message, { duration: 8000 });
-
-          // Add a follow-up toast with login suggestion
-          setTimeout(() => {
-            toast("👆 Click here to go to login page", {
-              duration: 5000,
-              style: {
-                cursor: 'pointer',
-                backgroundColor: '#3B82F6',
-                color: 'white',
-              }
-            });
-          }, 2000);
-          return; // Exit early to avoid duplicate toast
-        }
-      } else if (error.message) {
-        message = error.message;
-      }
-
-      console.log("Processed error message:", message);
+      const message = error.response?.data?.error || "Registration failed";
       toast.error(message);
     } finally {
       setLoading(false);
@@ -322,12 +236,12 @@ export default function RegisterPage() {
           Create your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Already have an account?{" "}
+          Or{" "}
           <Link
             to="/login"
             className="font-medium text-primary-600 hover:text-primary-500"
           >
-            Sign in here
+            sign in to your existing account
           </Link>
         </p>
       </div>
@@ -479,9 +393,6 @@ export default function RegisterPage() {
                       {errors.phone.message}
                     </p>
                   )}
-                  <p className="mt-1 text-xs text-gray-500">
-                    This phone number will be used for login and notifications
-                  </p>
                 </div>
 
                 <div>
@@ -496,7 +407,6 @@ export default function RegisterPage() {
                       },
                     })}
                     type="email"
-                    placeholder="your@email.com (optional)"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                   {errors.email && (
@@ -504,9 +414,6 @@ export default function RegisterPage() {
                       {errors.email.message}
                     </p>
                   )}
-                  <p className="mt-1 text-xs text-gray-500">
-                    Optional - used for account recovery and important updates
-                  </p>
                 </div>
 
                 <div>
@@ -677,66 +584,6 @@ export default function RegisterPage() {
                         placeholder="e.g., A123456789K"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">
-                        Farming Categories *
-                      </label>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Select one or more categories that describe what you farm:
-                      </p>
-                      {farmerCategories.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto">
-                          {farmerCategories.map((category) => (
-                            <label
-                              key={category.id}
-                              className="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={selectedCategories.includes(category.id)}
-                                onChange={() => toggleCategory(category.id)}
-                                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 mt-0.5 mr-3"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium text-gray-900">
-                                  {category.name}
-                                </div>
-                                {category.description && (
-                                  <div className="text-xs text-gray-500 mt-1">
-                                    {category.description}
-                                  </div>
-                                )}
-                              </div>
-                            </label>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-4 text-gray-500 border border-gray-200 rounded-lg">
-                          Loading categories...
-                        </div>
-                      )}
-
-                      {selectedCategories.length > 0 && (
-                        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                          <p className="text-sm text-green-800">
-                            Selected {selectedCategories.length} categor{selectedCategories.length === 1 ? 'y' : 'ies'}:
-                            <span className="font-medium ml-1">
-                              {farmerCategories
-                                .filter(cat => selectedCategories.includes(cat.id))
-                                .map(cat => cat.name)
-                                .join(', ')}
-                            </span>
-                          </p>
-                        </div>
-                      )}
-
-                      {selectedCategories.length === 0 && (
-                        <p className="text-sm text-red-600 mt-2">
-                          Please select at least one farming category.
-                        </p>
-                      )}
                     </div>
 
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -954,30 +801,6 @@ export default function RegisterPage() {
                     </p>
                   </div>
                 )}
-
-                {/* Account conflict notice */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-blue-800">
-                        Account Check
-                      </h3>
-                      <div className="mt-2 text-sm text-blue-700">
-                        <p>
-                          If you get an error about existing account, it means this phone number or email is already registered.{" "}
-                          <Link to="/login" className="font-medium underline hover:text-blue-900">
-                            Try logging in instead
-                          </Link>.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
                 <button
                   type="submit"

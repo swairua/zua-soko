@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/auth";
 import { useAppDownload } from "../hooks/useAppDownload";
 import { ApkInfoModal } from "../components/ApkInfoModal";
+// Builder.io imports (optional)
 import {
   Leaf,
   Users,
@@ -33,6 +34,10 @@ export default function HomePage() {
     loading: apkLoading,
     downloadApp,
   } = useAppDownload();
+
+  // Builder.io content (disabled for now)
+  const heroContent = null;
+  const featuresContent = null;
 
   const features = [
     {

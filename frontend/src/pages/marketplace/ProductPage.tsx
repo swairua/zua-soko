@@ -14,33 +14,57 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
-import { useCartStore } from "../../store/cart";
+import { useCart } from "../../store/cart";
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   category: string;
-  price_per_unit: number;
+  pricePerUnit: number;
   unit: string;
-  description: string;
-  stock_quantity: number;
-  quantity: number;
+  stockQuantity: number;
+  minStockLevel?: number;
   images: string[];
-  farmer_name?: string;
-  farmer_county?: string;
-  created_at: string;
+  description: string;
+  isFeatured: boolean;
+  isAvailable: boolean;
+  tags: string[];
+  harvestDate?: string;
+  expiryDate?: string;
+  latitude?: number;
+  longitude?: number;
+  farmer: {
+    id: string;
+    county: string;
+    subCounty?: string;
+    farmName?: string;
+    farmSize?: number;
+    user: {
+      firstName: string;
+      lastName: string;
+      phone: string;
+      email?: string;
+    };
+  };
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface RelatedProduct {
-  id: number;
+  id: string;
   name: string;
-  price_per_unit: number;
+  pricePerUnit: number;
   unit: string;
   images: string[];
-  farmer_name?: string;
-  farmer_county?: string;
+  farmer: {
+    county: string;
+    user: {
+      firstName: string;
+      lastName: string;
+    };
+  };
 }
 
 export default function ProductPage() {
@@ -53,7 +77,7 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [showFarmerContact, setShowFarmerContact] = useState(false);
 
-  const { addToCart, isLoading: cartLoading } = useCartStore();
+  const { addToCart, isLoading: cartLoading } = useCart();
   const { user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
@@ -65,61 +89,18 @@ export default function ProductPage() {
   const fetchProduct = async () => {
     try {
       setLoading(true);
-
-      // Validate product ID before making API call
-      if (!id || id === 'undefined' || id === 'null') {
-        throw new Error("Invalid product ID");
-      }
-
-      // Check if ID is a UUID (any UUID format) - our system now uses integer IDs
-      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      const isUUID = uuidPattern.test(id);
-
-      // Check if ID is not a valid integer
-      const isValidInteger = /^\d+$/.test(id);
-
-      if (isUUID || !isValidInteger) {
-        console.log("🚫 Invalid product ID format detected:", id);
-        toast.error("This product link is outdated. Redirecting to marketplace...");
-        navigate("/marketplace");
-        return;
-      }
-
-      // Add cache busting to ensure fresh data and prevent cached UUID responses
-      const response = await axios.get(`/api/marketplace/products/${id}?_t=${Date.now()}`);
+      const response = await axios.get(`/api/marketplace/products/${id}`);
       const productData = response.data.product || response.data;
-
-      // Transform database response to match component interface
-      const transformedProduct = {
-        id: productData.id,
-        name: productData.name,
-        category: productData.category,
-        price_per_unit: productData.price_per_unit,
-        unit: productData.unit,
-        description: productData.description || '',
-        stock_quantity: productData.stock_quantity,
-        quantity: productData.quantity || productData.stock_quantity,
-        images: Array.isArray(productData.images) ? productData.images : [],
-        farmer_name: productData.farmer_name || 'Local Farmer',
-        farmer_county: productData.farmer_county || 'Kenya',
-        created_at: productData.created_at || new Date().toISOString()
-      };
-
-      setProduct(transformedProduct);
+      setProduct(productData);
 
       // Fetch related products
-      if (transformedProduct) {
-        fetchRelatedProducts(transformedProduct.category, transformedProduct.farmer_county || 'Kenya');
+      if (productData) {
+        fetchRelatedProducts(productData.category, productData.farmer.county);
       }
     } catch (error: any) {
       console.error("Failed to fetch product:", error);
       if (error.response?.status === 404) {
         toast.error("Product not found");
-        navigate("/marketplace");
-      } else if (error.response?.status === 410) {
-        // Handle outdated product links
-        const data = error.response?.data;
-        toast.error(data?.message || "This product link is outdated");
         navigate("/marketplace");
       } else {
         toast.error("Failed to load product details");
@@ -135,8 +116,7 @@ export default function ProductPage() {
         `/api/marketplace/products?category=${category}&county=${county}&limit=4`,
       );
       const products = response.data.products || response.data;
-      const safeProducts = Array.isArray(products) ? products : [];
-      setRelatedProducts(safeProducts.filter((p: RelatedProduct) => p?.id !== Number(id)));
+      setRelatedProducts(products.filter((p: RelatedProduct) => p.id !== id));
     } catch (error) {
       console.error("Failed to fetch related products:", error);
     }
@@ -156,9 +136,8 @@ export default function ProductPage() {
     if (!product) return;
 
     try {
-      await addToCart(product, quantity);
+      await addToCart(product.id, quantity);
       setQuantity(1); // Reset quantity after adding
-      toast.success(`Added ${product.name} to cart`);
     } catch (error) {
       // Error is handled in the context
     }
@@ -201,13 +180,13 @@ export default function ProductPage() {
   const getStockStatus = () => {
     if (!product) return null;
 
-    if (product.stock_quantity === 0) {
+    if (product.stockQuantity === 0) {
       return {
         text: "Out of Stock",
         color: "text-red-600",
         bgColor: "bg-red-100",
       };
-    } else if (product.stock_quantity <= 5) {
+    } else if (product.stockQuantity <= (product.minStockLevel || 5)) {
       return {
         text: "Low Stock",
         color: "text-orange-600",
@@ -360,7 +339,7 @@ export default function ProductPage() {
           {/* Price and Stock */}
           <div className="mb-6">
             <div className="text-3xl font-bold text-gray-900 mb-2">
-              {formatPrice(product.price_per_unit)}
+              {formatPrice(product.pricePerUnit)}
               <span className="text-lg font-normal text-gray-600 ml-2">
                 per {product.unit}
               </span>
@@ -374,17 +353,27 @@ export default function ProductPage() {
                   {stockStatus.text}
                 </span>
                 <span className="text-gray-600 text-sm">
-                  {product.stock_quantity} {product.unit} available
+                  {product.stockQuantity} {product.unit} available
                 </span>
               </div>
             )}
           </div>
 
-          {/* Category Badge */}
+          {/* Features/Badges */}
           <div className="flex flex-wrap gap-2 mb-6">
-            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-              {product.category}
-            </span>
+            {product.isFeatured && (
+              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                ⭐ Featured
+              </span>
+            )}
+            {product.tags.map((tag) => (
+              <span
+                key={tag}
+                className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
+              >
+                {tag}
+              </span>
+            ))}
           </div>
 
           {/* Description */}
@@ -399,7 +388,26 @@ export default function ProductPage() {
 
           {/* Product Details */}
           <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-
+            {product.harvestDate && (
+              <div>
+                <span className="text-sm font-medium text-gray-600">
+                  Harvest Date
+                </span>
+                <p className="text-gray-900">
+                  {formatDate(product.harvestDate)}
+                </p>
+              </div>
+            )}
+            {product.expiryDate && (
+              <div>
+                <span className="text-sm font-medium text-gray-600">
+                  Best Before
+                </span>
+                <p className="text-gray-900">
+                  {formatDate(product.expiryDate)}
+                </p>
+              </div>
+            )}
             <div>
               <span className="text-sm font-medium text-gray-600">
                 Category
@@ -415,7 +423,7 @@ export default function ProductPage() {
           {/* Add to Cart */}
           {isAuthenticated &&
             user?.role === "CUSTOMER" &&
-            product.stock_quantity > 0 && (
+            product.stockQuantity > 0 && (
               <div className="mb-6">
                 <div className="flex items-center space-x-4 mb-4">
                   <label className="text-sm font-medium text-gray-700">
@@ -431,7 +439,7 @@ export default function ProductPage() {
                     <input
                       type="number"
                       min="1"
-                      max={product.stock_quantity}
+                      max={product.stockQuantity}
                       value={quantity}
                       onChange={(e) =>
                         setQuantity(Math.max(1, parseInt(e.target.value) || 1))
@@ -441,7 +449,7 @@ export default function ProductPage() {
                     <button
                       onClick={() =>
                         setQuantity(
-                          Math.min(product.stock_quantity, quantity + 1),
+                          Math.min(product.stockQuantity, quantity + 1),
                         )
                       }
                       className="px-3 py-2 text-gray-600 hover:text-gray-900"
@@ -450,7 +458,7 @@ export default function ProductPage() {
                     </button>
                   </div>
                   <span className="text-sm text-gray-600">
-                    Total: {formatPrice(product.price_per_unit * quantity)}
+                    Total: {formatPrice(product.pricePerUnit * quantity)}
                   </span>
                 </div>
 
@@ -493,24 +501,80 @@ export default function ProductPage() {
           About the Farmer
         </h3>
 
-        <div className="space-y-4">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mr-4">
-              <span className="text-primary-600 font-semibold text-lg">
-                🌾
-              </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <div className="flex items-center mb-3">
+              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mr-4">
+                <span className="text-primary-600 font-semibold text-lg">
+                  {product.farmer.user.firstName[0]}
+                  {product.farmer.user.lastName[0]}
+                </span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900">
+                  {product.farmer.user.firstName} {product.farmer.user.lastName}
+                </h4>
+                {product.farmer.farmName && (
+                  <p className="text-gray-600 text-sm">
+                    {product.farmer.farmName}
+                  </p>
+                )}
+              </div>
             </div>
-            <div>
-              <h4 className="font-semibold text-gray-900">
-                {product.farmer_name || 'Local Farmer'}
-              </h4>
+
+            <div className="space-y-2 text-sm">
               <div className="flex items-center">
                 <MapPin className="w-4 h-4 text-gray-400 mr-2" />
                 <span className="text-gray-600">
-                  {product.farmer_county || 'Kenya'}
+                  {product.farmer.subCounty
+                    ? `${product.farmer.subCounty}, `
+                    : ""}
+                  {product.farmer.county}
                 </span>
               </div>
+
+              {product.farmer.farmSize && (
+                <div>
+                  <span className="text-gray-600">
+                    Farm Size: {product.farmer.farmSize} acres
+                  </span>
+                </div>
+              )}
             </div>
+          </div>
+
+          <div>
+            <button
+              onClick={() => setShowFarmerContact(!showFarmerContact)}
+              className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium mb-4"
+            >
+              Contact Farmer
+            </button>
+
+            {showFarmerContact && (
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center">
+                  <Phone className="w-4 h-4 text-gray-400 mr-2" />
+                  <a
+                    href={`tel:${product.farmer.user.phone}`}
+                    className="text-primary-600 hover:text-primary-700"
+                  >
+                    {product.farmer.user.phone}
+                  </a>
+                </div>
+                {product.farmer.user.email && (
+                  <div className="flex items-center">
+                    <Mail className="w-4 h-4 text-gray-400 mr-2" />
+                    <a
+                      href={`mailto:${product.farmer.user.email}`}
+                      className="text-primary-600 hover:text-primary-700"
+                    >
+                      {product.farmer.user.email}
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -553,10 +617,12 @@ export default function ProductPage() {
                     {relatedProduct.name}
                   </h4>
                   <p className="text-xs text-gray-600 mb-2">
-                    {relatedProduct.farmer_county || 'Kenya'} • {relatedProduct.farmer_name || 'Local Farmer'}
+                    {relatedProduct.farmer.county} •{" "}
+                    {relatedProduct.farmer.user.firstName}{" "}
+                    {relatedProduct.farmer.user.lastName}
                   </p>
                   <div className="text-lg font-bold text-gray-900">
-                    {formatPrice(relatedProduct.price_per_unit)}
+                    {formatPrice(relatedProduct.pricePerUnit)}
                     <span className="text-xs font-normal text-gray-600 ml-1">
                       /{relatedProduct.unit}
                     </span>

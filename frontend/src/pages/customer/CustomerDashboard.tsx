@@ -14,6 +14,7 @@ import {
   Mail,
   Star,
   Truck,
+  ArrowRight,
 } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -22,25 +23,18 @@ interface Order {
   id: string;
   totalAmount: number;
   status: string;
-  paymentMethod?: string;
+  paymentMethod: string;
   paymentStatus: string;
   deliveryAddress: string;
-  deliveryPhone?: string;
-  orderDate?: string;
-  estimatedDelivery?: string;
-  orderNumber?: string;
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  customerName?: string;
+  deliveryPhone: string;
+  orderDate: string;
+  estimatedDelivery: string;
   items: Array<{
-    id?: string;
+    id: string;
     quantity: number;
-    pricePerUnit?: number;
+    pricePerUnit: number;
     totalPrice: number;
-    productName?: string;
-    unit?: string;
-    product?: {
+    product: {
       id: string;
       name: string;
       images: string[];
@@ -72,38 +66,27 @@ export default function CustomerDashboard() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+      const token = localStorage.getItem("token");
       const response = await axios.get(
-        "/api/orders",
+        `${import.meta.env.VITE_API_URL}/orders`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
 
-      console.log("🛒 Raw orders response:", response.data);
-
-      // Safe orders extraction
-      let orders = [];
-      if (response.data && Array.isArray(response.data.orders)) {
-        orders = response.data.orders;
-      } else if (Array.isArray(response.data)) {
-        orders = response.data;
-      }
-
-      console.log("🛒 Processed orders:", orders.length);
+      const orders = response.data.orders || response.data;
       setOrders(orders);
 
-      // Calculate stats with safe array operations
-      const safeOrders = Array.isArray(orders) ? orders : [];
-      const totalOrders = safeOrders.length;
-      const completedOrders = safeOrders.filter(
-        (o: any) => o && o.status === "DELIVERED",
+      // Calculate stats
+      const totalOrders = orders.length;
+      const completedOrders = orders.filter(
+        (o: Order) => o.status === "DELIVERED",
       ).length;
-      const totalSpent = safeOrders
-        .filter((o: any) => o && o.paymentStatus === "COMPLETED")
-        .reduce((sum: number, o: any) => sum + (parseFloat(o.totalAmount) || 0), 0);
-      const pendingOrders = safeOrders.filter(
-        (o: any) => o && o.status === "PENDING",
+      const totalSpent = orders
+        .filter((o: Order) => o.paymentStatus === "COMPLETED")
+        .reduce((sum: number, o: Order) => sum + o.totalAmount, 0);
+      const pendingOrders = orders.filter(
+        (o: Order) => o.status === "PENDING",
       ).length;
 
       setStats({
@@ -118,14 +101,18 @@ export default function CustomerDashboard() {
       // If 404, provide fallback demo data until backend is deployed
       if (error.response?.status === 404) {
         console.log("🛒 Using fallback demo orders (endpoint not found)");
-        const demoOrders = [
+                const demoOrders = [
           {
             id: "order_1",
             orderNumber: "ORD-2024-001",
             totalAmount: 2500,
             paymentStatus: "COMPLETED",
+            paymentMethod: "M-PESA",
             status: "DELIVERED",
             deliveryAddress: "123 Main Street, Nairobi",
+            deliveryPhone: "+254712345678",
+            orderDate: new Date(Date.now() - 86400000).toISOString(),
+            estimatedDelivery: new Date(Date.now() - 43200000).toISOString(),
             notes: "Please deliver in the morning",
             createdAt: new Date(Date.now() - 86400000).toISOString(),
             updatedAt: new Date().toISOString(),
@@ -133,11 +120,14 @@ export default function CustomerDashboard() {
             items: [
               {
                 id: "item_1",
-                productName: "Organic Tomatoes",
                 quantity: 5,
-                unit: "kg",
                 pricePerUnit: 120,
                 totalPrice: 600,
+                product: {
+                  id: "prod_1",
+                  name: "Organic Tomatoes",
+                  images: []
+                }
               },
             ],
           },
@@ -146,8 +136,12 @@ export default function CustomerDashboard() {
             orderNumber: "ORD-2024-002",
             totalAmount: 1800,
             paymentStatus: "PENDING",
+            paymentMethod: "M-PESA",
             status: "PROCESSING",
             deliveryAddress: "456 Oak Avenue, Nakuru",
+            deliveryPhone: "+254723456789",
+            orderDate: new Date(Date.now() - 3600000).toISOString(),
+            estimatedDelivery: new Date(Date.now() + 86400000).toISOString(),
             notes: "Call before delivery",
             createdAt: new Date(Date.now() - 3600000).toISOString(),
             updatedAt: new Date().toISOString(),
@@ -155,11 +149,14 @@ export default function CustomerDashboard() {
             items: [
               {
                 id: "item_3",
-                productName: "Premium Maize",
                 quantity: 2,
-                unit: "bags",
                 pricePerUnit: 900,
                 totalPrice: 1800,
+                product: {
+                  id: "prod_2",
+                  name: "Premium Maize",
+                  images: []
+                }
               },
             ],
           },
@@ -172,7 +169,7 @@ export default function CustomerDashboard() {
           totalSpent: 2500,
           pendingOrders: 1,
         });
-        toast("Using demo data - backend deployment needed", { icon: "ℹ️" });
+                toast.success("Using demo data - backend deployment needed");
       } else {
         toast.error("Failed to load orders");
       }
@@ -229,55 +226,79 @@ export default function CustomerDashboard() {
 
         {/* Quick stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <div className="flex items-center">
-              <ShoppingBag className="w-8 h-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">
-                  Total Orders
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.totalOrders}
-                </p>
+          <div
+            onClick={() => navigate('/customer/orders')}
+            className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <ShoppingBag className="w-8 h-8 text-blue-600 group-hover:scale-110 transition-transform" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500 group-hover:text-blue-600">
+                    Total Orders
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 group-hover:text-blue-600">
+                    {stats.totalOrders}
+                  </p>
+                </div>
               </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <div className="flex items-center">
-              <Clock className="w-8 h-8 text-yellow-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">
-                  Pending Orders
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.pendingOrders}
-                </p>
+          <div
+            onClick={() => navigate('/customer/orders?filter=pending')}
+            className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md hover:border-yellow-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Clock className="w-8 h-8 text-yellow-600 group-hover:scale-110 transition-transform" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500 group-hover:text-yellow-600">
+                    Pending Orders
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 group-hover:text-yellow-600">
+                    {stats.pendingOrders}
+                  </p>
+                </div>
               </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-yellow-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <div className="flex items-center">
-              <Package className="w-8 h-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.completedOrders}
-                </p>
+          <div
+            onClick={() => navigate('/customer/orders?filter=completed')}
+            className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md hover:border-green-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Package className="w-8 h-8 text-green-600 group-hover:scale-110 transition-transform" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500 group-hover:text-green-600">Completed</p>
+                  <p className="text-2xl font-bold text-gray-900 group-hover:text-green-600">
+                    {stats.completedOrders}
+                  </p>
+                </div>
               </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <div className="flex items-center">
-              <CreditCard className="w-8 h-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Spent</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  KES {stats.totalSpent.toLocaleString()}
-                </p>
+          <div
+            onClick={() => navigate('/customer/profile')}
+            className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md hover:border-purple-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <CreditCard className="w-8 h-8 text-purple-600 group-hover:scale-110 transition-transform" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500 group-hover:text-purple-600">Total Spent</p>
+                  <p className="text-2xl font-bold text-gray-900 group-hover:text-purple-600">
+                    KES {stats.totalSpent.toLocaleString()}
+                  </p>
+                </div>
               </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
         </div>
@@ -330,17 +351,17 @@ export default function CustomerDashboard() {
             </div>
           </div>
           <div className="p-6">
-            {(Array.isArray(orders) ? orders : []).slice(0, 3).map((order) => (
+            {orders.slice(0, 3).map((order) => (
               <div
                 key={order.id}
                 className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0"
               >
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                    {Array.isArray(order?.items) && order.items[0]?.product?.images?.[0] ? (
+                    {order.items[0]?.product?.images?.[0] ? (
                       <img
                         src={order.items[0].product.images[0]}
-                        alt={order.items[0].product.name || 'Product'}
+                        alt={order.items[0].product.name}
                         className="w-12 h-12 rounded-lg object-cover"
                       />
                     ) : (
@@ -349,16 +370,15 @@ export default function CustomerDashboard() {
                   </div>
                   <div className="ml-4">
                     <p className="font-medium text-gray-900">
-                      Order #{order?.id ? String(order.id).slice(-8) : 'N/A'}
+                      Order #{order.id.slice(-8)}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {Array.isArray(order?.items) ? order.items.length : 0} item
-                      {(Array.isArray(order?.items) && order.items.length > 1) ? "s" : ""} • KES{" "}
-                      {(order?.totalAmount || 0).toLocaleString()}
+                      {order.items.length} item
+                      {order.items.length > 1 ? "s" : ""} • KES{" "}
+                      {order.totalAmount.toLocaleString()}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {order?.orderDate ? new Date(order.orderDate).toLocaleDateString() :
-                       order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'Unknown date'}
+                      {new Date(order.orderDate).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -370,7 +390,7 @@ export default function CustomerDashboard() {
                     <span className="ml-1">{order.status}</span>
                   </span>
                   <p className="text-sm text-gray-500 mt-1">
-                    {order.paymentMethod || 'Payment method not specified'}
+                    {order.paymentMethod}
                   </p>
                 </div>
               </div>

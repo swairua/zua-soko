@@ -1,252 +1,232 @@
 import axios from "axios";
-import { getApiUrl, getDebugMode, getEnvironmentConfig } from "../utils/env";
 
-// Get configuration from environment
-const config = getEnvironmentConfig();
-const API_BASE_URL = config.apiUrl;
-const DEBUG_MODE = config.debugMode;
+// Configure axios based on environment
+// In production, use relative URLs to the same domain
+// In development, use the configured VITE_API_URL or default to /api
+const isProduction = import.meta.env.PROD || window.location.hostname !== 'localhost';
+const API_BASE_URL = isProduction ? "/api" : (import.meta.env.VITE_API_URL || "/api");
 
-console.log(`🔗 API Service initialized with base URL: ${API_BASE_URL}`);
+console.log("🔧 API Configuration:", {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  API_BASE_URL,
+  MODE: import.meta.env.MODE,
+  PROD: import.meta.env.PROD,
+  isProduction,
+  hostname: window.location.hostname
+});
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // Increased timeout for better real database connection
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Add request interceptor for auth token and enhanced logging
+// Add request interceptor for auth token
 api.interceptors.request.use((config) => {
-  if (DEBUG_MODE) {
-    console.group("🚀 API REQUEST");
-    console.log("📍 URL:", config.url);
-    console.log("🔧 Method:", config.method?.toUpperCase());
-    console.log("📦 Data:", config.data);
-    console.log("🔑 Headers:", {
-      'Content-Type': config.headers['Content-Type'],
-      'Authorization': config.headers['Authorization'] ? '[TOKEN PRESENT]' : '[NO TOKEN]'
-    });
-    console.groupEnd();
-  }
-
-  const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+  const token = localStorage.getItem("authToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
-  // Add timing metadata
-  (config as any).metadata = { startTime: Date.now() };
-
   return config;
 });
 
-// Add response interceptor for enhanced logging
+// Add response interceptor for detailed error handling
 api.interceptors.response.use(
-  (response) => {
-    if (DEBUG_MODE) {
-      console.group("✅ API SUCCESS");
-      console.log("📍 URL:", response.config.url);
-      console.log("📊 Status:", `${response.status} ${response.statusText}`);
-      console.log("📦 Data:", response.data);
-      console.log("⏱️ Duration:", (response.config as any).metadata?.startTime ?
-        `${Date.now() - (response.config as any).metadata.startTime}ms` : 'Unknown');
-      console.groupEnd();
-    }
-    return response;
-  },
+  (response) => response,
   (error) => {
-    // Enhanced error logging with better formatting
+    // Comprehensive error information extraction
+    const status = error.response?.status;
+    const statusText = error.response?.statusText;
+    const data = error.response?.data;
+    const config = error.config;
+    const url = config?.url;
+    const method = config?.method?.toUpperCase();
+
+    // Create detailed error information
     const errorDetails = {
-      url: error.config?.url || 'Unknown URL',
-      method: (error.config?.method || 'Unknown').toUpperCase(),
-      status: error.response?.status || 'No Status',
-      statusText: error.response?.statusText || 'No Status Text',
-      data: error.response?.data ? JSON.stringify(error.response.data, null, 2) : 'No Response Data',
-      message: error.message || 'No Error Message',
-      hostname: window.location.hostname,
       timestamp: new Date().toISOString(),
-      baseURL: API_BASE_URL,
-      environment: config.isProduction ? 'production' : 'development'
+      request: {
+        method,
+        url: `${API_BASE_URL}${url}`,
+        fullUrl: config?.url,
+        headers: config?.headers,
+        timeout: config?.timeout
+      },
+      response: {
+        status,
+        statusText,
+        data,
+        headers: error.response?.headers
+      },
+      network: {
+        code: error.code,
+        message: error.message,
+        name: error.name,
+        isNetworkError: !error.response
+      }
     };
 
-    console.group("❌ API ERROR DETAILS");
-    console.error("🌐 Request:", `${errorDetails.method} ${errorDetails.url}`);
-    console.error("📊 Status:", `${errorDetails.status} - ${errorDetails.statusText}`);
-    console.error("💬 Message:", errorDetails.message);
-    console.error("📦 Response Data:", errorDetails.data);
-    console.error("🕐 Timestamp:", errorDetails.timestamp);
-    console.error("🏠 Hostname:", errorDetails.hostname);
-    console.error("🔗 Base URL:", errorDetails.baseURL);
-    console.error("🌍 Environment:", errorDetails.environment);
-    if (DEBUG_MODE) {
-      console.error("🔧 Full Error Object:", error);
-    }
+    // Enhanced logging with full details
+    console.group(`🚨 API ERROR DETAILS - ${method} ${url}`);
+    console.error('📍 Status:', status || 'Network Error');
+    console.error('📝 Status Text:', statusText || 'No status text');
+    console.error('🔗 URL:', `${API_BASE_URL}${url}`);
+    console.error('⚠️ Error Code:', error.code);
+    console.error('💬 Error Message:', error.message);
+    console.error('📦 Response Data:', data);
+    console.error('🌐 Network Error:', !error.response);
+    console.error('🔍 Full Error Details:', errorDetails);
     console.groupEnd();
 
-    // Also log as a single formatted string for easy copying
-    const errorSummary = `API Error: ${errorDetails.method} ${errorDetails.url} - ${errorDetails.status} ${errorDetails.statusText} - ${errorDetails.message}`;
-    console.error("📋 Error Summary:", errorSummary);
+    // Show user-friendly error notification with details
+    const showDetailedError = (title: string, details: string) => {
+      // Create detailed error display
+      const errorDisplay = `
+${title}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 Status: ${status || 'Network Error'}
+🔗 URL: ${method} ${url}
+⚠️ Code: ${error.code || 'Unknown'}
+💬 Message: ${error.message}
+📦 Data: ${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}
+━━━━━��━━━━━━━━━━━━━━━━━━━━━━━━`;
 
-    // Add context for common errors
-    if (errorDetails.status === 400) {
-      console.warn("💡 Common 400 causes: Invalid request data, missing required fields, or malformed JSON");
-    } else if (errorDetails.status === 401) {
-      console.warn("💡 Common 401 causes: Missing or invalid authentication token");
-    } else if (errorDetails.status === 403) {
-      console.warn("💡 Common 403 causes: Insufficient permissions for this resource");
-    } else if (errorDetails.status === 404) {
-      console.warn("💡 Common 404 causes: Resource not found or incorrect URL");
-    } else if (errorDetails.status === 410) {
-      console.warn("💡 410 Gone: This resource uses an outdated format and is no longer available");
-    } else if (errorDetails.status === 409) {
-      console.warn("💡 Common 409 causes: Conflict with existing data (duplicate phone/email)");
-    } else if (errorDetails.status === 500) {
-      console.warn("💡 Common 500 causes: Server-side error, database connection issues");
-    } else if (error.code === 'NETWORK_ERROR' || !errorDetails.status) {
-      console.warn("💡 Network issues: Check internet connection and server availability");
-      console.warn("💡 Current API URL:", API_BASE_URL);
+      console.error(errorDisplay);
+
+      // Also show in UI if possible
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('api-error-details', {
+          detail: { title, details: errorDisplay, errorDetails }
+        }));
+      }
+    };
+
+    // Handle different types of errors with detailed information
+    if (!error.response) {
+      // Network error (server not responding)
+      const details = `Server is not responding. Check if backend is running on the expected port.`;
+      showDetailedError('🌐 NETWORK ERROR', details);
+      error.friendlyMessage = `Network Error: Cannot connect to server (${error.code})`;
+
+    } else if (status === 403) {
+      // Authentication error
+      console.warn('🔄 Authentication failed - clearing tokens');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('auth-storage');
+
+      if (!window.location.pathname.includes('/auth/login')) {
+        window.location.href = '/auth/login';
+      }
+
+      showDetailedError('🔐 AUTHENTICATION ERROR', 'Token invalid or expired');
+      error.friendlyMessage = 'Authentication failed - please login again';
+
+    } else if (status === 404) {
+      // Endpoint not found
+      showDetailedError('🔍 ENDPOINT NOT FOUND', `API endpoint does not exist`);
+      error.friendlyMessage = `API endpoint not found: ${method} ${url}`;
+
+    } else if (status === 500) {
+      // Server error
+      const serverError = typeof data === 'object' ? (data.message || data.error) : data;
+      showDetailedError('🔥 SERVER ERROR', `Internal server error occurred`);
+      error.friendlyMessage = `Server Error (500): ${serverError || 'Internal server error'}`;
+
+    } else if (status === 502) {
+      // Bad gateway
+      showDetailedError('🚧 BAD GATEWAY', 'Server is temporarily unavailable');
+      error.friendlyMessage = 'Server temporarily unavailable (502)';
+
+    } else {
+      // Other HTTP errors
+      const errorMessage = typeof data === 'object' ? (data.message || data.error) : data;
+      showDetailedError(`❌ HTTP ERROR ${status}`, errorMessage || statusText);
+      error.friendlyMessage = `HTTP ${status}: ${errorMessage || statusText}`;
     }
 
+    // Attach detailed error info to error object
+    error.errorDetails = errorDetails;
+    error.detailedMessage = error.friendlyMessage;
+
     return Promise.reject(error);
-  },
+  }
 );
 
-// API functions - All targeting real database
+// API functions
 export const apiService = {
-  // Auth endpoints - Real database only
+  // Auth endpoints
   login: async (credentials: { phone: string; password: string }) => {
-    console.log("🔐 ATTEMPTING LOGIN with real database:", credentials.phone);
     const response = await api.post("/auth/login", credentials);
-    console.log("🔐 LOGIN SUCCESS:", response.data);
     return response.data;
   },
 
   register: async (userData: any) => {
-    console.log("📝 ATTEMPTING REGISTRATION with real database");
     const response = await api.post("/auth/register", userData);
-    console.log("📝 REGISTRATION SUCCESS:", response.data);
     return response.data;
   },
 
-  // Product endpoints - Real database only
+  // Product endpoints
   getProducts: async (params?: URLSearchParams) => {
-    const url = params
-      ? `/marketplace/products?${params}`
-      : "/marketplace/products";
-    console.log("🛍️ FETCHING PRODUCTS from real database:", url);
+    const url = params ? `/marketplace/products?${params}` : "/products";
     const response = await api.get(url);
-    console.log(
-      "🛍️ PRODUCTS SUCCESS:",
-      response.data.products?.length || response.data.length,
-      "products",
-    );
     return response.data;
   },
 
   getProduct: async (id: string) => {
-    console.log("🛍️ FETCHING SINGLE PRODUCT from real database:", id);
-
-    // Validate product ID to prevent invalid requests
-    if (!id || id === 'undefined' || id === 'null' || id.trim() === '') {
-      throw new Error('Invalid product ID: ID is empty or undefined');
-    }
-
-    // Products now use real integer IDs from the database
-    console.log("🛍️ Fetching product with ID:", id, "Type:", typeof id);
-
-    try {
-      const response = await api.get(`/marketplace/products/${id}`);
-      console.log("🛍️ SINGLE PRODUCT SUCCESS:", response.data);
-      return response.data;
-    } catch (error: any) {
-      // Handle 410 specifically for outdated product links
-      if (error.response?.status === 410) {
-        const errorData = error.response.data;
-        console.log("✅ 410 Response handled gracefully - Outdated product link detected:", {
-          productId: id,
-          message: errorData.message,
-          redirect: errorData.redirect
-        });
-
-        // For 410 responses, we want to handle this gracefully in the UI
-        // rather than showing a generic error
-        throw new Error("OUTDATED_PRODUCT_LINK");
-      }
-
-      // Re-throw other errors normally
-      throw error;
-    }
+    const response = await api.get(`/marketplace/products/${id}`);
+    return response.data;
   },
 
-  // Marketplace metadata - Real database only
+  // Marketplace metadata
   getCategories: async () => {
-    console.log("📁 FETCHING CATEGORIES from real database");
     const response = await api.get("/marketplace/categories");
-    console.log("📁 CATEGORIES SUCCESS:", response.data);
     return response.data;
   },
 
   getCounties: async () => {
-    console.log("🗺️ FETCHING COUNTIES from real database");
     const response = await api.get("/marketplace/counties");
-    console.log("🗺️ COUNTIES SUCCESS:", response.data);
     return response.data;
   },
 
-  // Wallet endpoints - Real database only
-  getWalletBalance: async () => {
-    console.log("💰 FETCHING WALLET BALANCE from real database");
-    const response = await api.get("/wallet/balance");
-    console.log("💰 WALLET SUCCESS:", response.data);
+  // Status check
+  getHealth: async () => {
+    const response = await api.get("/status");
     return response.data;
   },
 
-  // Order endpoints - Real database only
-  createOrder: async (orderData: any) => {
-    console.log("📦 CREATING ORDER in real database");
-    const response = await api.post("/orders", orderData);
-    console.log("📦 ORDER SUCCESS:", response.data);
-    return response.data;
-  },
-
-  getOrders: async () => {
-    console.log("📦 FETCHING ORDERS from real database");
-    const response = await api.get("/orders");
-    console.log("📦 ORDERS SUCCESS:", response.data);
-    return response.data;
-  },
-
-  // Admin endpoints - Real database only
-  getUsers: async () => {
-    console.log("👥 FETCHING USERS from real database");
-    const response = await api.get("/admin/users");
-    console.log("👥 USERS SUCCESS:", response.data);
-    return response.data;
-  },
-
-  approveUser: async (userId: string) => {
-    console.log("✅ APPROVING USER in real database:", userId);
-    const response = await api.post(`/admin/users/${userId}/approve`);
-    console.log("✅ USER APPROVAL SUCCESS:", response.data);
-    return response.data;
-  },
-
-  // Generic GET method for any endpoint
+  // Generic GET method
   get: async (url: string) => {
-    console.log("🔄 GENERIC GET REQUEST to real database:", url);
+    console.log(`🔍 API GET: ${API_BASE_URL}${url}`);
     const response = await api.get(url);
-    console.log("🔄 GENERIC GET SUCCESS:", response.data);
+    return response;
+  },
+
+  // Generic POST method
+  post: async (url: string, data: any) => {
+    console.log(`🔍 API POST: ${API_BASE_URL}${url}`);
+    const response = await api.post(url, data);
+    return response;
+  },
+
+  // Generic PUT method
+  put: async (url: string, data: any) => {
+    const response = await api.put(url, data);
+    return response;
+  },
+
+  // Generic DELETE method
+  delete: async (url: string) => {
+    const response = await api.delete(url);
+    return response;
+  },
+
+  // Generic PATCH method
+  patch: async (url: string, data: any) => {
+    const response = await api.patch(url, data);
     return response;
   },
 };
 
-// Export the configured API instance for direct use
 export default api;
-
-// Export configuration info for debugging
-export const apiConfig = {
-  baseURL: API_BASE_URL,
-  debugMode: DEBUG_MODE,
-  environment: config.isProduction ? 'production' : 'development'
-};

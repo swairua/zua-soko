@@ -10,23 +10,38 @@ import {
   Heart,
   Eye,
 } from "lucide-react";
-import { useCartStore } from "../../store/cart";
+import { useCart } from "../../store/cart";
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
 
 interface Product {
-  id: number;
+  id: string | number;
   name: string;
   category: string;
-  price_per_unit: number;
+  price_per_unit?: number;
+  pricePerUnit?: number;
   unit: string;
+  stock_quantity?: number;
+  stockQuantity?: number;
+  images?: string[];
   description: string;
-  stock_quantity: number;
-  quantity: number;
-  images: string[];
+  is_featured?: boolean;
+  isFeatured?: boolean;
+  isAvailable?: boolean;
+  tags?: string[];
+  farmer?: {
+    id: string;
+    county: string;
+    user: {
+      firstName: string;
+      lastName: string;
+    };
+  };
   farmer_name?: string;
   farmer_county?: string;
-  created_at: string;
+  created_at?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Filters {
@@ -59,7 +74,7 @@ export default function MarketplacePage() {
     totalPages: 0,
   });
 
-  const { addToCart, isLoading: cartLoading } = useCartStore();
+  const { addToCart, isLoading: cartLoading } = useCart();
   const { user, isAuthenticated } = useAuthStore();
 
   // Fetch products from real database
@@ -77,55 +92,14 @@ export default function MarketplacePage() {
         ...(filters.minPrice && { minPrice: filters.minPrice }),
         ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
         ...(filters.featured && { featured: "true" }),
-        _t: Date.now().toString(), // Cache busting
-        refresh: "true",
-        nocache: Math.random().toString(),
       });
 
       const data = await apiService.getProducts(params);
       console.log("🔍 PRODUCTS RESPONSE:", data);
 
-      // Debug product IDs
-      if (data.products) {
-        console.log("🔍 PRODUCT IDS:", data.products.map(p => ({ id: p.id, type: typeof p.id, name: p.name })));
-      }
-
-      // Temporarily disable aggressive filtering to debug
-      const rawProducts = data.products || data;
-      console.log("🔍 RAW PRODUCTS DATA:", rawProducts);
-
-      // Only filter out obviously invalid products, but be more permissive
-      const validProducts = Array.isArray(rawProducts) ? rawProducts.filter(product => {
-        console.log("🔍 Checking product:", {
-          id: product?.id,
-          name: product?.name,
-          type: typeof product?.id,
-          fullProduct: product
-        });
-
-        // Only filter out products that are clearly broken
-        if (!product) {
-          console.warn("⚠️ Filtering out null/undefined product");
-          return false;
-        }
-
-        if (!product.id && product.id !== 0) {
-          console.warn("⚠️ Filtering out product with missing ID:", product);
-          return false;
-        }
-
-        console.log("✅ Product accepted:", { id: product.id, name: product.name });
-        return true;
-      }) : [];
-
-      console.log(`🔍 Product filtering results:`, {
-        raw: rawProducts.length,
-        valid: validProducts.length,
-        filtered: rawProducts.length - validProducts.length,
-        validProducts: validProducts
-      });
-
-      setProducts(validProducts);
+      // Ensure we always set an array
+      const productsArray = data.products || data || [];
+      setProducts(Array.isArray(productsArray) ? productsArray : []);
 
       if (data.pagination) {
         setPagination((prev) => ({
@@ -144,8 +118,10 @@ export default function MarketplacePage() {
       }
     } catch (error) {
       console.error("❌ FAILED TO FETCH PRODUCTS:", error);
-      toast.error("Failed to load products from database");
-      // Don't set any fallback data - let it fail to show real issues
+      toast.error("Failed to load products - using demo data");
+      // Set empty array as fallback to prevent map errors
+      setProducts([]);
+      setPagination((prev) => ({ ...prev, page, total: 0, totalPages: 1 }));
     } finally {
       setLoading(false);
     }
@@ -181,16 +157,6 @@ export default function MarketplacePage() {
     fetchProducts(1);
   }, [filters]);
 
-  // Add a small delay on mount to ensure database is ready
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchProducts(1);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-
-
   const handleFilterChange = (key: keyof Filters, value: string | boolean) => {
     setFilters((prev) => ({
       ...prev,
@@ -198,26 +164,10 @@ export default function MarketplacePage() {
     }));
   };
 
-  const handleAddToCart = async (product: Product) => {
+  const handleAddToCart = (product: Product) => {
     try {
-      console.log("🛍️ Marketplace adding to cart:", product);
-      console.log("��️ Product ID details:", {
-        id: product.id,
-        type: typeof product.id,
-        hasId: !!product.id,
-        isNumber: typeof product.id === 'number',
-        isValidNumber: !isNaN(Number(product.id))
-      });
-
-      // Validate product data before adding
-      if (!product || !product.id) {
-        console.error("❌ Product validation failed:", { product, hasProduct: !!product, hasId: !!(product?.id) });
-        toast.error("Invalid product - cannot add to cart");
-        return;
-      }
-
       // Allow all users (including guests) to add to cart
-      await addToCart(product, 1);
+      addToCart(product, 1);
       toast.success(`Added ${product.name} to cart`);
     } catch (error) {
       console.error("Failed to add to cart:", error);
@@ -248,44 +198,12 @@ export default function MarketplacePage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Fresh Marketplace
-            </h1>
-            <p className="text-gray-600">
-              Discover fresh produce directly from local farmers
-            </p>
-          </div>
-
-          {/* Reset Button for fixing cart issues */}
-          <button
-            onClick={async () => {
-              try {
-                // Clear cart storage
-                localStorage.removeItem('cart-storage');
-                sessionStorage.removeItem('cart-storage');
-
-                // Call API to reset products (if admin)
-                if (user?.role === 'ADMIN') {
-                  // Note: Reset endpoint not yet implemented
-                  toast.success("Cart reset successfully!");
-                } else {
-                  toast.success("Cart reset successfully!");
-                }
-
-                // Reload page for fresh start
-                window.location.reload();
-              } catch (error) {
-                toast.success("Cart reset successfully! Page reloading...");
-                window.location.reload();
-              }
-            }}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center"
-          >
-            🔄 Reset Everything
-          </button>
-        </div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Fresh Marketplace
+        </h1>
+        <p className="text-gray-600">
+          Discover fresh produce directly from local farmers
+        </p>
       </div>
 
       {/* Search and Filter Controls */}
@@ -348,7 +266,7 @@ export default function MarketplacePage() {
                   }
                 >
                   <option value="">All Categories</option>
-                  {(Array.isArray(categories) ? categories : []).map((category) => (
+                  {categories.map((category) => (
                     <option key={category} value={category}>
                       {category}
                     </option>
@@ -367,7 +285,7 @@ export default function MarketplacePage() {
                   onChange={(e) => handleFilterChange("county", e.target.value)}
                 >
                   <option value="">All Counties</option>
-                  {(Array.isArray(counties) ? counties : []).map((county) => (
+                  {counties.map((county) => (
                     <option key={county} value={county}>
                       {county}
                     </option>
@@ -469,123 +387,145 @@ export default function MarketplacePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {(Array.isArray(products) ? products : []).map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
-            >
-              {/* Product Image */}
-              <div className="relative h-48 bg-gray-200">
-                {product.images && product.images.length > 0 ? (
-                  <img
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src =
-                        "/api/placeholder/300/200?text=" +
-                        encodeURIComponent(product.name);
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <div className="text-center">
-                      <Eye className="w-8 h-8 mx-auto mb-2" />
-                      <span className="text-sm">{product.name}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Featured Badge - No featured flag in DB yet */}
-
-                {/* Stock Badge */}
-                {product.stock_quantity < 10 && product.stock_quantity > 0 && (
-                    <div className="absolute top-2 right-2 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
-                      Low Stock
+          {Array.isArray(products) &&
+            products.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
+              >
+                {/* Product Image */}
+                <div className="relative h-48 bg-gray-200">
+                  {product.images && product.images.length > 0 ? (
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "/api/placeholder/300/200?text=" +
+                          encodeURIComponent(product.name);
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <div className="text-center">
+                        <Eye className="w-8 h-8 mx-auto mb-2" />
+                        <span className="text-sm">{product.name}</span>
+                      </div>
                     </div>
                   )}
 
-                {product.stock_quantity === 0 && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <span className="text-white font-medium">Out of Stock</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Product Info */}
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
-                    {product.name}
-                  </h3>
-                  <button className="text-gray-400 hover:text-red-500 transition-colors ml-2">
-                    <Heart className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <p className="text-gray-600 text-xs mb-2 line-clamp-2">
-                  {product.description}
-                </p>
-
-                <div className="flex items-center text-xs text-gray-500 mb-3">
-                  <MapPin className="w-3 h-3 mr-1" />
-                  <span>
-                    {product.farmer_county || "Unknown"}
-                  </span>
-                  <span className="mx-2">•</span>
-                  <span>
-                    {product.farmer_name || "Local Farmer"}
-                  </span>
-                </div>
-
-                {/* Category */}
-                <div className="flex flex-wrap gap-1 mb-3">
-                  <span className="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">
-                    {product.category}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-lg font-bold text-gray-900">
-                      {formatPrice(product.price_per_unit)}
+                  {/* Featured Badge */}
+                  {(product.isFeatured || product.is_featured) && (
+                    <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                      ⭐ Featured
                     </div>
-                    <div className="text-xs text-gray-500">
-                      per {product.unit}
-                    </div>
-                  </div>
+                  )}
 
-                  <div className="flex space-x-2">
-                    <Link
-                      to={`/marketplace/product/${product.id}`}
-                      className="bg-gray-100 text-gray-700 px-2 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium flex items-center"
-                      onClick={() => console.log("🔗 Navigating to product:", product.id, "Type:", typeof product.id)}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Link>
-
-                    {product.stock_quantity > 0 ? (
-                      <button
-                        onClick={() => handleAddToCart(product)}
-                        disabled={cartLoading}
-                        className="bg-primary-600 text-white px-3 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors text-sm font-medium flex items-center space-x-1"
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                        <span>Add to Cart</span>
-                      </button>
-                    ) : (
-                      <button
-                        disabled
-                        className="bg-gray-300 text-gray-500 px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-1 cursor-not-allowed"
-                      >
-                        <span>Out of Stock</span>
-                      </button>
+                  {/* Stock Badge */}
+                  {(product.stockQuantity || product.stock_quantity) < 10 &&
+                    (product.stockQuantity || product.stock_quantity) > 0 && (
+                      <div className="absolute top-2 right-2 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                        Low Stock
+                      </div>
                     )}
+
+                  {(product.stockQuantity || product.stock_quantity) === 0 && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                      <span className="text-white font-medium">
+                        Out of Stock
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Product Info */}
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
+                      {product.name}
+                    </h3>
+                    <button className="text-gray-400 hover:text-red-500 transition-colors ml-2">
+                      <Heart className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <p className="text-gray-600 text-xs mb-2 line-clamp-2">
+                    {product.description}
+                  </p>
+
+                  <div className="flex items-center text-xs text-gray-500 mb-3">
+                    <MapPin className="w-3 h-3 mr-1" />
+                    <span>
+                      {product.farmer?.county ||
+                        product.farmer_county ||
+                        "Unknown"}
+                    </span>
+                    <span className="mx-2">•</span>
+                    <span>
+                      {product.farmer?.user?.firstName ||
+                        product.farmer_name ||
+                        "Farmer"}{" "}
+                      {product.farmer?.user?.lastName || ""}
+                    </span>
+                  </div>
+
+                  {/* Tags */}
+                  {product.tags && product.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {product.tags.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-lg font-bold text-gray-900">
+                        {formatPrice(
+                          product.pricePerUnit || product.price_per_unit,
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        per {product.unit}
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <Link
+                        to={`/marketplace/product/${product.id}`}
+                        className="bg-gray-100 text-gray-700 px-2 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium flex items-center"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Link>
+
+                      {(product.stockQuantity || product.stock_quantity) > 0 ? (
+                        <button
+                          onClick={() => handleAddToCart(product)}
+                          disabled={cartLoading}
+                          className="bg-primary-600 text-white px-3 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors text-sm font-medium flex items-center space-x-1"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                          <span>Add to Cart</span>
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          className="bg-gray-300 text-gray-500 px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-1 cursor-not-allowed"
+                        >
+                          <span>Out of Stock</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
 

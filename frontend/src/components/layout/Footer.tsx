@@ -6,8 +6,12 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center space-x-2 mb-4 md:mb-0">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">Z</span>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-white">
+              <img
+                src="https://cdn.builder.io/api/v1/image/assets%2Fd9c4872a6831464dbf1ea37e56217255%2F25be9c7c97144293ad2d62bc18c010f8?format=webp&width=800"
+                alt="Zuasoko Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="text-xl font-bold">Zuasoko</span>
           </div>

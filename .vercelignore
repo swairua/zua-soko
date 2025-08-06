@@ -1,46 +1,67 @@
-# Ignore source files to prevent auto-detection and building
-frontend/src/
-frontend/node_modules/
-frontend/package.json
-frontend/package-lock.json
-frontend/vite.config.ts
-frontend/tsconfig.json
-frontend/tailwind.config.js
-frontend/postcss.config.js
-frontend/index.html
-frontend/index.production.html
+# Include ONLY what we need for Vercel
+# Exclude everything else to prevent framework detection
 
-# Only include built files for deployment
-!frontend/dist/
+# Keep only these directories:
+# - frontend/ (our React app)
+# - api/ (our serverless functions)
 
-# Development files
-.env.localhost
-.env.development
-.env.example
-*.log
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Documentation (not needed for deployment)
-*.md
-docs/
+# Exclude all other directories
+backend/
+node_modules/
+.git/
+database/
 scripts/
 
-# Test files
-**/__tests__/
-**/*.test.*
-**/*.spec.*
+# Exclude all config files that could cause detection
+*.config.js
+*.config.ts
+next.config.js
+next-env.d.ts
+nuxt.config.js
+vue.config.js
+angular.json
+svelte.config.js
+remix.config.js
+gatsby-config.js
 
-# Development configs
-.eslintrc.*
-.prettierrc.*
-.gitignore
+# Exclude all TypeScript configs
+tsconfig*.json
 
-# Temporary files
-.tmp/
-.cache/
-dist/
-build/
-coverage/
+# Exclude all build/dev files
+build.sh
+vercel-build.js
+build-static.js
+check-clean.js
+dev-server.js
+verify-build.js
+docker-compose.yml
+ecosystem.config.js
+nginx.conf
+health-check.sh
+setup-local.sh
+migrate_to_database.sh
+test-mpesa-integration.js
+
+# Exclude docs and examples
+README*.md
+CHANGELOG.md
+CONTRIBUTING.md
+DATABASE_SETUP.md
+DEPLOYMENT.md
+GITHUB_UPDATE_STEPS.md
+VERCEL_SETUP.md
+LICENSE
+*.md
+!README.md
+
+# Exclude environment files
+.env*
+!.env.example
+
+# Exclude package files
+frontend-package.json
+package-lock.json
+all-files.txt
+.nvmrc
+.eslintrc.json
+setup-neon-db.sql
