@@ -170,8 +170,9 @@ const initializeProducts = async () => {
 app.get('/api/marketplace/products', async (req, res) => {
   try {
     const { page = 1, limit = 12, category, search } = req.query;
-    
-    if (!pool) {
+
+    const currentPool = getPool();
+    if (!currentPool) {
       // Fallback demo data if no database
       return res.json({
         success: true,
