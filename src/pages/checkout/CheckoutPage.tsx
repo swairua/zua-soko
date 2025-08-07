@@ -346,10 +346,7 @@ export default function CheckoutPage() {
         }
       }
 
-      // Clear cart after successful order
-      await clearCart();
-
-      setStep(4); // Go to confirmation step
+      // Note: Cart clearing now happens in payment method specific logic above
       toast.success("Order placed successfully!");
     } catch (error: any) {
       console.error("Failed to create order:", error);
