@@ -38,7 +38,8 @@ export const useCartStore = create<CartState>()(
       addToCart: (product, quantity) => {
         const state = get();
         const safeQuantity = safeNumber(quantity);
-        const safePrice = safeNumber(product.pricePerUnit);
+        // Handle both price naming conventions
+        const safePrice = safeNumber(product.pricePerUnit || product.price_per_unit);
 
         if (safeQuantity <= 0) return;
 
