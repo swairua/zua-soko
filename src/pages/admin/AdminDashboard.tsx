@@ -39,6 +39,23 @@ export default function AdminDashboard() {
   const { user, token } = useAuthStore();
   const navigate = useNavigate();
 
+  // Check authentication
+  React.useEffect(() => {
+    if (!user || !token) {
+      console.log("🚫 No user/token found, redirecting to login");
+      navigate("/login");
+      return;
+    }
+
+    if (user.role !== "ADMIN") {
+      console.log("🚫 User is not admin, redirecting to home");
+      navigate("/");
+      return;
+    }
+
+    console.log("✅ Admin authenticated:", user.role);
+  }, [user, token, navigate]);
+
   // Handle admin actions
   const handleReviewConsignment = (consignmentId: string) => {
     navigate(`/admin/consignments`);
