@@ -194,7 +194,6 @@ const initializeProducts = async () => {
 
 // Marketplace Products endpoint - Ultra-simple version
 app.get('/api/marketplace/products', (req, res) => {
-  console.log('🛒 Marketplace products endpoint called');
   res.json({
     success: true,
     products: [
