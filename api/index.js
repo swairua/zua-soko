@@ -261,8 +261,9 @@ app.get('/api/marketplace/products', async (req, res) => {
 app.get('/api/marketplace/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
-    if (!pool) {
+
+    const currentPool = getPool();
+    if (!currentPool) {
       return res.status(404).json({
         success: false,
         message: 'Database not configured'
