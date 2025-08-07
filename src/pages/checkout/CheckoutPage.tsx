@@ -461,7 +461,54 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {step === 4 ? (
+      {step === 5 ? (
+        // STK Sent Step
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="text-2xl">📱</div>
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              STK Push Sent!
+            </h2>
+
+            <div className="mb-6">
+              <p className="text-lg text-gray-700 mb-4">
+                Check your phone for the M-Pesa payment request
+              </p>
+
+              {orderResult && (
+                <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                  <p className="text-blue-700 font-medium mb-2">Order Details:</p>
+                  <p className="text-blue-600">
+                    Order: {orderResult.order?.orderNumber || orderResult.orderId}
+                  </p>
+                  <p className="text-blue-600">
+                    Amount: {formatPrice(cartSummary?.grandTotal || 0)}
+                  </p>
+                </div>
+              )}
+
+              <div className="bg-yellow-50 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-center text-yellow-700 mb-2">
+                  <div className="animate-pulse text-lg">⏳</div>
+                  <span className="ml-2 font-medium">Waiting for payment...</span>
+                </div>
+                <p className="text-yellow-600 text-sm">
+                  Enter your M-Pesa PIN on your phone to complete the payment
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="text-sm text-gray-500">
+                Payment status will update automatically
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : step === 4 ? (
         // Confirmation Step
         <div className="max-w-2xl mx-auto">
           <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
