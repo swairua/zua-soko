@@ -331,28 +331,35 @@ export default function MarketplacePage() {
     }
   };
 
-  // Fetch categories and counties with bulletproof fallbacks
+  // Fetch categories and counties with immediate fallback
   const fetchMetadata = async () => {
+    // Always set fallback data immediately
+    const fallbackCategories = ['Vegetables', 'Root Vegetables', 'Leafy Greens', 'Fruits'];
+    const fallbackCounties = ['Nairobi', 'Nakuru', 'Meru', 'Nyeri', 'Kiambu', 'Kisumu', 'Mombasa', 'Eldoret'];
+
+    setCategories(fallbackCategories);
+    setCounties(fallbackCounties);
+
+    // Skip API call if circuit breaker is active
+    if (bypassApi) {
+      console.log("🔄 Skipping metadata API call - circuit breaker active");
+      return;
+    }
+
     try {
-      console.log("🔍 FETCHING METADATA from API");
+      console.log("🔍 TRYING METADATA API");
 
       const [categoriesData, countiesData] = await Promise.all([
         apiService.getCategories(),
         apiService.getCounties(),
       ]);
 
-      console.log("🔍 CATEGORIES RESPONSE:", categoriesData);
-      console.log("🔍 COUNTIES RESPONSE:", countiesData);
-
-      setCategories(categoriesData.categories || categoriesData || []);
-      setCounties(countiesData.counties || countiesData || []);
+      console.log("✅ METADATA SUCCESS");
+      setCategories(categoriesData.categories || categoriesData || fallbackCategories);
+      setCounties(countiesData.counties || countiesData || fallbackCounties);
     } catch (error) {
-      console.error("❌ FAILED TO FETCH METADATA:", error);
-      toast.error("Using default categories and counties");
-
-      // Provide fallback data so filters still work
-      setCategories(['Vegetables', 'Root Vegetables', 'Leafy Greens', 'Fruits']);
-      setCounties(['Nairobi', 'Nakuru', 'Meru', 'Nyeri', 'Kiambu', 'Kisumu', 'Mombasa', 'Eldoret']);
+      console.log("❌ Metadata API failed - using fallbacks");
+      // Fallbacks already set above
     }
   };
 
