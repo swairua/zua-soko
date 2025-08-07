@@ -297,20 +297,46 @@ app.post('/api/admin/users/:id/approve', authenticateAdmin, (req, res) => {
   });
 });
 
-// Categories endpoint
-app.get('/api/marketplace/categories', (req, res) => {
-  res.json({
-    success: true,
-    categories: ['Vegetables', 'Root Vegetables', 'Leafy Greens']
-  });
+// Categories endpoint from live database
+app.get('/api/marketplace/categories', async (req, res) => {
+  try {
+    const result = await query('SELECT name FROM categories ORDER BY name');
+    const categories = result.rows.map(row => row.name);
+
+    res.json({
+      success: true,
+      categories: categories.length > 0 ? categories : ['Vegetables', 'Root Vegetables', 'Leafy Greens', 'Fruits'],
+      source: categories.length > 0 ? 'database' : 'fallback'
+    });
+  } catch (error) {
+    console.error('Categories error:', error);
+    res.json({
+      success: true,
+      categories: ['Vegetables', 'Root Vegetables', 'Leafy Greens', 'Fruits'],
+      source: 'fallback'
+    });
+  }
 });
 
-// Counties endpoint  
-app.get('/api/marketplace/counties', (req, res) => {
-  res.json({
-    success: true,
-    counties: ['Nairobi', 'Nakuru', 'Meru', 'Nyeri', 'Kisumu', 'Mombasa', 'Eldoret', 'Thika']
-  });
+// Counties endpoint from live database
+app.get('/api/marketplace/counties', async (req, res) => {
+  try {
+    const result = await query('SELECT name FROM counties ORDER BY name');
+    const counties = result.rows.map(row => row.name);
+
+    res.json({
+      success: true,
+      counties: counties.length > 0 ? counties : ['Nairobi', 'Nakuru', 'Meru', 'Nyeri', 'Kiambu', 'Kisumu', 'Mombasa', 'Eldoret'],
+      source: counties.length > 0 ? 'database' : 'fallback'
+    });
+  } catch (error) {
+    console.error('Counties error:', error);
+    res.json({
+      success: true,
+      counties: ['Nairobi', 'Nakuru', 'Meru', 'Nyeri', 'Kiambu', 'Kisumu', 'Mombasa', 'Eldoret'],
+      source: 'fallback'
+    });
+  }
 });
 
 // Login endpoint
