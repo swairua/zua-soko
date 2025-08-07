@@ -148,7 +148,6 @@ export default function CheckoutPage() {
   const fetchCartSummary = async () => {
     try {
       setLoading(true);
-<<<<<<< HEAD:src/pages/checkout/CheckoutPage.tsx
 
       console.log("🛒 CHECKOUT - Current cart state:", cart);
       console.log("🛒 CHECKOUT - Cart items detail:", cart.items);
@@ -173,8 +172,6 @@ export default function CheckoutPage() {
         toast.error(`${itemsWithInvalidPrices.length} items have pricing issues. Please review your cart.`);
       }
 
-=======
->>>>>>> origin/main:frontend/src/pages/checkout/CheckoutPage.tsx
       // Use local cart data from Zustand store
       const deliveryFee = cart.totalAmount > 2000 ? 0 : 300;
       const cartData = {
