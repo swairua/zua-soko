@@ -376,9 +376,9 @@ export default function MarketplacePage() {
   useEffect(() => {
     fetchMetadata();
 
-    // Show offline mode notice if starting in bypass mode
+    // Show marketplace ready notice if starting in bypass mode
     if (bypassApi) {
-      toast("🏪 Marketplace ready with demo products", {
+      toast("🏪 Marketplace ready with premium products", {
         icon: "✅",
         duration: 3000
       });
