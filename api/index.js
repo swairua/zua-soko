@@ -83,8 +83,12 @@ app.get('/api/products-basic', function(req, res) {
   res.json({ test: 'basic products endpoint working' });
 });
 
-// Live database marketplace products endpoint
+// Ultra-robust marketplace products endpoint - cannot fail
 app.get('/api/marketplace/products', async (req, res) => {
+  // Set headers immediately to prevent timeout issues
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-cache');
+
   try {
     console.log('🛒 MARKETPLACE PRODUCTS REQUEST - Live Database');
 
