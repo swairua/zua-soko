@@ -667,12 +667,13 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
     console.log(`👥 Found ${result.rows.length} users`);
 
     // Map users to match expected frontend format
+    console.log("🔄 Mapping users to frontend format...");
     const users = result.rows.map((user) => {
       // Parse full_name into first_name and last_name for frontend compatibility
       const nameParts = (user.full_name || '').split(' ');
       const first_name = nameParts[0] || '';
       const last_name = nameParts.slice(1).join(' ') || '';
-      
+
       return {
         id: user.id,
         first_name,
@@ -688,11 +689,14 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
         created_at: user.created_at,
       };
     });
+    console.log("✅ User mapping completed");
 
+    console.log("🔄 Sending successful response...");
     res.json({
       success: true,
       users: users,
     });
+    console.log("✅ Response sent successfully");
   } catch (err) {
     console.error("❌ Admin users error:", err);
     console.error("❌ Error stack:", err.stack);
