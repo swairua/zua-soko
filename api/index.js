@@ -311,14 +311,15 @@ app.get('/api/marketplace/products/:id', async (req, res) => {
 // Categories endpoint
 app.get('/api/marketplace/categories', async (req, res) => {
   try {
-    if (!pool) {
+    const currentPool = getPool();
+    if (!currentPool) {
       return res.json({
         success: true,
         categories: ['Vegetables', 'Root Vegetables', 'Leafy Greens']
       });
     }
     
-    const result = await pool.query(
+    const result = await currentPool.query(
       'SELECT DISTINCT category FROM products WHERE is_available = true ORDER BY category'
     );
     
