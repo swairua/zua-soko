@@ -520,9 +520,32 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
 
     console.log(`👥 Found ${result.rows.length} users`);
 
+    // Map users to match expected frontend format
+    const users = result.rows.map((user) => {
+      // Parse full_name into first_name and last_name for frontend compatibility
+      const nameParts = (user.full_name || '').split(' ');
+      const first_name = nameParts[0] || '';
+      const last_name = nameParts.slice(1).join(' ') || '';
+
+      return {
+        id: user.id,
+        first_name,
+        last_name,
+        full_name: user.full_name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        role: user.role || 'CUSTOMER',
+        status: user.status || 'pending',
+        county: 'N/A', // Would need to add county field
+        verified: user.status === 'approved', // Map status to verified
+        registration_fee_paid: true, // Default for demo
+        created_at: user.created_at,
+      };
+    });
+
     res.json({
       success: true,
-      users: result.rows,
+      users: users,
     });
   } catch (err) {
     console.error("❌ Admin users error:", err);
