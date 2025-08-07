@@ -714,55 +714,59 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
     console.error("❌ Error message:", err.message);
 
     // Return proper error response instead of trying to send demo data
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch users",
-      error: err.message,
-      fallback_users: [
-        {
-          id: '1',
-          first_name: 'John',
-          last_name: 'Kamau',
-          full_name: 'John Kamau',
-          email: 'john@example.com',
-          phone: '0712345678',
-          role: 'FARMER',
-          status: 'approved',
-          county: 'Nakuru',
-          verified: true,
-          registration_fee_paid: true,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          first_name: 'Mary',
-          last_name: 'Wanjiku',
-          full_name: 'Mary Wanjiku',
-          email: 'mary@example.com',
-          phone: '0723456789',
-          role: 'CUSTOMER',
-          status: 'approved',
-          county: 'Nairobi',
-          verified: true,
-          registration_fee_paid: true,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '3',
-          first_name: 'Peter',
-          last_name: 'Mwangi',
-          full_name: 'Peter Mwangi',
-          email: 'peter@example.com',
-          phone: '0734567890',
-          role: 'FARMER',
-          status: 'pending',
-          county: 'Kisumu',
-          verified: false,
-          registration_fee_paid: false,
-          created_at: new Date().toISOString()
-        }
-      ]
-    });
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch users",
+        error: err.message,
+        fallback_users: [
+          {
+            id: '1',
+            first_name: 'John',
+            last_name: 'Kamau',
+            full_name: 'John Kamau',
+            email: 'john@example.com',
+            phone: '0712345678',
+            role: 'FARMER',
+            status: 'approved',
+            county: 'Nakuru',
+            verified: true,
+            registration_fee_paid: true,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: '2',
+            first_name: 'Mary',
+            last_name: 'Wanjiku',
+            full_name: 'Mary Wanjiku',
+            email: 'mary@example.com',
+            phone: '0723456789',
+            role: 'CUSTOMER',
+            status: 'approved',
+            county: 'Nairobi',
+            verified: true,
+            registration_fee_paid: true,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: '3',
+            first_name: 'Peter',
+            last_name: 'Mwangi',
+            full_name: 'Peter Mwangi',
+            email: 'peter@example.com',
+            phone: '0734567890',
+            role: 'FARMER',
+            status: 'pending',
+            county: 'Kisumu',
+            verified: false,
+            registration_fee_paid: false,
+            created_at: new Date().toISOString()
+          }
+        ]
+      });
+    } else {
+      console.log("⚠️ Headers already sent in error handler");
+    }
   }
 });
 
