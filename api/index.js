@@ -407,30 +407,73 @@ app.post('/api/orders', async (req, res) => {
       createdAt: new Date().toISOString()
     };
 
-    // Try to save to database if available
+    // Try to save to database and update stock if available
     try {
       if (pool && typeof query === 'function') {
-        await query(`
-          INSERT INTO orders (
-            id, order_number, customer_info, items, payment_method,
-            delivery_fee, total_amount, status, created_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        `, [
-          orderId,
-          orderNumber,
-          JSON.stringify(order.customer),
-          JSON.stringify(order.items),
-          paymentMethod,
-          deliveryFee || 0,
-          finalTotal,
-          'pending',
-          new Date()
-        ]);
+        // Start a transaction to ensure data consistency
+        await query('BEGIN');
 
-        console.log(`✅ Order ${orderNumber} saved to database`);
+        try {
+          // Insert the order
+          await query(`
+            INSERT INTO orders (
+              id, order_number, customer_info, items, payment_method,
+              delivery_fee, total_amount, status, created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          `, [
+            orderId,
+            orderNumber,
+            JSON.stringify(order.customer),
+            JSON.stringify(order.items),
+            paymentMethod,
+            deliveryFee || 0,
+            finalTotal,
+            'pending',
+            new Date()
+          ]);
+
+          // Update stock quantities for each ordered item
+          for (const item of items) {
+            await query(`
+              UPDATE products
+              SET stock_quantity = GREATEST(stock_quantity - $1, 0),
+                  updated_at = NOW()
+              WHERE id = $2 AND is_active = true
+            `, [item.quantity, item.productId]);
+
+            console.log(`📦 Updated stock for product ${item.productId}: -${item.quantity}`);
+          }
+
+          // Commit the transaction
+          await query('COMMIT');
+
+          console.log(`✅ Order ${orderNumber} saved and stock updated in database`);
+
+          // Get updated stock levels for response
+          const stockUpdates = {};
+          for (const item of items) {
+            try {
+              const stockResult = await query('SELECT stock_quantity FROM products WHERE id = $1', [item.productId]);
+              if (stockResult.rows.length > 0) {
+                stockUpdates[item.productId] = stockResult.rows[0].stock_quantity;
+              }
+            } catch (stockError) {
+              console.log(`⚠️ Could not fetch updated stock for product ${item.productId}`);
+            }
+          }
+
+          // Add stock updates to order response
+          order.stockUpdates = stockUpdates;
+
+        } catch (transactionError) {
+          // Rollback on any error
+          await query('ROLLBACK');
+          throw transactionError;
+        }
       }
     } catch (dbError) {
-      console.log('📱 Database unavailable - order stored in memory');
+      console.log('📱 Database unavailable - order stored in memory only');
+      console.error('Database error:', dbError);
     }
 
     console.log(`✅ Order ${orderNumber} created successfully`);
