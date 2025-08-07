@@ -228,11 +228,11 @@ app.get('/api/marketplace/products', async (req, res) => {
     query += ` OFFSET $${paramCount}`;
     params.push(offset);
     
-    const result = await pool.query(query, params);
-    
+    const result = await currentPool.query(query, params);
+
     // Get total count
     const countQuery = `SELECT COUNT(*) FROM products WHERE is_available = true`;
-    const countResult = await pool.query(countQuery);
+    const countResult = await currentPool.query(countQuery);
     const total = parseInt(countResult.rows[0].count);
     
     res.json({
