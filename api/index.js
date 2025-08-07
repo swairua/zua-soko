@@ -85,6 +85,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Simple test endpoint to debug serverless function
+app.get('/api/test', (req, res) => {
+  res.json({
+    status: 'test_successful',
+    message: 'Serverless function is working',
+    timestamp: new Date().toISOString(),
+    env_vars: {
+      NODE_ENV: process.env.NODE_ENV,
+      DATABASE_URL: process.env.DATABASE_URL ? 'Set' : 'Not set',
+      JWT_SECRET: process.env.JWT_SECRET ? 'Set' : 'Not set'
+    }
+  });
+});
+
 // Status endpoint with database info
 app.get('/api/status', async (req, res) => {
   try {
