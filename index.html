@@ -41,55 +41,9 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
 
     <title>Zuasoko - Agricultural Platform</title>
-<<<<<<< HEAD
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-=======
-    <script type="module" crossorigin src="/assets/index-JFCJR0AB.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/vendor-9bZoipD1.js">
-    <link rel="modulepreload" crossorigin href="/assets/router-BAAhKjlc.js">
-    <link rel="modulepreload" crossorigin href="/assets/ui-XvAg7uig.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-D-yANeHz.css">
-  </head>
-  <body>
-    <div id="root"></div>
-
-    <!-- Authentication Version Check - Force token refresh on 403 errors -->
-    <script>
-      (function() {
-        const AUTH_VERSION = "v2025-08-06-403fix";
-        const STORED_AUTH_VERSION = localStorage.getItem('auth-version');
-
-        if (STORED_AUTH_VERSION !== AUTH_VERSION) {
-          console.log('🔄 Auth version changed - clearing all tokens to fix 403 errors');
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('auth-storage');
-          localStorage.setItem('auth-version', AUTH_VERSION);
-
-          // Show user-friendly message
-          if (window.location.pathname !== '/auth/login' && !window.location.pathname.includes('/auth/')) {
-            alert('Authentication system updated. Please login again.');
-            window.location.href = '/auth/login?reason=token_refresh';
-          }
-        }
-      })();
-    </script>
-
-    <!-- Service Worker Registration -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js')
-            .then(function(registration) {
-              console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            }, function(err) {
-              console.log('ServiceWorker registration failed: ', err);
-            });
-        });
-      }
-    </script>
->>>>>>> origin/main
   </body>
 </html>
