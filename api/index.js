@@ -490,25 +490,30 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
       });
     }
 
-    // First check what columns exist in the users table
-    const columnsResult = await pool.query(`
-      SELECT column_name
-      FROM information_schema.columns
-      WHERE table_name = 'users' AND table_schema = 'public'
+    // Ensure users table exists with consistent schema
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        phone VARCHAR(20) UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role VARCHAR(20) NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending',
+        full_name TEXT,
+        email VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW()
+      )
     `);
 
-    const columns = columnsResult.rows.map(row => row.column_name);
-    console.log("👥 Available user columns:", columns);
-
-    // Build query based on available columns
-    let selectColumns = "id, first_name, last_name, email, phone, role, county, verified, created_at";
-
-    if (columns.includes('registration_fee_paid')) {
-      selectColumns += ", registration_fee_paid";
-    }
-
+    // Query users with the actual table schema
     const result = await pool.query(`
-      SELECT ${selectColumns}
+      SELECT
+        id,
+        phone,
+        role,
+        status,
+        full_name,
+        email,
+        created_at
       FROM users
       ORDER BY created_at DESC
     `);
