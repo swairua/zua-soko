@@ -1,204 +1,25 @@
-// Vercel Serverless API Handler for Zuasoko Marketplace
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? ['https://zuasoko.vercel.com', process.env.FRONTEND_URL]
-    : ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true
-}));
-app.use(express.json({ limit: '10mb' }));
+// Basic middleware
+app.use(cors());
+app.use(express.json());
 
-// Database connection
-let pool;
-const initializeDatabase = () => {
-  try {
-    // Check if pool exists and is not ended
-    if (pool && !pool.ended) {
-      return pool;
-    }
-    
-    if (!process.env.DATABASE_URL) {
-      console.log('⚠️ No DATABASE_URL found, will use demo data');
-      return null;
-    }
-    
-    // Always use SSL for render.com database connections
-    const isRenderDB = process.env.DATABASE_URL.includes('render.com');
-    
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: isRenderDB ? { rejectUnauthorized: false } : false,
-      max: 3, // Reduced for serverless
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
-      // Don't automatically end the pool
-      allowExitOnIdle: false
-    });
-    
-    pool.on('error', (err) => {
-      console.error('Unexpected database error:', err);
-      // Reset pool on error
-      pool = null;
-    });
-    
-    pool.on('end', () => {
-      console.log('Database pool ended');
-      pool = null;
-    });
-    
-    console.log('🔗 Database pool initialized with SSL:', isRenderDB ? 'enabled' : 'disabled');
-    return pool;
-  } catch (error) {
-    console.error('Failed to initialize database:', error);
-    pool = null;
-    return null;
-  }
-};
-
-// Helper function to get a working pool
-const getPool = () => {
-  if (!pool || pool.ended) {
-    console.log('🔄 Pool not available, reinitializing...');
-    return initializeDatabase();
-  }
-  return pool;
-};
-
-// Initialize database on startup
-initializeDatabase();
-
-// Health check endpoint
+// Basic health check
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    database: pool ? 'connected' : 'not configured',
-    environment: process.env.NODE_ENV || 'development'
-  });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Simple test endpoint to debug serverless function
+// Test endpoint
 app.get('/api/test', (req, res) => {
-  res.json({
-    status: 'test_successful',
-    message: 'Serverless function is working',
-    timestamp: new Date().toISOString(),
-    env_vars: {
-      NODE_ENV: process.env.NODE_ENV,
-      DATABASE_URL: process.env.DATABASE_URL ? 'Set' : 'Not set',
-      JWT_SECRET: process.env.JWT_SECRET ? 'Set' : 'Not set'
-    }
-  });
+  res.json({ message: 'API is working', success: true });
 });
 
-// Minimal products test endpoint
-app.get('/api/products-test', (req, res) => {
-  res.json({ message: 'Products endpoint test', success: true });
-});
-
-// Admin test endpoint to debug authentication
-app.get('/api/admin/test', authenticateAdmin, (req, res) => {
-  res.json({
-    status: 'admin_auth_successful',
-    message: 'Admin authentication is working',
-    user: req.user,
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Status endpoint with database info
-app.get('/api/status', async (req, res) => {
-  try {
-    let dbStatus = 'not configured';
-    let productCount = 0;
-    
-    const currentPool = getPool();
-    if (currentPool) {
-      try {
-        const result = await currentPool.query('SELECT COUNT(*) FROM products');
-        productCount = parseInt(result.rows[0].count);
-        dbStatus = 'connected';
-        
-        // Auto-initialize if no products exist
-        if (productCount === 0) {
-          await initializeProducts();
-          const newResult = await currentPool.query('SELECT COUNT(*) FROM products');
-          productCount = parseInt(newResult.rows[0].count);
-        }
-      } catch (dbError) {
-        console.error('Database query error:', dbError);
-        dbStatus = 'error';
-      }
-    }
-    
-    res.json({
-      status: 'OK',
-      timestamp: new Date().toISOString(),
-      database: dbStatus,
-      productCount: productCount,
-      environment: process.env.NODE_ENV || 'development'
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'ERROR',
-      message: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// Initialize products if database is empty
-const initializeProducts = async () => {
-  const currentPool = getPool();
-  if (!currentPool) return;
-  
-  try {
-    // Create products table if it doesn't exist
-    await currentPool.query(`
-      CREATE TABLE IF NOT EXISTS products (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        category VARCHAR(100) NOT NULL,
-        price_per_unit DECIMAL(10,2) NOT NULL,
-        unit VARCHAR(20) DEFAULT 'kg',
-        description TEXT,
-        stock_quantity INTEGER DEFAULT 0,
-        quantity INTEGER DEFAULT 0,
-        images JSON DEFAULT '[]',
-        farmer_name VARCHAR(255) DEFAULT 'Local Farmer',
-        farmer_county VARCHAR(100) DEFAULT 'Kenya',
-        is_featured BOOLEAN DEFAULT false,
-        is_available BOOLEAN DEFAULT true,
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    
-    // Insert sample products
-    await currentPool.query(`
-      INSERT INTO products (name, description, category, price_per_unit, unit, stock_quantity, quantity, images, farmer_name, farmer_county, is_featured) VALUES
-      ('Fresh Tomatoes', 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.', 'Vegetables', 85.00, 'kg', 500, 500, '["https://images.unsplash.com/photo-1546470427-e212b9d56085"]', 'John Farmer', 'Nakuru', true),
-      ('Sweet Potatoes', 'Fresh sweet potatoes, rich in nutrients and vitamins.', 'Root Vegetables', 80.00, 'kg', 300, 300, '["https://images.unsplash.com/photo-1518977676601-b53f82aba655"]', 'Mary Farm', 'Meru', false),
-      ('Fresh Spinach', 'Organic spinach leaves, perfect for healthy meals.', 'Leafy Greens', 120.00, 'kg', 150, 150, '["https://images.unsplash.com/photo-1576045057995-568f588f82fb"]', 'Grace Farm', 'Nyeri', false),
-      ('Green Beans', 'Tender green beans, freshly harvested and ready for pickup.', 'Vegetables', 95.00, 'kg', 200, 200, '["https://images.unsplash.com/photo-1628773822503-930a7eaecf80"]', 'John Farmer', 'Nakuru', true)
-      ON CONFLICT DO NOTHING
-    `);
-    
-    console.log('✅ Products initialized');
-  } catch (error) {
-    console.error('Failed to initialize products:', error);
-  }
-};
-
-// Marketplace Products endpoint - Ultra-basic version that cannot fail
-app.get('/api/marketplace/products', function(req, res) {
+// Ultra-simple marketplace products endpoint
+app.get('/api/marketplace/products', (req, res) => {
   res.json({
     success: true,
     products: [
@@ -221,7 +42,7 @@ app.get('/api/marketplace/products', function(req, res) {
         category: "Root Vegetables",
         price_per_unit: 80,
         unit: "kg",
-        description: "Fresh sweet potatoes",
+        description: "Fresh sweet potatoes", 
         stock_quantity: 300,
         images: ["https://images.unsplash.com/photo-1518977676601-b53f82aba655"],
         farmer_name: "Mary Farm",
@@ -238,201 +59,32 @@ app.get('/api/marketplace/products', function(req, res) {
   });
 });
 
-// Product by ID endpoint - Simplified version
-app.get('/api/marketplace/products/:id', (req, res) => {
-  const { id } = req.params;
-
-  // Return a demo product based on ID
-  const products = {
-    '1': {
-      id: 1,
-      name: 'Fresh Tomatoes',
-      category: 'Vegetables',
-      price_per_unit: 85,
-      unit: 'kg',
-      description: 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.',
-      stock_quantity: 500,
-      images: ['https://images.unsplash.com/photo-1546470427-e212b9d56085'],
-      farmer_name: 'John Farmer',
-      farmer_county: 'Nakuru',
-      is_featured: true
-    },
-    '2': {
-      id: 2,
-      name: 'Sweet Potatoes',
-      category: 'Root Vegetables',
-      price_per_unit: 80,
-      unit: 'kg',
-      description: 'Fresh sweet potatoes, rich in nutrients and vitamins.',
-      stock_quantity: 300,
-      images: ['https://images.unsplash.com/photo-1518977676601-b53f82aba655'],
-      farmer_name: 'Mary Farm',
-      farmer_county: 'Meru',
-      is_featured: false
-    },
-    '3': {
-      id: 3,
-      name: 'Fresh Spinach',
-      category: 'Leafy Greens',
-      price_per_unit: 120,
-      unit: 'kg',
-      description: 'Organic spinach leaves, perfect for healthy meals.',
-      stock_quantity: 150,
-      images: ['https://images.unsplash.com/photo-1576045057995-568f588f82fb'],
-      farmer_name: 'Grace Farm',
-      farmer_county: 'Nyeri',
-      is_featured: false
-    }
-  };
-
-  const product = products[id];
-  if (product) {
-    res.json({
-      success: true,
-      product: product
-    });
-  } else {
-    res.status(404).json({
-      success: false,
-      message: 'Product not found'
-    });
-  }
-});
-
-// Categories endpoint - Simplified version
-app.get('/api/marketplace/categories', (req, res) => {
-  res.json({
-    success: true,
-    categories: ['Vegetables', 'Root Vegetables', 'Leafy Greens']
-  });
-});
-
-// Counties endpoint
-app.get('/api/marketplace/counties', async (req, res) => {
-  res.json({
-    success: true,
-    counties: ['Nairobi', 'Nakuru', 'Meru', 'Nyeri', 'Kisumu', 'Mombasa', 'Eldoret', 'Thika']
-  });
-});
-
-// Login endpoint
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { phone, password } = req.body;
-    
-    console.log('🔐 Login attempt:', { phone, passwordProvided: !!password });
-    
-    // Admin login
-    if (phone === 'admin' && password === 'admin') {
-      const adminToken = jwt.sign(
-        {
-          userId: 'admin-1',
-          role: 'ADMIN',
-          phone: '+254700000000'
-        },
-        process.env.JWT_SECRET || 'zuasoko-production-secret-2024',
-        { expiresIn: '24h' }
-      );
-      
-      console.log('✅ Admin login successful');
-      
-      return res.json({
-        success: true,
-        message: 'Admin login successful',
-        user: {
-          id: 'admin-1',
-          firstName: 'Admin',
-          lastName: 'User',
-          phone: '+254700000000',
-          role: 'ADMIN',
-          county: 'System'
-        },
-        token: adminToken
-      });
-    }
-    
-    // Demo user login for testing
-    if (phone && password === 'password123') {
-      const demoToken = jwt.sign(
-        {
-          userId: 'demo-user',
-          role: 'CUSTOMER',
-          phone: phone
-        },
-        process.env.JWT_SECRET || 'zuasoko-production-secret-2024',
-        { expiresIn: '24h' }
-      );
-      
-      res.json({
-        success: true,
-        message: 'Login successful',
-        user: {
-          id: 'demo-user',
-          firstName: 'Demo',
-          lastName: 'User',
-          phone: phone,
-          role: 'CUSTOMER',
-          county: 'Nairobi'
-        },
-        token: demoToken
-      });
-      return;
-    }
-    
-    res.status(401).json({
-      success: false,
-      message: 'Invalid phone number or password'
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Login failed',
-      error: error.message
-    });
-  }
-});
-
-// JWT middleware for admin routes
+// Simple admin authentication middleware
 const authenticateAdmin = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ message: 'Access token required' });
+  }
+  
   try {
-    console.log('🔐 Admin auth middleware called for:', req.method, req.path);
-
-    const authHeader = req.headers.authorization;
-    console.log('🔐 Auth header:', authHeader ? 'Present' : 'Missing');
-
-    const token = authHeader && authHeader.split(' ')[1];
-    console.log('🔐 Token extracted:', token ? 'Present' : 'Missing');
-
-    if (!token) {
-      console.log('❌ No token provided');
-      return res.status(401).json({ message: 'Access token required' });
-    }
-
     const jwtSecret = process.env.JWT_SECRET || 'zuasoko-production-secret-2024';
-    console.log('🔐 Using JWT secret:', jwtSecret.substring(0, 10) + '...');
-
     const decoded = jwt.verify(token, jwtSecret);
-    console.log('🔐 Token decoded successfully:', { userId: decoded.userId, role: decoded.role });
-
+    
     if (decoded.role !== 'ADMIN') {
-      console.log('❌ User role is not ADMIN:', decoded.role);
       return res.status(403).json({ message: 'Admin access required' });
     }
-
+    
     req.user = decoded;
-    console.log('✅ Admin authentication successful');
     next();
   } catch (error) {
-    console.error('❌ Authentication middleware error:', error);
-    console.log('❌ Token verification failed:', error.message);
-    return res.status(401).json({ message: 'Invalid token', error: error.message });
+    return res.status(401).json({ message: 'Invalid token' });
   }
 };
 
-// GET /api/admin/users - Simplified bulletproof version
-app.get("/api/admin/users", authenticateAdmin, (req, res) => {
-  // Always return successful demo data to prevent 500 errors
+// Simple admin users endpoint
+app.get('/api/admin/users', authenticateAdmin, (req, res) => {
   res.json({
     success: true,
     users: [
@@ -477,133 +129,68 @@ app.get("/api/admin/users", authenticateAdmin, (req, res) => {
         verified: false,
         registration_fee_paid: false,
         created_at: new Date().toISOString()
-      },
-      {
-        id: '4',
-        first_name: 'Grace',
-        last_name: 'Njeri',
-        full_name: 'Grace Njeri',
-        email: 'grace@example.com',
-        phone: '0745678901',
-        role: 'DRIVER',
-        status: 'approved',
-        county: 'Kiambu',
-        verified: true,
-        registration_fee_paid: true,
-        created_at: new Date().toISOString()
-      },
-      {
-        id: '5',
-        first_name: 'David',
-        last_name: 'Kiprotich',
-        full_name: 'David Kiprotich',
-        email: 'david@example.com',
-        phone: '0756789012',
-        role: 'CUSTOMER',
-        status: 'approved',
-        county: 'Eldoret',
-        verified: true,
-        registration_fee_paid: true,
-        created_at: new Date().toISOString()
       }
     ]
   });
 });
 
-// POST /api/admin/users/:id/approve - Simplified version
-app.post("/api/admin/users/:id/approve", authenticateAdmin, (req, res) => {
+// Simple admin user approval
+app.post('/api/admin/users/:id/approve', authenticateAdmin, (req, res) => {
   const { id } = req.params;
-  // Always return success for demo mode
   res.json({
     success: true,
     message: `User ${id} approved successfully (demo mode)`,
-    user: {
-      id: id,
-      status: 'approved',
-      verified: true
-    }
+    user: { id: id, status: 'approved', verified: true }
   });
 });
 
-// Admin Analytics Stats endpoint - Simplified version
-app.get('/api/admin/analytics/stats', authenticateAdmin, (req, res) => {
-  // Always return consistent demo analytics stats
+// Categories endpoint
+app.get('/api/marketplace/categories', (req, res) => {
   res.json({
     success: true,
-    stats: {
-      totalUsers: 5,
-      pendingApprovals: 2,
-      totalConsignments: 24,
-      totalRevenue: 127500,
-      activeUsers: 3,
-      totalProducts: 6
-    }
+    categories: ['Vegetables', 'Root Vegetables', 'Leafy Greens']
   });
 });
 
-// Admin Activity Log endpoint
-app.get('/api/admin/activity', authenticateAdmin, async (req, res) => {
-  try {
-    console.log('📋 Admin activity log requested');
-    
-    // For now, return demo activity data since we don't have an activity log table
-    const demoActivities = [
-      {
-        id: 1,
-        type: 'user_registration',
-        description: 'New farmer registered: John Kamau',
-        timestamp: new Date(Date.now() - 1800000).toISOString(), // 30 min ago
-        status: 'completed',
-        user: 'John Kamau'
-      },
-      {
-        id: 2,
-        type: 'product_added',
-        description: 'New product added: Fresh Tomatoes (1kg)',
-        timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-        status: 'completed',
-        user: 'Mary Wanjiku'
-      },
-      {
-        id: 3,
-        type: 'user_approval',
-        description: 'User approved: Peter Mwangi',
-        timestamp: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-        status: 'completed',
-        user: 'Admin'
-      },
-      {
-        id: 4,
-        type: 'order_placed',
-        description: 'New order placed for KSh 2,500',
-        timestamp: new Date(Date.now() - 10800000).toISOString(), // 3 hours ago
-        status: 'processing',
-        user: 'Grace Njeri'
-      },
-      {
-        id: 5,
-        type: 'system',
-        description: 'Daily backup completed successfully',
-        timestamp: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-        status: 'completed',
-        user: 'System'
-      }
-    ];
+// Counties endpoint  
+app.get('/api/marketplace/counties', (req, res) => {
+  res.json({
+    success: true,
+    counties: ['Nairobi', 'Nakuru', 'Meru', 'Nyeri', 'Kisumu', 'Mombasa', 'Eldoret', 'Thika']
+  });
+});
 
-    console.log('📋 Returning demo activity data');
+// Login endpoint
+app.post('/api/auth/login', (req, res) => {
+  const { phone, password } = req.body;
+  
+  // Admin login
+  if (phone === 'admin' && password === 'admin') {
+    const adminToken = jwt.sign(
+      { userId: 'admin-1', role: 'ADMIN', phone: '+254700000000' },
+      process.env.JWT_SECRET || 'zuasoko-production-secret-2024',
+      { expiresIn: '24h' }
+    );
     
-    res.json({
+    return res.json({
       success: true,
-      activities: demoActivities
-    });
-  } catch (error) {
-    console.error('�� Activity log error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch activity log',
-      error: error.message
+      message: 'Admin login successful',
+      user: {
+        id: 'admin-1',
+        firstName: 'Admin',
+        lastName: 'User',
+        phone: '+254700000000',
+        role: 'ADMIN',
+        county: 'System'
+      },
+      token: adminToken
     });
   }
+  
+  res.status(401).json({
+    success: false,
+    message: 'Invalid phone number or password'
+  });
 });
 
 // Catch-all for undefined routes
@@ -621,9 +208,9 @@ app.use((error, req, res, next) => {
   res.status(500).json({
     success: false,
     message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    error: error.message
   });
 });
 
-// Export handler for Vercel serverless functions
+// Export for Vercel
 module.exports = app;
