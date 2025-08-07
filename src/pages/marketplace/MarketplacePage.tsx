@@ -73,6 +73,8 @@ export default function MarketplacePage() {
     total: 0,
     totalPages: 0,
   });
+  const [apiFailureCount, setApiFailureCount] = useState(0);
+  const [bypassApi, setBypassApi] = useState(false);
 
   const { addToCart, isLoading: cartLoading } = useCart();
   const { user, isAuthenticated } = useAuthStore();
