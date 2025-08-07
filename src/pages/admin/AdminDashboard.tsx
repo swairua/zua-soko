@@ -138,9 +138,7 @@ export default function AdminDashboard() {
 
   const fetchRecentActivity = async () => {
     try {
-      console.log("🔄 Fetching recent activity from database");
       const response = await apiService.get("/admin/activity");
-      console.log("🔄 Raw activity response:", response);
 
       if (response && response.data && response.data.success && Array.isArray(response.data.activities)) {
         const activities = response.data.activities.map((activity: any) => ({
@@ -156,13 +154,11 @@ export default function AdminDashboard() {
           recentActivities: activities,
         }));
 
-        console.log("✅ Recent activity loaded:", activities);
       } else {
-        console.log("🔄 Activity response not in expected format, using fallback data");
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      console.error("❌ Error fetching recent activity:", error);
+      console.error("Error fetching recent activity:", error);
       // Keep existing fallback activity data
       setStats((prev) => ({
         ...prev,
@@ -208,13 +204,10 @@ export default function AdminDashboard() {
 
   const fetchAnalyticsStats = async () => {
     try {
-      console.log("📊 Fetching analytics stats from database");
       const response = await apiService.get("/admin/analytics/stats");
-      console.log("📊 Raw analytics response:", response);
 
       if (response && response.data && response.data.success) {
         const analyticsStats = response.data.stats || {};
-        console.log("📊 Analytics stats received:", analyticsStats);
 
         setStats((prev) => ({
           ...prev,
@@ -223,13 +216,10 @@ export default function AdminDashboard() {
           activeConsignments: parseInt(analyticsStats.totalConsignments) || prev.activeConsignments || 0,
           monthlyRevenue: parseFloat(analyticsStats.totalRevenue) || prev.monthlyRevenue || 0,
         }));
-      } else {
-        console.log("📊 Analytics response not in expected format, keeping existing stats");
       }
     } catch (error) {
-      console.error("❌ Error fetching analytics stats:", error);
+      console.error("Error fetching analytics stats:", error);
       // Keep existing values and don't show error to user for this non-critical data
-      console.log("📊 Using fallback stats due to analytics fetch failure");
     }
   };
 
