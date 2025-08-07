@@ -1,12 +1,13 @@
 {
   "version": 2,
+  "name": "zuasoko",
   "buildCommand": "npm run build:prod",
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "functions": {
     "api/index.js": {
       "runtime": "nodejs18.x",
-      "maxDuration": 10
+      "maxDuration": 30
     }
   },
   "routes": [
@@ -18,5 +19,13 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  }
 }
