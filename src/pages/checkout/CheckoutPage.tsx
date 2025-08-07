@@ -115,8 +115,10 @@ export default function CheckoutPage() {
   const [cartSummary, setCartSummary] = useState<CartSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [step, setStep] = useState(1); // 1: Info, 2: Review, 3: Payment, 4: Confirmation
+  const [step, setStep] = useState(1); // 1: Info, 2: Review, 3: Payment, 4: Confirmation, 5: STK Sent
   const [orderResult, setOrderResult] = useState<any>(null);
+  const [stkSent, setStkSent] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'stk_sent' | 'completed' | 'failed'>('idle');
 
   const {
     register,
