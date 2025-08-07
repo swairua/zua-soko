@@ -41,18 +41,14 @@ export default function AdminDashboard() {
   // Check authentication
   React.useEffect(() => {
     if (!user || !token) {
-      console.log("🚫 No user/token found, redirecting to login");
       navigate("/login");
       return;
     }
 
     if (user.role !== "ADMIN") {
-      console.log("🚫 User is not admin, redirecting to home");
       navigate("/");
       return;
     }
-
-    console.log("✅ Admin authenticated:", user.role);
   }, [user, token, navigate]);
 
   // Handle admin actions
@@ -83,12 +79,8 @@ export default function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      console.log("👥 Fetching users from API service");
-      console.log("👥 User token available:", !!token);
-      console.log("👥 User role:", user?.role);
 
       const response = await apiService.get("/admin/users");
-      console.log("👥 Raw API response:", response);
 
       // Handle apiService response format (response.data contains the actual data)
       const data = response.data || response;
@@ -100,7 +92,6 @@ export default function AdminDashboard() {
         const drivers = data.users.filter((user: any) => user.role === "DRIVER").length;
         const totalUsers = data.users.length;
 
-        console.log("👥 User breakdown:", { totalUsers, farmers, customers, drivers });
 
         setStats((prev) => ({
           ...prev,
@@ -116,10 +107,7 @@ export default function AdminDashboard() {
           })),
         }));
 
-        console.log("✅ Users data loaded successfully");
       } else {
-        console.log("🔄 Users response not in expected format:", data);
-        console.log("🔄 Using fallback user data");
         
         // Fallback to demo data
         setStats((prev) => ({
@@ -132,12 +120,7 @@ export default function AdminDashboard() {
         }));
       }
     } catch (error: any) {
-      console.error("❌ Error fetching users:", error);
-      console.error("❌ Error status:", error.response?.status);
-      console.error("❌ Error data:", JSON.stringify(error.response?.data, null, 2));
-      console.error("❌ Error message:", error.message);
-      console.error("❌ Full error response:", error.response);
-      console.log("🔄 Using fallback user data due to API error");
+      console.error("Error fetching users:", error.message);
       
       // Set fallback data instead of showing error
       setStats((prev) => ({
