@@ -332,6 +332,161 @@ app.post('/api/admin/users/:id/approve', authenticateAdmin, (req, res) => {
   });
 });
 
+// Admin analytics stats endpoint
+app.get('/api/admin/analytics/stats', authenticateAdmin, (req, res) => {
+  try {
+    console.log('📊 ADMIN ANALYTICS REQUEST for user:', req.user.userId);
+
+    // Comprehensive demo analytics for admin dashboard
+    const analyticsStats = {
+      totalUsers: 45,
+      totalFarmers: 28,
+      totalCustomers: 15,
+      totalDrivers: 2,
+      pendingApprovals: 8,
+      totalConsignments: 67,
+      activeConsignments: 24,
+      pendingConsignments: 12,
+      approvedConsignments: 43,
+      totalOrders: 156,
+      pendingOrders: 23,
+      completedOrders: 133,
+      totalRevenue: 2847500.00,
+      monthlyRevenue: 427350.00,
+      weeklyRevenue: 98450.00,
+      dailyRevenue: 12750.00,
+      totalProducts: 89,
+      activeProducts: 76,
+      featuredProducts: 12,
+      lowStockProducts: 5,
+      newUsersThisWeek: 12,
+      newUsersThisMonth: 38,
+      ordersThisWeek: 45,
+      ordersThisMonth: 156,
+      averageOrderValue: 1825.50,
+      topSellingCategory: 'Vegetables',
+      mostActiveCounty: 'Nakuru'
+    };
+
+    res.status(200).json({
+      success: true,
+      stats: analyticsStats,
+      source: 'demo_analytics',
+      timestamp: new Date().toISOString()
+    });
+
+    console.log('✅ Admin analytics stats returned successfully');
+
+  } catch (error) {
+    console.error('❌ Admin analytics error:', error);
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalUsers: 45,
+        pendingApprovals: 8,
+        activeConsignments: 24,
+        monthlyRevenue: 427350
+      },
+      source: 'fallback_analytics',
+      message: 'Basic analytics data'
+    });
+  }
+});
+
+// Admin recent activity endpoint
+app.get('/api/admin/activity', authenticateAdmin, (req, res) => {
+  try {
+    console.log('📋 ADMIN ACTIVITY REQUEST for user:', req.user.userId);
+
+    // Comprehensive demo activity for admin dashboard
+    const recentActivities = [
+      {
+        id: 1,
+        type: "user_registration",
+        description: "New farmer registered: John Kamau from Nakuru",
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        status: "completed"
+      },
+      {
+        id: 2,
+        type: "consignment_submitted",
+        description: "New consignment submitted: Fresh Organic Tomatoes (500kg)",
+        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        status: "pending"
+      },
+      {
+        id: 3,
+        type: "order_placed",
+        description: "Order #ZUA001234 placed for KSh 2,500 by Customer Demo",
+        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+        status: "processing"
+      },
+      {
+        id: 4,
+        type: "payment_received",
+        description: "Payment of KSh 15,000 received for order #ZUA001230",
+        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+        status: "completed"
+      },
+      {
+        id: 5,
+        type: "product_updated",
+        description: "Stock updated for Sweet Orange Potatoes (+200kg)",
+        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+        status: "completed"
+      },
+      {
+        id: 6,
+        type: "user_verified",
+        description: "Farmer Mary Wanjiku verification approved",
+        timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+        status: "completed"
+      },
+      {
+        id: 7,
+        type: "withdrawal_request",
+        description: "Withdrawal request: KSh 12,000 by John Kamau",
+        timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+        status: "processing"
+      },
+      {
+        id: 8,
+        type: "consignment_approved",
+        description: "Consignment approved: Fresh Baby Spinach by Peter Mwangi",
+        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        status: "completed"
+      }
+    ];
+
+    res.status(200).json({
+      success: true,
+      activities: recentActivities,
+      total: recentActivities.length,
+      source: 'demo_activity',
+      timestamp: new Date().toISOString()
+    });
+
+    console.log(`✅ Admin activity returned: ${recentActivities.length} activities`);
+
+  } catch (error) {
+    console.error('❌ Admin activity error:', error);
+    res.status(200).json({
+      success: true,
+      activities: [
+        {
+          id: 1,
+          type: "system",
+          description: "System activity monitoring active",
+          timestamp: new Date().toISOString(),
+          status: "completed"
+        }
+      ],
+      source: 'fallback_activity',
+      message: 'Basic activity data'
+    });
+  }
+});
+
 // Orders endpoint - handle order creation
 app.post('/api/orders', async (req, res) => {
   try {
@@ -487,7 +642,7 @@ app.post('/api/orders', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('�� Order creation error:', error);
+    console.error('❌ Order creation error:', error);
 
     // Even on error, try to return something useful
     const fallbackOrderId = `ORD-${Date.now()}`;
