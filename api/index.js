@@ -19,26 +19,57 @@ app.use(express.json({ limit: '10mb' }));
 // Database connection
 let pool;
 const initializeDatabase = () => {
-  if (!pool && process.env.DATABASE_URL) {
+  try {
+    // Check if pool exists and is not ended
+    if (pool && !pool.ended) {
+      return pool;
+    }
+
+    if (!process.env.DATABASE_URL) {
+      console.log('⚠️ No DATABASE_URL found, will use demo data');
+      return null;
+    }
+
     // Always use SSL for render.com database connections
     const isRenderDB = process.env.DATABASE_URL.includes('render.com');
 
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: isRenderDB ? { rejectUnauthorized: false } : false,
-      max: 5, // Reduced for serverless
+      max: 3, // Reduced for serverless
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
+      connectionTimeoutMillis: 5000,
+      // Don't automatically end the pool
+      allowExitOnIdle: false
     });
 
     pool.on('error', (err) => {
       console.error('Unexpected database error:', err);
+      // Reset pool on error
+      pool = null;
+    });
+
+    pool.on('end', () => {
+      console.log('Database pool ended');
+      pool = null;
     });
 
     console.log('🔗 Database pool initialized with SSL:', isRenderDB ? 'enabled' : 'disabled');
-  } else if (!process.env.DATABASE_URL) {
-    console.log('⚠️ No DATABASE_URL found, will use demo data');
+    return pool;
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    pool = null;
+    return null;
   }
+};
+
+// Helper function to get a working pool
+const getPool = () => {
+  if (!pool || pool.ended) {
+    console.log('🔄 Pool not available, reinitializing...');
+    return initializeDatabase();
+  }
+  return pool;
 };
 
 // Initialize database on startup
