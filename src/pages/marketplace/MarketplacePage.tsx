@@ -311,14 +311,14 @@ export default function MarketplacePage() {
 
       if (newFailureCount >= 2) {
         setBypassApi(true);
-        toast("🛒 Switching to offline mode", {
-          icon: "📱",
-          duration: 4000
+        toast("🏪 Switching to demo marketplace", {
+          icon: "✅",
+          duration: 3000
         });
       } else {
-        toast("⚠️ Server issue - will retry once more", {
-          icon: "⚠️",
-          duration: 3000
+        toast("🔄 Loading demo products", {
+          icon: "🔄",
+          duration: 2000
         });
       }
 
