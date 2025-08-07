@@ -6,6 +6,49 @@ const crypto = require('crypto');
 
 const app = express();
 
+// Live database connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL ||
+    "postgresql://neondb_owner:npg_bKZoVXhMa8w5@ep-wild-firefly-aetjevra-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+  ssl: { rejectUnauthorized: false },
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 15000,
+});
+
+// Database helper function
+async function query(text, params = []) {
+  try {
+    const result = await pool.query(text, params);
+    return result;
+  } catch (error) {
+    console.error('Database query error:', error);
+    throw error;
+  }
+}
+
+// Password hashing functions
+function hashPassword(password) {
+  return crypto
+    .createHash("sha256")
+    .update(password + "salt123")
+    .digest("hex");
+}
+
+function verifyPassword(password, hash) {
+  return hashPassword(password) === hash;
+}
+
+// Test database connection
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error("❌ Database connection error:", err);
+  } else {
+    console.log("✅ Connected to live database");
+    release();
+  }
+});
+
 // Basic middleware with error handling
 app.use(cors());
 app.use(express.json());
