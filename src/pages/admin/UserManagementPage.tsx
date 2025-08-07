@@ -44,6 +44,19 @@ export default function UserManagementPage() {
       userRole: user?.role,
       tokenLength: token?.length
     });
+
+    // Check if user is authenticated and is admin
+    if (!token || !user) {
+      console.log("🚫 No token or user, should redirect to login");
+      return;
+    }
+
+    if (user.role !== "ADMIN") {
+      console.log("🚫 User is not admin:", user.role);
+      return;
+    }
+
+    console.log("✅ User is authenticated admin, proceeding with data fetch");
   }, [token, user]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
