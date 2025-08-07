@@ -278,7 +278,79 @@ app.get('/api/marketplace/products', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch products',
-      error: error.message
+      error: error.message,
+      fallback_products: [
+        {
+          id: 1,
+          name: 'Fresh Tomatoes',
+          category: 'Vegetables',
+          price_per_unit: 85.00,
+          unit: 'kg',
+          description: 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.',
+          stock_quantity: 500,
+          quantity: 500,
+          images: ['https://images.unsplash.com/photo-1546470427-e212b9d56085'],
+          farmer_name: 'John Farmer',
+          farmer_county: 'Nakuru',
+          is_featured: true,
+          is_available: true,
+          created_at: new Date().toISOString()
+        },
+        {
+          id: 2,
+          name: 'Sweet Potatoes',
+          category: 'Root Vegetables',
+          price_per_unit: 80.00,
+          unit: 'kg',
+          description: 'Fresh sweet potatoes, rich in nutrients and vitamins.',
+          stock_quantity: 300,
+          quantity: 300,
+          images: ['https://images.unsplash.com/photo-1518977676601-b53f82aba655'],
+          farmer_name: 'Mary Farm',
+          farmer_county: 'Meru',
+          is_featured: false,
+          is_available: true,
+          created_at: new Date().toISOString()
+        },
+        {
+          id: 3,
+          name: 'Fresh Spinach',
+          category: 'Leafy Greens',
+          price_per_unit: 120.00,
+          unit: 'kg',
+          description: 'Organic spinach leaves, perfect for healthy meals.',
+          stock_quantity: 150,
+          quantity: 150,
+          images: ['https://images.unsplash.com/photo-1576045057995-568f588f82fb'],
+          farmer_name: 'Grace Farm',
+          farmer_county: 'Nyeri',
+          is_featured: false,
+          is_available: true,
+          created_at: new Date().toISOString()
+        },
+        {
+          id: 4,
+          name: 'Green Beans',
+          category: 'Vegetables',
+          price_per_unit: 95.00,
+          unit: 'kg',
+          description: 'Tender green beans, freshly harvested and ready for pickup.',
+          stock_quantity: 200,
+          quantity: 200,
+          images: ['https://images.unsplash.com/photo-1628773822503-930a7eaecf80'],
+          farmer_name: 'John Farmer',
+          farmer_county: 'Nakuru',
+          is_featured: true,
+          is_available: true,
+          created_at: new Date().toISOString()
+        }
+      ],
+      fallback_pagination: {
+        page: 1,
+        limit: 12,
+        total: 4,
+        totalPages: 1
+      }
     });
   }
 });
