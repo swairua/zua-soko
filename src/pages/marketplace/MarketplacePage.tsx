@@ -116,12 +116,25 @@ export default function MarketplacePage() {
           totalPages: 1,
         }));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ FAILED TO FETCH PRODUCTS:", error);
       toast.error("Failed to load products - using demo data");
-      // Set empty array as fallback to prevent map errors
-      setProducts([]);
-      setPagination((prev) => ({ ...prev, page, total: 0, totalPages: 1 }));
+
+      // Use fallback products from API response if available, otherwise use empty array
+      const fallbackProducts = error.response?.data?.fallback_products || [];
+      const fallbackPagination = error.response?.data?.fallback_pagination || {
+        page,
+        limit: pagination.limit,
+        total: fallbackProducts.length,
+        totalPages: 1
+      };
+
+      setProducts(fallbackProducts);
+      setPagination((prev) => ({
+        ...prev,
+        ...fallbackPagination,
+        page
+      }));
     } finally {
       setLoading(false);
     }
