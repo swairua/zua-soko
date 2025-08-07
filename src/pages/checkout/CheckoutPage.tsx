@@ -152,9 +152,6 @@ export default function CheckoutPage() {
       console.log("🛒 CHECKOUT - Current cart state:", cart);
       console.log("🛒 CHECKOUT - Cart items detail:", cart.items);
 
-      // Validate cart first
-      await validateCartItems();
-
       // Check if cart is empty after validation
       if (cart.items.length === 0) {
         console.log("🛒 CHECKOUT - Cart is empty, redirecting to marketplace");
