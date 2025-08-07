@@ -281,7 +281,7 @@ app.get('/api/marketplace/products/:id', async (req, res) => {
       });
     }
     
-    const result = await pool.query(
+    const result = await currentPool.query(
       'SELECT * FROM products WHERE id = $1 AND is_available = true',
       [id]
     );
