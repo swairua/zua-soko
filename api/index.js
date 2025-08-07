@@ -695,11 +695,8 @@ app.get('/api/admin/analytics/stats', authenticateAdmin, async (req, res) => {
       });
     }
 
-    // Initialize database and seed data if empty
-    await initializeDatabase();
-
     // Ensure users table exists
-    await pool.query(`
+    await currentPool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         phone VARCHAR(20) UNIQUE NOT NULL,
@@ -713,7 +710,7 @@ app.get('/api/admin/analytics/stats', authenticateAdmin, async (req, res) => {
     `);
 
     // Check if we need to seed sample users for demo purposes
-    const userCountQuery = await pool.query('SELECT COUNT(*) as count FROM users');
+    const userCountQuery = await currentPool.query('SELECT COUNT(*) as count FROM users');
     const totalUsers = parseInt(userCountQuery.rows[0].count) || 0;
 
     // If no users exist, create some sample data for demo
