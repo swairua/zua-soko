@@ -171,13 +171,13 @@ export default function LoginPage() {
                 <strong>Admin:</strong> +254712345678 / password123
               </p>
               <p>
-                <strong>Farmer:</strong> +254734567890 / password123
+                <strong>Farmer (John):</strong> +254723456789 / password123
               </p>
               <p>
-                <strong>Customer:</strong> +254756789012 / password123
+                <strong>Farmer (Mary):</strong> +254734567890 / password123
               </p>
               <p>
-                <strong>Driver:</strong> +254778901234 / password123
+                <strong>Customer:</strong> +254745678901 / password123
               </p>
             </div>
           </div>
