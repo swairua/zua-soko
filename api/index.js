@@ -645,7 +645,8 @@ app.post("/api/admin/users/:id/approve", authenticateAdmin, async (req, res) => 
     const { id } = req.params;
     console.log(`✅ Admin approving user: ${id}`);
 
-    if (!pool) {
+    const currentPool = getPool();
+    if (!currentPool) {
       return res.json({
         success: true,
         message: 'User approved successfully (demo mode)'
