@@ -221,6 +221,30 @@ export default async function handler(req, res) {
     }
 
     // =================================================
+    // MARKETPLACE PRODUCTS ENDPOINT - BULLETPROOF
+    // =================================================
+    if (url === "/api/marketplace/products" && method === "GET") {
+      console.log("🛒 Marketplace products request");
+      return res.status(200).json({
+        success: true,
+        products: DEMO_PRODUCTS.map(product => ({
+          ...product,
+          pricePerUnit: product.price_per_unit,
+          stockQuantity: product.stock_quantity,
+          isFeatured: product.is_featured,
+          isAvailable: true,
+          images: ["https://images.unsplash.com/photo-1546470427-e212b9d56085?w=400"]
+        })),
+        pagination: {
+          page: 1,
+          limit: 12,
+          total: DEMO_PRODUCTS.length,
+          totalPages: 1
+        }
+      });
+    }
+
+    // =================================================
     // DEMO LOGIN ENDPOINT (alternative)
     // =================================================
     if (url === "/api/demo/login" && method === "POST") {
