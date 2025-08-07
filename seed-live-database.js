@@ -345,6 +345,24 @@ const createTables = async () => {
     )
   `);
 
+  // Orders table
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS orders (
+      id VARCHAR(50) PRIMARY KEY,
+      order_number VARCHAR(20) UNIQUE NOT NULL,
+      customer_info JSONB NOT NULL,
+      items JSONB NOT NULL,
+      payment_method VARCHAR(20) NOT NULL,
+      delivery_fee DECIMAL(10,2) DEFAULT 0,
+      total_amount DECIMAL(10,2) NOT NULL,
+      status VARCHAR(20) DEFAULT 'pending',
+      payment_status VARCHAR(20) DEFAULT 'pending',
+      delivery_status VARCHAR(20) DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+
   console.log('✅ Database tables created successfully');
 };
 
