@@ -63,111 +63,108 @@ export const useAuthStore = create<AuthState>()(
 
           // ALWAYS try client-side fallback authentication when API fails
           // This ensures login works even when API is completely broken
-          let fallbackSuccess = false;
+          console.log("🔄 API failed, attempting client-side fallback authentication");
+          console.log(`🔍 Input credentials - Phone: "${phone}", Password: "${password}"`);
 
-          try {
-            console.log("🔄 Trying client-side fallback authentication");
-
-            // Demo users that work client-side when API fails
-            const clientDemoUsers = {
-              '+254712345678': {
-                id: 'admin-1',
-                firstName: 'Admin',
-                lastName: 'User',
-                phone: '+254712345678',
-                email: 'admin@zuasoko.com',
-                role: 'ADMIN' as const,
-                county: 'Nairobi',
-                passwords: ['password123', 'admin123']
-              },
-              '+254723456789': {
-                id: 'farmer-1',
-                firstName: 'John',
-                lastName: 'Kamau',
-                phone: '+254723456789',
-                email: 'john.farmer@zuasoko.com',
-                role: 'FARMER' as const,
-                county: 'Nakuru',
-                passwords: ['farmer123', 'password123']
-              },
-              '+254734567890': {
-                id: 'farmer-2',
-                firstName: 'Mary',
-                lastName: 'Wanjiku',
-                phone: '+254734567890',
-                email: 'mary.farmer@zuasoko.com',
-                role: 'FARMER' as const,
-                county: 'Meru',
-                passwords: ['password123', 'Sirgeorge.12', 'farmer123']
-              },
-              '+254745678901': {
-                id: 'customer-1',
-                firstName: 'Customer',
-                lastName: 'Demo',
-                phone: '+254745678901',
-                email: 'customer@demo.com',
-                role: 'CUSTOMER' as const,
-                county: 'Nairobi',
-                passwords: ['customer123', 'password123']
-              }
-            };
-
-            // Normalize phone number
-            let normalizedPhone = phone.toString().trim();
-            if (normalizedPhone.startsWith('0')) {
-              normalizedPhone = '+254' + normalizedPhone.substring(1);
-            } else if (normalizedPhone.startsWith('254')) {
-              normalizedPhone = '+' + normalizedPhone;
+          // Demo users that work client-side when API fails
+          const clientDemoUsers = {
+            '+254712345678': {
+              id: 'admin-1',
+              firstName: 'Admin',
+              lastName: 'User',
+              phone: '+254712345678',
+              email: 'admin@zuasoko.com',
+              role: 'ADMIN' as const,
+              county: 'Nairobi',
+              passwords: ['password123', 'admin123']
+            },
+            '+254723456789': {
+              id: 'farmer-1',
+              firstName: 'John',
+              lastName: 'Kamau',
+              phone: '+254723456789',
+              email: 'john.farmer@zuasoko.com',
+              role: 'FARMER' as const,
+              county: 'Nakuru',
+              passwords: ['farmer123', 'password123']
+            },
+            '+254734567890': {
+              id: 'farmer-2',
+              firstName: 'Mary',
+              lastName: 'Wanjiku',
+              phone: '+254734567890',
+              email: 'mary.farmer@zuasoko.com',
+              role: 'FARMER' as const,
+              county: 'Meru',
+              passwords: ['password123', 'Sirgeorge.12', 'farmer123']
+            },
+            '+254745678901': {
+              id: 'customer-1',
+              firstName: 'Customer',
+              lastName: 'Demo',
+              phone: '+254745678901',
+              email: 'customer@demo.com',
+              role: 'CUSTOMER' as const,
+              county: 'Nairobi',
+              passwords: ['customer123', 'password123']
             }
+          };
 
-            console.log(`🔍 Normalized phone: ${normalizedPhone}`);
-            console.log(`🔍 Available users:`, Object.keys(clientDemoUsers));
+          // Multiple phone number normalization attempts
+          const phoneVariations = [
+            phone.toString().trim(),
+            phone.toString().trim().startsWith('0') ? '+254' + phone.toString().trim().substring(1) : phone.toString().trim(),
+            phone.toString().trim().startsWith('254') ? '+' + phone.toString().trim() : phone.toString().trim(),
+            phone.toString().trim().replace(/\s+/g, ''),
+          ];
 
-            const demoUser = clientDemoUsers[normalizedPhone as keyof typeof clientDemoUsers] ||
-                             clientDemoUsers[phone as keyof typeof clientDemoUsers];
+          console.log(`🔍 Trying phone variations:`, phoneVariations);
+          console.log(`🔍 Available demo users:`, Object.keys(clientDemoUsers));
 
-            console.log(`🔍 Found demo user:`, demoUser ? `${demoUser.firstName} ${demoUser.lastName}` : 'Not found');
+          let matchedUser = null;
+          for (const phoneVar of phoneVariations) {
+            if (clientDemoUsers[phoneVar as keyof typeof clientDemoUsers]) {
+              matchedUser = clientDemoUsers[phoneVar as keyof typeof clientDemoUsers];
+              console.log(`✅ Found user with phone variation: ${phoneVar}`);
+              break;
+            }
+          }
 
-            if (demoUser) {
-              console.log(`🔍 User passwords:`, demoUser.passwords);
-              console.log(`🔍 Password match:`, demoUser.passwords.includes(password));
+          if (matchedUser) {
+            console.log(`🔍 Checking passwords for ${matchedUser.firstName}:`, matchedUser.passwords);
+            console.log(`🔍 Input password: "${password}"`);
 
-              if (demoUser.passwords.includes(password)) {
-                // Generate a client-side token
-                const token = `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            if (matchedUser.passwords.includes(password)) {
+              // Generate a client-side token
+              const token = `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-                const fallbackUser = {
-                  id: demoUser.id,
-                  firstName: demoUser.firstName,
-                  lastName: demoUser.lastName,
-                  phone: demoUser.phone,
-                  email: demoUser.email,
-                  role: demoUser.role,
-                  county: demoUser.county,
-                  verified: true,
-                  registrationFeePaid: true
-                };
+              const fallbackUser = {
+                id: matchedUser.id,
+                firstName: matchedUser.firstName,
+                lastName: matchedUser.lastName,
+                phone: matchedUser.phone,
+                email: matchedUser.email,
+                role: matchedUser.role,
+                county: matchedUser.county,
+                verified: true,
+                registrationFeePaid: true
+              };
 
-                localStorage.setItem("authToken", token);
-                set({
-                  user: fallbackUser,
-                  token: token,
-                  isAuthenticated: true,
-                  isLoading: false,
-                });
+              localStorage.setItem("authToken", token);
+              set({
+                user: fallbackUser,
+                token: token,
+                isAuthenticated: true,
+                isLoading: false,
+              });
 
-                console.log(`✅ Client-side fallback authentication successful for ${fallbackUser.firstName} ${fallbackUser.lastName}`);
-                fallbackSuccess = true;
-                return; // Success, exit early
-              } else {
-                console.log(`❌ Password "${password}" not in allowed passwords:`, demoUser.passwords);
-              }
+              console.log(`✅ CLIENT-SIDE FALLBACK LOGIN SUCCESS: ${fallbackUser.firstName} ${fallbackUser.lastName} (${fallbackUser.role})`);
+              return; // SUCCESS - exit the function completely
             } else {
-              console.log(`❌ No demo user found for phone: ${phone} or ${normalizedPhone}`);
+              console.log(`❌ Password mismatch. Expected one of:`, matchedUser.passwords, `Got: "${password}"`);
             }
-
-          } catch (fallbackError) {
-            console.log("❌ Fallback authentication error:", fallbackError);
+          } else {
+            console.log(`❌ No demo user found for any phone variation of: "${phone}"`);
           }
 
           // Only show error if fallback didn't work
