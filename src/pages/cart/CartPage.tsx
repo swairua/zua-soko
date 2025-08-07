@@ -57,7 +57,7 @@ export default function CartPage() {
     refreshCart();
     console.log("🛒 CART DEBUG - Cart items:", cart.items);
     console.log("🛒 CART DEBUG - Total amount:", cart.totalAmount);
-  }, [refreshCart, cart.items, cart.totalAmount]);
+  }, [refreshCart]);
 
   const handleQuantityChange = async (itemId: string, newQuantity: number) => {
     if (newQuantity < 0) return;
