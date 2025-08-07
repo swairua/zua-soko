@@ -34,7 +34,17 @@ interface User {
 }
 
 export default function UserManagementPage() {
-  const { token } = useAuthStore();
+  const { token, user } = useAuthStore();
+
+  // Debug auth state
+  React.useEffect(() => {
+    console.log("🔐 UserManagementPage - Auth state:", {
+      hasToken: !!token,
+      hasUser: !!user,
+      userRole: user?.role,
+      tokenLength: token?.length
+    });
+  }, [token, user]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
