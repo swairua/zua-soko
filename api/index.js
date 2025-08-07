@@ -652,7 +652,7 @@ app.post("/api/admin/users/:id/approve", authenticateAdmin, async (req, res) => 
       });
     }
 
-    const result = await pool.query(
+    const result = await currentPool.query(
       'UPDATE users SET verified = true WHERE id = $1 RETURNING *',
       [id]
     );
