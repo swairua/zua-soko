@@ -426,22 +426,25 @@ app.post('/api/auth/login', async (req, res) => {
 
 // JWT middleware for admin routes
 const authenticateAdmin = (req, res, next) => {
-  console.log('🔐 Admin auth middleware called for:', req.method, req.path);
-
-  const authHeader = req.headers.authorization;
-  console.log('🔐 Auth header:', authHeader ? 'Present' : 'Missing');
-
-  const token = authHeader && authHeader.split(' ')[1];
-  console.log('🔐 Token extracted:', token ? 'Present' : 'Missing');
-
-  if (!token) {
-    console.log('❌ No token provided');
-    return res.status(401).json({ message: 'Access token required' });
-  }
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'zuasoko-production-secret-2024');
-    console.log('🔐 Token decoded:', { userId: decoded.userId, role: decoded.role });
+    console.log('🔐 Admin auth middleware called for:', req.method, req.path);
+
+    const authHeader = req.headers.authorization;
+    console.log('🔐 Auth header:', authHeader ? 'Present' : 'Missing');
+
+    const token = authHeader && authHeader.split(' ')[1];
+    console.log('🔐 Token extracted:', token ? 'Present' : 'Missing');
+
+    if (!token) {
+      console.log('❌ No token provided');
+      return res.status(401).json({ message: 'Access token required' });
+    }
+
+    const jwtSecret = process.env.JWT_SECRET || 'zuasoko-production-secret-2024';
+    console.log('🔐 Using JWT secret:', jwtSecret.substring(0, 10) + '...');
+
+    const decoded = jwt.verify(token, jwtSecret);
+    console.log('🔐 Token decoded successfully:', { userId: decoded.userId, role: decoded.role });
 
     if (decoded.role !== 'ADMIN') {
       console.log('❌ User role is not ADMIN:', decoded.role);
@@ -452,8 +455,9 @@ const authenticateAdmin = (req, res, next) => {
     console.log('✅ Admin authentication successful');
     next();
   } catch (error) {
+    console.error('❌ Authentication middleware error:', error);
     console.log('❌ Token verification failed:', error.message);
-    return res.status(401).json({ message: 'Invalid token' });
+    return res.status(401).json({ message: 'Invalid token', error: error.message });
   }
 };
 
