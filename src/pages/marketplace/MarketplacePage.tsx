@@ -83,7 +83,7 @@ export default function MarketplacePage() {
       setLoading(true);
       console.log("🔍 FETCHING PRODUCTS - Page:", page, "Filters:", filters);
 
-      const params = new URLSearchParams({
+      const params = {
         page: page.toString(),
         limit: pagination.limit.toString(),
         ...(filters.category && { category: filters.category }),
@@ -92,7 +92,7 @@ export default function MarketplacePage() {
         ...(filters.minPrice && { minPrice: filters.minPrice }),
         ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
         ...(filters.featured && { featured: "true" }),
-      });
+      };
 
       const data = await apiService.getProducts(params);
       console.log("🔍 PRODUCTS RESPONSE:", data);
