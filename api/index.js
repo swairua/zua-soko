@@ -573,7 +573,10 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Admin users error:", err);
-    
+    console.error("❌ Error stack:", err.stack);
+    console.error("❌ Error name:", err.name);
+    console.error("❌ Error message:", err.message);
+
     // Return demo users as fallback on any database error
     console.log("👥 Returning demo users due to database error");
     res.json({
