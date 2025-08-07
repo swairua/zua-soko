@@ -5,9 +5,8 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "functions": {
-    "api/index.js": {
-      "runtime": "nodejs18.x",
-      "maxDuration": 30
+    "api/**/*.js": {
+      "runtime": "@vercel/node"
     }
   },
   "routes": [
@@ -22,10 +21,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "build": {
-    "env": {
-      "NODE_ENV": "production"
-    }
   }
 }
