@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { apiService } from "../../services/api";
 import {
   Users,
   UserCheck,
@@ -44,15 +44,15 @@ export default function UserManagementPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("/api/admin/users", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      console.log("👥 Fetching users with token:", !!token);
 
-      if (response.data.success) {
+      const response = await apiService.get("/admin/users");
+      console.log("👥 Users API response:", response);
+
+      const data = response.data || response;
+      if (data.success) {
         // Transform data to match interface
-        const transformedUsers = response.data.users.map((user: any) => ({
+        const transformedUsers = data.users.map((user: any) => ({
           id: user.id,
           phone: user.phone,
           email: user.email || '',
@@ -116,11 +116,7 @@ export default function UserManagementPage() {
 
   const approveUser = async (userId: string) => {
     try {
-      await axios.post(`/api/admin/users/${userId}/approve`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await apiService.post(`/admin/users/${userId}/approve`);
 
       toast.success("User approved successfully");
       
