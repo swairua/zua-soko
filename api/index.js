@@ -370,33 +370,12 @@ app.get('/api/marketplace/products/:id', async (req, res) => {
   }
 });
 
-// Categories endpoint
-app.get('/api/marketplace/categories', async (req, res) => {
-  try {
-    const currentPool = getPool();
-    if (!currentPool) {
-      return res.json({
-        success: true,
-        categories: ['Vegetables', 'Root Vegetables', 'Leafy Greens']
-      });
-    }
-    
-    const result = await currentPool.query(
-      'SELECT DISTINCT category FROM products WHERE is_available = true ORDER BY category'
-    );
-    
-    res.json({
-      success: true,
-      categories: result.rows.map(row => row.category)
-    });
-  } catch (error) {
-    console.error('Categories error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch categories',
-      error: error.message
-    });
-  }
+// Categories endpoint - Simplified version
+app.get('/api/marketplace/categories', (req, res) => {
+  res.json({
+    success: true,
+    categories: ['Vegetables', 'Root Vegetables', 'Leafy Greens']
+  });
 });
 
 // Counties endpoint
@@ -791,7 +770,7 @@ app.get('/api/admin/activity', authenticateAdmin, async (req, res) => {
       activities: demoActivities
     });
   } catch (error) {
-    console.error('❌ Activity log error:', error);
+    console.error('�� Activity log error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch activity log',
