@@ -688,9 +688,11 @@ app.get('/api/admin/analytics/stats', authenticateAdmin, async (req, res) => {
       console.log('📊 Seeding sample users for analytics demo...');
 
       try {
-        // Create sample users
+        // Create sample users including admin
         await pool.query(`
           INSERT INTO users (phone, password, role, status, full_name, email, created_at) VALUES
+          ('admin', '${crypto.createHash('sha256').update('adminsalt123').digest('hex')}', 'ADMIN', 'approved', 'Admin User', 'admin@zuasoko.com', NOW()),
+          ('+254712345678', '${crypto.createHash('sha256').update('password123salt123').digest('hex')}', 'ADMIN', 'approved', 'Admin Demo', 'admin@example.com', NOW()),
           ('0712345678', '${crypto.createHash('sha256').update('password123salt123').digest('hex')}', 'FARMER', 'approved', 'John Kamau', 'john@example.com', NOW()),
           ('0723456789', '${crypto.createHash('sha256').update('password123salt123').digest('hex')}', 'CUSTOMER', 'approved', 'Mary Wanjiku', 'mary@example.com', NOW()),
           ('0734567890', '${crypto.createHash('sha256').update('password123salt123').digest('hex')}', 'FARMER', 'pending', 'Peter Mwangi', 'peter@example.com', NOW()),
@@ -698,9 +700,9 @@ app.get('/api/admin/analytics/stats', authenticateAdmin, async (req, res) => {
           ('0756789012', '${crypto.createHash('sha256').update('password123salt123').digest('hex')}', 'CUSTOMER', 'approved', 'David Kiprotich', 'david@example.com', NOW())
           ON CONFLICT (phone) DO NOTHING
         `);
-        console.log('✅ Sample users created');
+        console.log('✅ Sample users (including admin) created');
       } catch (seedError) {
-        console.log('ℹ️ Sample users may already exist or table structure differs');
+        console.log('ℹ️ Sample users may already exist or table structure differs:', seedError.message);
       }
     }
 
