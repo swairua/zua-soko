@@ -159,17 +159,28 @@ export const useCartStore = create<CartState>()(
 
       refreshCart: () => {
         const state = get();
-        const totalItems = state.items.reduce(
+
+        // Fix any items with zero prices by clearing them
+        const validItems = state.items.filter(item => {
+          const hasValidPrice = safeNumber(item.pricePerUnit) > 0;
+          if (!hasValidPrice) {
+            console.warn("🛒 Removing cart item with invalid price:", item);
+          }
+          return hasValidPrice;
+        });
+
+        const totalItems = validItems.reduce(
           (sum, item) => sum + safeNumber(item.quantity),
           0,
         );
-        const totalAmount = state.items.reduce(
+        const totalAmount = validItems.reduce(
           (sum, item) =>
             sum + safeNumber(item.pricePerUnit) * safeNumber(item.quantity),
           0,
         );
 
         set({
+          items: validItems,
           totalItems,
           totalAmount,
         });
