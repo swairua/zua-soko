@@ -121,17 +121,27 @@ export default function AdminDashboard() {
       }
     } catch (error: any) {
       console.error("Error fetching users:", error.message);
-      
-      // Set fallback data instead of showing error
+
+      // Use fallback users from API response if available, otherwise use demo data
+      const fallbackUsers = error.response?.data?.fallback_users || [
+        { id: '1', first_name: 'John', last_name: 'Kamau', email: 'john@example.com', role: 'FARMER', status: 'approved', verified: true },
+        { id: '2', first_name: 'Mary', last_name: 'Wanjiku', email: 'mary@example.com', role: 'CUSTOMER', status: 'approved', verified: true },
+        { id: '3', first_name: 'Peter', last_name: 'Mwangi', email: 'peter@example.com', role: 'FARMER', status: 'pending', verified: false }
+      ];
+
+      // Transform and set fallback data
       setStats((prev) => ({
         ...prev,
-        totalUsers: 5,
-        pendingApprovals: 2,
-        recentUsers: [
-          { id: 1, name: "John Kamau", email: "john@example.com", role: "FARMER", status: "ACTIVE", joinedAt: "2024-01-15" },
-          { id: 2, name: "Mary Wanjiku", email: "mary@example.com", role: "CUSTOMER", status: "ACTIVE", joinedAt: "2024-01-16" },
-          { id: 3, name: "Peter Mwangi", email: "peter@example.com", role: "FARMER", status: "PENDING", joinedAt: "2024-01-17" }
-        ]
+        totalUsers: fallbackUsers.length,
+        pendingApprovals: fallbackUsers.filter((user: any) => user.status === 'pending').length,
+        recentUsers: fallbackUsers.slice(0, 5).map((user: any) => ({
+          id: user.id,
+          name: `${user.first_name || 'Unknown'} ${user.last_name || 'User'}`,
+          email: user.email || 'No email',
+          role: user.role || 'USER',
+          status: user.verified ? "ACTIVE" : "PENDING",
+          joinedAt: user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown',
+        })),
       }));
     }
   };
