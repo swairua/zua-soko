@@ -93,35 +93,22 @@ export const useAppDownload = (): UseAppDownloadReturn => {
   };
 
   const downloadApp = () => {
-    if (isAvailable) {
-      // Create temporary link for download
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = "zuasoko-app.apk";
-      link.target = "_blank";
+    // For demo mode, show information message instead of download
+    const event = new CustomEvent("show-toast", {
+      detail: {
+        message: "📱 Mobile app coming soon! Currently showing web version.",
+        type: "info",
+      },
+    });
+    window.dispatchEvent(event);
 
-      // Add to DOM, click, and remove
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // Track download event (analytics)
-      if ((window as any).gtag) {
-        (window as any).gtag("event", "app_download", {
-          event_category: "engagement",
-          event_label: "android_apk",
-          value: 1,
-        });
-      }
-
-      // Show success message
-      const event = new CustomEvent("show-toast", {
-        detail: {
-          message: "APK download started! Check your downloads folder.",
-          type: "success",
-        },
+    // Track demo interest (analytics)
+    if ((window as any).gtag) {
+      (window as any).gtag("event", "app_download_interest", {
+        event_category: "engagement",
+        event_label: "demo_mode",
+        value: 1,
       });
-      window.dispatchEvent(event);
     }
   };
 
