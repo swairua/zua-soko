@@ -27,7 +27,7 @@ export default function ProtectedRoute({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (roles && user && !roles.includes(user.role) && user.role !== 'ADMIN') {
+  if (roles && user && !roles.map(r => r.toLowerCase()).includes(user.role.toLowerCase()) && user.role.toUpperCase() !== 'ADMIN') {
     // User doesn't have permission (admin can access everything)
     return (
       <div className="flex items-center justify-center min-h-screen">
