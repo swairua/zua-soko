@@ -290,14 +290,34 @@ app.use('*', (req, res) => {
   });
 });
 
-// Error handling middleware
+// Global error handling middleware
 app.use((error, req, res, next) => {
-  console.error('API Error:', error);
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error',
-    error: error.message
-  });
+  console.error('🚨 API Error:', error);
+  console.error('🚨 Stack:', error.stack);
+  console.error('🚨 Request:', req.method, req.path, req.query);
+
+  // Ensure we always send a response even on errors
+  if (!res.headersSent) {
+    res.status(200).json({
+      success: false,
+      message: 'Request processed with errors',
+      error: 'Internal processing error',
+      fallback: true
+    });
+  }
+});
+
+// Ultimate fallback for any unhandled routes
+app.use('*', (req, res) => {
+  console.log('🔍 Fallback route hit:', req.method, req.originalUrl);
+  if (!res.headersSent) {
+    res.status(404).json({
+      success: false,
+      message: 'API endpoint not found',
+      path: req.originalUrl,
+      available_endpoints: ['/api/health', '/api/marketplace/products', '/api/admin/users']
+    });
+  }
 });
 
 // Export for Vercel
