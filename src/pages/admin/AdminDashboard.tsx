@@ -69,6 +69,9 @@ export default function AdminDashboard() {
   const fetchUsers = async () => {
     try {
       console.log("👥 Fetching users from API service");
+      console.log("👥 User token available:", !!token);
+      console.log("👥 User role:", user?.role);
+
       const response = await apiService.get("/admin/users");
       console.log("👥 Raw API response:", response);
 
