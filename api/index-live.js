@@ -316,6 +316,76 @@ export default async function handler(req, res) {
     }
 
     // =================================================
+    // MARKETPLACE PRODUCTS ENDPOINT - BULLETPROOF
+    // =================================================
+    if (url === "/api/marketplace/products" && method === "GET") {
+      console.log("🛒 LIVE DATABASE Marketplace products request");
+
+      try {
+        const result = await query(`
+          SELECT id, name, category, price_per_unit, unit, description,
+                 stock_quantity, is_featured, farmer_name, farmer_county, created_at
+          FROM products
+          WHERE is_active = true AND stock_quantity > 0
+          ORDER BY is_featured DESC, created_at DESC
+        `);
+
+        console.log(`🛒 Found ${result.rows.length} marketplace products in live database`);
+
+        const products = result.rows.map(product => ({
+          ...product,
+          pricePerUnit: product.price_per_unit,
+          stockQuantity: product.stock_quantity,
+          isFeatured: product.is_featured,
+          isAvailable: true,
+          images: ["https://images.unsplash.com/photo-1546470427-e212b9d56085?w=400"]
+        }));
+
+        return res.status(200).json({
+          success: true,
+          products: products,
+          pagination: {
+            page: 1,
+            limit: 12,
+            total: products.length,
+            totalPages: Math.ceil(products.length / 12)
+          },
+          source: "live_database"
+        });
+      } catch (dbError) {
+        console.error("❌ Marketplace products query failed:", dbError);
+        console.log("🔄 Using demo marketplace products fallback");
+
+        const fallbackProducts = [
+          {
+            id: 1,
+            name: "Fresh Tomatoes",
+            category: "Vegetables",
+            price_per_unit: 85,
+            pricePerUnit: 85,
+            unit: "kg",
+            description: "Fresh organic tomatoes",
+            stock_quantity: 100,
+            stockQuantity: 100,
+            images: ["https://images.unsplash.com/photo-1546470427-e212b9d56085?w=400"],
+            farmer_name: "John Kamau",
+            farmer_county: "Nakuru",
+            is_featured: true,
+            isFeatured: true,
+            isAvailable: true
+          }
+        ];
+
+        return res.status(200).json({
+          success: true,
+          products: fallbackProducts,
+          pagination: { page: 1, limit: 12, total: 1, totalPages: 1 },
+          source: "demo_fallback"
+        });
+      }
+    }
+
+    // =================================================
     // LIVE DATABASE STATUS ENDPOINT
     // =================================================
     if (url === "/api/status" && method === "GET") {
