@@ -126,7 +126,8 @@ app.get('/api/status', async (req, res) => {
 
 // Initialize products if database is empty
 const initializeProducts = async () => {
-  if (!pool) return;
+  const currentPool = getPool();
+  if (!currentPool) return;
   
   try {
     // Create products table if it doesn't exist
