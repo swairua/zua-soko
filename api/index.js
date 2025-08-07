@@ -197,72 +197,45 @@ const initializeProducts = async () => {
   }
 };
 
-// Marketplace Products endpoint - Minimal fail-safe version
-app.get('/api/marketplace/products', (req, res) => {
-  try {
-    res.status(200).json({
-      "success": true,
-      "products": [
-        {
-          "id": 1,
-          "name": "Fresh Tomatoes",
-          "category": "Vegetables",
-          "price_per_unit": 85,
-          "unit": "kg",
-          "description": "Organic red tomatoes",
-          "stock_quantity": 500,
-          "images": ["https://images.unsplash.com/photo-1546470427-e212b9d56085"],
-          "farmer_name": "John Farmer",
-          "farmer_county": "Nakuru",
-          "is_featured": true
-        },
-        {
-          "id": 2,
-          "name": "Sweet Potatoes",
-          "category": "Root Vegetables",
-          "price_per_unit": 80,
-          "unit": "kg",
-          "description": "Fresh sweet potatoes",
-          "stock_quantity": 300,
-          "images": ["https://images.unsplash.com/photo-1518977676601-b53f82aba655"],
-          "farmer_name": "Mary Farm",
-          "farmer_county": "Meru",
-          "is_featured": false
-        }
-      ],
-      "pagination": {
-        "page": 1,
-        "limit": 12,
-        "total": 2,
-        "totalPages": 1
+// Marketplace Products endpoint - Ultra-basic version that cannot fail
+app.get('/api/marketplace/products', function(req, res) {
+  res.json({
+    success: true,
+    products: [
+      {
+        id: 1,
+        name: "Fresh Tomatoes",
+        category: "Vegetables",
+        price_per_unit: 85,
+        unit: "kg",
+        description: "Organic red tomatoes",
+        stock_quantity: 500,
+        images: ["https://images.unsplash.com/photo-1546470427-e212b9d56085"],
+        farmer_name: "John Farmer",
+        farmer_county: "Nakuru",
+        is_featured: true
+      },
+      {
+        id: 2,
+        name: "Sweet Potatoes",
+        category: "Root Vegetables",
+        price_per_unit: 80,
+        unit: "kg",
+        description: "Fresh sweet potatoes",
+        stock_quantity: 300,
+        images: ["https://images.unsplash.com/photo-1518977676601-b53f82aba655"],
+        farmer_name: "Mary Farm",
+        farmer_county: "Meru",
+        is_featured: false
       }
-    });
-  } catch (error) {
-    res.status(200).json({
-      "success": true,
-      "products": [
-        {
-          "id": 1,
-          "name": "Demo Product",
-          "category": "Vegetables",
-          "price_per_unit": 100,
-          "unit": "kg",
-          "description": "Demo product",
-          "stock_quantity": 100,
-          "images": [""],
-          "farmer_name": "Demo Farmer",
-          "farmer_county": "Demo County",
-          "is_featured": false
-        }
-      ],
-      "pagination": {
-        "page": 1,
-        "limit": 12,
-        "total": 1,
-        "totalPages": 1
-      }
-    });
-  }
+    ],
+    pagination: {
+      page: 1,
+      limit: 12,
+      total: 2,
+      totalPages: 1
+    }
+  });
 });
 
 // Product by ID endpoint - Simplified version
