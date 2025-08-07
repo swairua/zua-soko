@@ -66,10 +66,14 @@ export default function UserManagementPage() {
         }));
         setUsers(transformedUsers);
       }
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      toast.error("Failed to fetch users");
-      
+    } catch (error: any) {
+      console.error("❌ Error fetching users:", error);
+      console.error("❌ Error status:", error.response?.status);
+      console.error("❌ Error data:", error.response?.data);
+      console.error("❌ Error message:", error.message);
+
+      toast.error(`Failed to fetch users: ${error.response?.data?.message || error.message}`);
+
       // Fallback to demo data
       setUsers([
         {
