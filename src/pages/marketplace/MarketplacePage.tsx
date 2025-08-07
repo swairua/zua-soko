@@ -120,8 +120,37 @@ export default function MarketplacePage() {
       console.error("❌ FAILED TO FETCH PRODUCTS:", error);
       toast.error("Failed to load products - using demo data");
 
-      // Use fallback products from API response if available, otherwise use empty array
-      const fallbackProducts = error.response?.data?.fallback_products || [];
+      // Always provide fallback products regardless of error type
+      const hardcodedFallback = [
+        {
+          id: 1,
+          name: "Fresh Tomatoes",
+          category: "Vegetables",
+          price_per_unit: 85,
+          unit: "kg",
+          description: "Organic red tomatoes",
+          stock_quantity: 500,
+          images: ["https://images.unsplash.com/photo-1546470427-e212b9d56085"],
+          farmer_name: "John Farmer",
+          farmer_county: "Nakuru",
+          is_featured: true
+        },
+        {
+          id: 2,
+          name: "Sweet Potatoes",
+          category: "Root Vegetables",
+          price_per_unit: 80,
+          unit: "kg",
+          description: "Fresh sweet potatoes",
+          stock_quantity: 300,
+          images: ["https://images.unsplash.com/photo-1518977676601-b53f82aba655"],
+          farmer_name: "Mary Farm",
+          farmer_county: "Meru",
+          is_featured: false
+        }
+      ];
+
+      const fallbackProducts = error.response?.data?.fallback_products || hardcodedFallback;
       const fallbackPagination = error.response?.data?.fallback_pagination || {
         page,
         limit: pagination.limit,
