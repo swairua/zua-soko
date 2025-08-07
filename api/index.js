@@ -14,43 +14,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Add a safety wrapper to ensure all endpoints respond
+// Simple request logging
 app.use('/api', (req, res, next) => {
-  const originalSend = res.send;
-  const originalJson = res.json;
-  const originalEnd = res.end;
-
-  let hasResponded = false;
-
-  res.send = function(data) {
-    if (!hasResponded) {
-      hasResponded = true;
-      return originalSend.call(this, data);
-    }
-  };
-
-  res.json = function(data) {
-    if (!hasResponded) {
-      hasResponded = true;
-      return originalJson.call(this, data);
-    }
-  };
-
-  res.end = function(data) {
-    if (!hasResponded) {
-      hasResponded = true;
-      return originalEnd.call(this, data);
-    }
-  };
-
-  // Timeout fallback
-  setTimeout(() => {
-    if (!hasResponded) {
-      hasResponded = true;
-      res.status(200).json({ success: true, message: 'Request processed' });
-    }
-  }, 8000);
-
+  console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
   next();
 });
 
