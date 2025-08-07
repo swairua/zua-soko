@@ -458,7 +458,7 @@ const authenticateAdmin = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'zuasoko-production-secret-2024');
-    console.log('🔐 Token decoded successfully:', { userId: decoded.userId, role: decoded.role });
+    console.log('�� Token decoded successfully:', { userId: decoded.userId, role: decoded.role });
 
     if (decoded.role !== 'ADMIN') {
       console.log('❌ User role is not ADMIN:', decoded.role);
@@ -719,7 +719,7 @@ app.get('/api/admin/analytics/stats', authenticateAdmin, async (req, res) => {
 
       try {
         // Create sample users including admin
-        await pool.query(`
+        await currentPool.query(`
           INSERT INTO users (phone, password, role, status, full_name, email, created_at) VALUES
           ('admin', '${crypto.createHash('sha256').update('adminsalt123').digest('hex')}', 'ADMIN', 'approved', 'Admin User', 'admin@zuasoko.com', NOW()),
           ('+254712345678', '${crypto.createHash('sha256').update('password123salt123').digest('hex')}', 'ADMIN', 'approved', 'Admin Demo', 'admin@example.com', NOW()),
@@ -737,16 +737,16 @@ app.get('/api/admin/analytics/stats', authenticateAdmin, async (req, res) => {
     }
 
     // Re-query after potential seeding
-    const updatedUserCount = await pool.query('SELECT COUNT(*) as count FROM users');
+    const updatedUserCount = await currentPool.query('SELECT COUNT(*) as count FROM users');
     const finalTotalUsers = parseInt(updatedUserCount.rows[0].count) || 0;
 
-    const pendingApprovalsQuery = await pool.query(`
+    const pendingApprovalsQuery = await currentPool.query(`
       SELECT COUNT(*) as count FROM users
       WHERE status = 'pending' OR status = 'PENDING'
     `);
     const pendingApprovals = parseInt(pendingApprovalsQuery.rows[0].count) || 0;
 
-    const productCountQuery = await pool.query('SELECT COUNT(*) as count FROM products WHERE is_available = true');
+    const productCountQuery = await currentPool.query('SELECT COUNT(*) as count FROM products WHERE is_available = true');
     const totalProducts = parseInt(productCountQuery.rows[0].count) || 0;
 
     // Calculate some realistic derived stats
