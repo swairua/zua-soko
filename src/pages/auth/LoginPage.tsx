@@ -145,14 +145,13 @@ export default function LoginPage() {
               type="button"
               onClick={() => {
                 setFormData({
-                  phone: "+254712345678",
+                  phone: "+254734567890",
                   password: "password123",
                 });
-                handleSubmit({ preventDefault: () => {} } as any);
               }}
               className="w-full mb-4 bg-green-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-green-700"
             >
-              🧪 Test Admin Login (+254712345678 / password123)
+              🧪 Quick Fill Farmer Demo (+254734567890 / password123)
             </button>
 
             <div className="relative">
