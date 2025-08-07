@@ -544,6 +544,9 @@ app.post('/api/payments/stk-push', async (req, res) => {
     // For demo purposes, simulate M-Pesa STK push
     console.log(`💳 Simulating M-Pesa STK push to ${formattedPhone} for KES ${amount}`);
 
+    // Simulate a small delay like real M-Pesa API
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     // In a real implementation, you would integrate with Safaricom's M-Pesa API here
     // For now, we'll simulate a successful STK push initiation
 
@@ -558,7 +561,8 @@ app.post('/api/payments/stk-push', async (req, res) => {
       checkoutRequestID: `CR-${Date.now()}`,
       responseCode: '0',
       responseDescription: 'Success. Request accepted for processing',
-      customerMessage: `STK push sent to ${formattedPhone}. Please check your phone to complete payment.`
+      customerMessage: `STK push sent to ${formattedPhone}. Please check your phone to complete payment.`,
+      timestamp: new Date().toISOString()
     };
 
     console.log(`✅ M-Pesa STK push initiated: ${transactionId}`);
