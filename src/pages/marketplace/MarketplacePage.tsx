@@ -247,9 +247,9 @@ export default function MarketplacePage() {
 
       if (!bypassApi) {
         setBypassApi(true);
-        toast("🛒 Marketplace running in offline mode", {
-          icon: "📱",
-          duration: 4000
+        toast("🏪 Marketplace now in demo mode", {
+          icon: "✅",
+          duration: 3000
         });
       }
 
