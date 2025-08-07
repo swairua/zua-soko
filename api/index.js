@@ -246,68 +246,63 @@ app.get('/api/marketplace/products', (req, res) => {
   });
 });
 
-// Product by ID endpoint
-app.get('/api/marketplace/products/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    const currentPool = getPool();
-    if (!currentPool) {
-      return res.status(404).json({
-        success: false,
-        message: 'Database not configured'
-      });
+// Product by ID endpoint - Simplified version
+app.get('/api/marketplace/products/:id', (req, res) => {
+  const { id } = req.params;
+
+  // Return a demo product based on ID
+  const products = {
+    '1': {
+      id: 1,
+      name: 'Fresh Tomatoes',
+      category: 'Vegetables',
+      price_per_unit: 85,
+      unit: 'kg',
+      description: 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.',
+      stock_quantity: 500,
+      images: ['https://images.unsplash.com/photo-1546470427-e212b9d56085'],
+      farmer_name: 'John Farmer',
+      farmer_county: 'Nakuru',
+      is_featured: true
+    },
+    '2': {
+      id: 2,
+      name: 'Sweet Potatoes',
+      category: 'Root Vegetables',
+      price_per_unit: 80,
+      unit: 'kg',
+      description: 'Fresh sweet potatoes, rich in nutrients and vitamins.',
+      stock_quantity: 300,
+      images: ['https://images.unsplash.com/photo-1518977676601-b53f82aba655'],
+      farmer_name: 'Mary Farm',
+      farmer_county: 'Meru',
+      is_featured: false
+    },
+    '3': {
+      id: 3,
+      name: 'Fresh Spinach',
+      category: 'Leafy Greens',
+      price_per_unit: 120,
+      unit: 'kg',
+      description: 'Organic spinach leaves, perfect for healthy meals.',
+      stock_quantity: 150,
+      images: ['https://images.unsplash.com/photo-1576045057995-568f588f82fb'],
+      farmer_name: 'Grace Farm',
+      farmer_county: 'Nyeri',
+      is_featured: false
     }
-    
-    // Check for UUID format (outdated)
-    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (uuidPattern.test(id)) {
-      return res.status(410).json({
-        success: false,
-        message: "This product link uses an outdated format. Please browse the marketplace for current products.",
-        code: "OUTDATED_PRODUCT_LINK",
-        redirect: "/marketplace"
-      });
-    }
-    
-    const result = await currentPool.query(
-      'SELECT * FROM products WHERE id = $1 AND is_available = true',
-      [id]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
-    }
-    
+  };
+
+  const product = products[id];
+  if (product) {
     res.json({
       success: true,
-      product: result.rows[0]
+      product: product
     });
-  } catch (error) {
-    console.error('Product by ID error:', error);
-    res.status(500).json({
+  } else {
+    res.status(404).json({
       success: false,
-      message: 'Failed to fetch product',
-      error: error.message,
-      fallback_product: {
-        id: 1,
-        name: 'Fresh Tomatoes',
-        category: 'Vegetables',
-        price_per_unit: 85.00,
-        unit: 'kg',
-        description: 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.',
-        stock_quantity: 500,
-        quantity: 500,
-        images: ['https://images.unsplash.com/photo-1546470427-e212b9d56085'],
-        farmer_name: 'John Farmer',
-        farmer_county: 'Nakuru',
-        is_featured: true,
-        is_available: true,
-        created_at: new Date().toISOString()
-      }
+      message: 'Product not found'
     });
   }
 });
