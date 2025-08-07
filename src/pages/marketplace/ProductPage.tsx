@@ -103,7 +103,17 @@ export default function ProductPage() {
         toast.error("Product not found");
         navigate("/marketplace");
       } else {
-        toast.error("Failed to load product details");
+        // Use fallback product from API response if available
+        const fallbackProduct = error.response?.data?.fallback_product;
+        if (fallbackProduct) {
+          toast.warn("Using demo product data");
+          setProduct(fallbackProduct);
+          if (fallbackProduct.category) {
+            fetchRelatedProducts(fallbackProduct.category, fallbackProduct.farmer_county || "Nakuru");
+          }
+        } else {
+          toast.error("Failed to load product details");
+        }
       }
     } finally {
       setLoading(false);
