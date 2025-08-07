@@ -20,17 +20,24 @@ app.use(express.json({ limit: '10mb' }));
 let pool;
 const initializeDatabase = () => {
   if (!pool && process.env.DATABASE_URL) {
+    // Always use SSL for render.com database connections
+    const isRenderDB = process.env.DATABASE_URL.includes('render.com');
+
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      ssl: isRenderDB ? { rejectUnauthorized: false } : false,
       max: 5, // Reduced for serverless
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
     });
-    
+
     pool.on('error', (err) => {
       console.error('Unexpected database error:', err);
     });
+
+    console.log('🔗 Database pool initialized with SSL:', isRenderDB ? 'enabled' : 'disabled');
+  } else if (!process.env.DATABASE_URL) {
+    console.log('⚠️ No DATABASE_URL found, will use demo data');
   }
 };
 
