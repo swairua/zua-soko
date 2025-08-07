@@ -36,27 +36,12 @@ interface User {
 export default function UserManagementPage() {
   const { token, user } = useAuthStore();
 
-  // Debug auth state
+  // Check authentication
   React.useEffect(() => {
-    console.log("🔐 UserManagementPage - Auth state:", {
-      hasToken: !!token,
-      hasUser: !!user,
-      userRole: user?.role,
-      tokenLength: token?.length
-    });
-
-    // Check if user is authenticated and is admin
-    if (!token || !user) {
-      console.log("🚫 No token or user, should redirect to login");
+    if (!token || !user || user.role !== "ADMIN") {
+      // Authentication/authorization check
       return;
     }
-
-    if (user.role !== "ADMIN") {
-      console.log("🚫 User is not admin:", user.role);
-      return;
-    }
-
-    console.log("✅ User is authenticated admin, proceeding with data fetch");
   }, [token, user]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,10 +52,7 @@ export default function UserManagementPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      console.log("👥 Fetching users with token:", !!token);
-
       const response = await apiService.get("/admin/users");
-      console.log("👥 Users API response:", response);
 
       const data = response.data || response;
       if (data.success) {
@@ -90,11 +72,7 @@ export default function UserManagementPage() {
         setUsers(transformedUsers);
       }
     } catch (error: any) {
-      console.error("❌ Error fetching users:", error);
-      console.error("❌ Error status:", error.response?.status);
-      console.error("❌ Error data:", JSON.stringify(error.response?.data, null, 2));
-      console.error("❌ Error message:", error.message);
-      console.error("❌ Full error response:", error.response);
+      console.error("Error fetching users:", error.message);
 
       toast.error(`Failed to fetch users: ${error.response?.data?.message || error.message}`);
 
