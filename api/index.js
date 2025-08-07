@@ -601,11 +601,12 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
     console.error("❌ Error name:", err.name);
     console.error("❌ Error message:", err.message);
 
-    // Return demo users as fallback on any database error
-    console.log("👥 Returning demo users due to database error");
-    res.json({
-      success: true,
-      users: [
+    // Return proper error response instead of trying to send demo data
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch users",
+      error: err.message,
+      fallback_users: [
         {
           id: '1',
           first_name: 'John',
