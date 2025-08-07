@@ -679,7 +679,8 @@ app.get('/api/admin/analytics/stats', authenticateAdmin, async (req, res) => {
   try {
     console.log('📊 Admin analytics stats requested');
 
-    if (!pool) {
+    const currentPool = getPool();
+    if (!currentPool) {
       console.log('📊 Using demo analytics stats (no database)');
       return res.json({
         success: true,
