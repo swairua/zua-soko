@@ -134,40 +134,30 @@ export const apiService = {
     return response.data;
   },
 
-  // Order endpoints - Real database only
+  // Order endpoints
   getOrders: async () => {
-    console.log("🛒 FETCHING ORDERS from real database");
     const response = await api.get("/orders");
-    console.log("🛒 ORDERS SUCCESS:", response.data);
     return response.data;
   },
 
   createOrder: async (orderData: any) => {
-    console.log("🛒 CREATING ORDER in real database");
     const response = await api.post("/orders", orderData);
-    console.log("🛒 ORDER CREATION SUCCESS:", response.data);
     return response.data;
   },
 
-  // Driver endpoints - Real database only
+  // Driver endpoints
   getAvailableDeliveries: async () => {
-    console.log("🚛 FETCHING AVAILABLE DELIVERIES from real database");
     const response = await api.get("/driver/available-deliveries");
-    console.log("🚛 DELIVERIES SUCCESS:", response.data);
     return response.data;
   },
 
   acceptDelivery: async (deliveryId: string) => {
-    console.log("🚛 ACCEPTING DELIVERY in real database");
     const response = await api.post("/driver/accept-delivery", { deliveryId });
-    console.log("🚛 DELIVERY ACCEPTANCE SUCCESS:", response.data);
     return response.data;
   },
 
   getDriverEarnings: async () => {
-    console.log("💵 FETCHING DRIVER EARNINGS from real database");
     const response = await api.get("/driver/earnings");
-    console.log("💵 DRIVER EARNINGS SUCCESS:", response.data);
     return response.data;
   },
 
