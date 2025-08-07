@@ -23,7 +23,6 @@ import {
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
 import { apiService } from "../../services/api";
-import ApiDebugTest from "../../components/ApiDebugTest";
 
 interface DashboardStats {
   totalUsers: number;
