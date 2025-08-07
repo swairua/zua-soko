@@ -126,13 +126,10 @@ export const useAppDownload = (): UseAppDownloadReturn => {
   };
 
   useEffect(() => {
-    const initCheck = async () => {
-      setLoading(true);
-      await checkAvailability();
-      setLoading(false);
-    };
-
-    initCheck();
+    // Don't automatically check APK availability on page load to prevent fetch errors
+    // Only check when user actually tries to download
+    setLoading(false);
+    setIsAvailable(false);
   }, []);
 
   return {
