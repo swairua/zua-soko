@@ -464,6 +464,113 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+// M-Pesa STK Push endpoint
+app.post('/api/payments/stk-push', async (req, res) => {
+  try {
+    console.log('💳 M-PESA STK PUSH REQUEST');
+
+    const {
+      phone,
+      amount,
+      orderId,
+      accountReference,
+      transactionDesc
+    } = req.body;
+
+    // Validate required fields
+    if (!phone || !amount || !orderId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Phone, amount, and orderId are required'
+      });
+    }
+
+    // Format phone number for Kenya
+    let formattedPhone = phone.toString().replace(/\s+/g, '');
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '+254' + formattedPhone.substring(1);
+    } else if (formattedPhone.startsWith('254')) {
+      formattedPhone = '+' + formattedPhone;
+    } else if (!formattedPhone.startsWith('+254')) {
+      formattedPhone = '+254' + formattedPhone;
+    }
+
+    // Generate transaction ID
+    const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+    // For demo purposes, simulate M-Pesa STK push
+    console.log(`💳 Simulating M-Pesa STK push to ${formattedPhone} for KES ${amount}`);
+
+    // In a real implementation, you would integrate with Safaricom's M-Pesa API here
+    // For now, we'll simulate a successful STK push initiation
+
+    const mockMpesaResponse = {
+      success: true,
+      message: 'STK push initiated successfully',
+      transactionId: transactionId,
+      phone: formattedPhone,
+      amount: parseFloat(amount),
+      orderId: orderId,
+      merchantRequestID: `MR-${Date.now()}`,
+      checkoutRequestID: `CR-${Date.now()}`,
+      responseCode: '0',
+      responseDescription: 'Success. Request accepted for processing',
+      customerMessage: `STK push sent to ${formattedPhone}. Please check your phone to complete payment.`
+    };
+
+    console.log(`✅ M-Pesa STK push initiated: ${transactionId}`);
+
+    res.status(200).json(mockMpesaResponse);
+
+  } catch (error) {
+    console.error('❌ M-Pesa STK push error:', error);
+
+    res.status(200).json({
+      success: false,
+      error: 'Payment processing temporarily unavailable',
+      message: 'Please try cash on delivery or contact support',
+      fallback: true
+    });
+  }
+});
+
+// Payment status polling endpoint
+app.get('/api/payments/status/:transactionId', async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+
+    console.log(`🔍 Payment status check for: ${transactionId}`);
+
+    // For demo purposes, simulate payment status
+    // In real implementation, you would check with M-Pesa API
+
+    const statuses = ['pending', 'success', 'failed'];
+    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+
+    // Bias towards success for demo
+    const finalStatus = Math.random() > 0.7 ? 'success' : 'pending';
+
+    res.status(200).json({
+      success: true,
+      transactionId: transactionId,
+      status: finalStatus,
+      amount: 0, // Would be actual amount in real implementation
+      mpesaReceiptNumber: finalStatus === 'success' ? `MPE${Date.now()}` : null,
+      transactionDate: new Date().toISOString(),
+      phoneNumber: '+254XXXXXXXX'
+    });
+
+  } catch (error) {
+    console.error('❌ Payment status error:', error);
+
+    res.status(200).json({
+      success: false,
+      status: 'unknown',
+      error: 'Unable to check payment status'
+    });
+  }
+});
+
 // Categories endpoint from live database
 app.get('/api/marketplace/categories', async (req, res) => {
   try {
