@@ -277,7 +277,12 @@ export default function MarketplacePage() {
       const productsArray = data.products || data || [];
       if (Array.isArray(productsArray) && productsArray.length > 0) {
         setProducts(productsArray);
-        toast.success("Products loaded from server");
+
+        if (data.source === 'live_database') {
+          toast.success(`✅ Loaded ${productsArray.length} products from live database`);
+        } else {
+          toast.success("Products loaded from server");
+        }
 
         if (data.pagination) {
           setPagination((prev) => ({
