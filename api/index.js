@@ -91,9 +91,10 @@ app.get('/api/status', async (req, res) => {
     let dbStatus = 'not configured';
     let productCount = 0;
     
-    if (pool) {
+    const currentPool = getPool();
+    if (currentPool) {
       try {
-        const result = await pool.query('SELECT COUNT(*) FROM products');
+        const result = await currentPool.query('SELECT COUNT(*) FROM products');
         productCount = parseInt(result.rows[0].count);
         dbStatus = 'connected';
         
