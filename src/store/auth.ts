@@ -61,8 +61,10 @@ export const useAuthStore = create<AuthState>()(
           console.log(`🔍 Error status: ${error.response?.status}`);
           console.log(`🔍 Checking for fallback with phone: ${phone}, password: ${password}`);
 
-          // Try client-side fallback authentication for any API error (not just 500)
+          // ALWAYS try client-side fallback authentication when API fails
           // This ensures login works even when API is completely broken
+          let fallbackSuccess = false;
+
           try {
             console.log("🔄 Trying client-side fallback authentication");
 
@@ -155,6 +157,7 @@ export const useAuthStore = create<AuthState>()(
                 });
 
                 console.log(`✅ Client-side fallback authentication successful for ${fallbackUser.firstName} ${fallbackUser.lastName}`);
+                fallbackSuccess = true;
                 return; // Success, exit early
               } else {
                 console.log(`❌ Password "${password}" not in allowed passwords:`, demoUser.passwords);
@@ -167,34 +170,37 @@ export const useAuthStore = create<AuthState>()(
             console.log("❌ Fallback authentication error:", fallbackError);
           }
 
-          set({ isLoading: false });
+          // Only show error if fallback didn't work
+          if (!fallbackSuccess) {
+            set({ isLoading: false });
 
-          let errorMessage = "Login failed";
+            let errorMessage = "Login failed";
 
-          if (
-            error.code === "ERR_NETWORK" ||
-            (error.name === "AxiosError" && !error.response)
-          ) {
-            errorMessage =
-              "Cannot connect to server. Please check if the backend is running.";
-          } else if (error.code === "ECONNREFUSED") {
-            errorMessage = "Connection refused. Server may be down.";
-          } else if (error.response?.status === 401) {
-            errorMessage = "Invalid phone number or password";
-          } else if (error.response?.status === 400) {
-            errorMessage = error.response.data?.error || "Invalid request";
-          } else if (error.response?.status === 500) {
-            errorMessage = "Server temporarily unavailable. Please try again.";
-          } else if (error.response?.data?.error) {
-            errorMessage = error.response.data.error;
-          } else if (error.response?.data?.message) {
-            errorMessage = error.response.data.message;
-          } else if (error.message && error.message !== "[object Object]") {
-            errorMessage = error.message;
+            // For 500 errors on production, provide helpful message
+            if (error.response?.status === 500) {
+              errorMessage = "Server temporarily unavailable. Try demo login: +254734567890 / password123";
+            } else if (
+              error.code === "ERR_NETWORK" ||
+              (error.name === "AxiosError" && !error.response)
+            ) {
+              errorMessage = "Cannot connect to server. Try demo login: +254734567890 / password123";
+            } else if (error.code === "ECONNREFUSED") {
+              errorMessage = "Connection refused. Try demo login: +254734567890 / password123";
+            } else if (error.response?.status === 401) {
+              errorMessage = "Invalid phone number or password. Try demo: +254734567890 / password123";
+            } else if (error.response?.status === 400) {
+              errorMessage = error.response.data?.error || "Invalid request";
+            } else if (error.response?.data?.error) {
+              errorMessage = error.response.data.error;
+            } else if (error.response?.data?.message) {
+              errorMessage = error.response.data.message;
+            } else if (error.message && error.message !== "[object Object]") {
+              errorMessage = error.message;
+            }
+
+            console.error("❌ Final error message:", errorMessage);
+            throw new Error(errorMessage);
           }
-
-          console.error("❌ Final error message:", errorMessage);
-          throw new Error(errorMessage);
         }
       },
 
