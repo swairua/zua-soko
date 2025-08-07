@@ -370,6 +370,14 @@ export default function MarketplacePage() {
 
   useEffect(() => {
     fetchMetadata();
+
+    // Show offline mode notice if starting in bypass mode
+    if (bypassApi) {
+      toast("🏪 Marketplace ready with demo products", {
+        icon: "✅",
+        duration: 3000
+      });
+    }
   }, []);
 
   useEffect(() => {
