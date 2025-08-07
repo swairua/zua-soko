@@ -124,7 +124,10 @@ export default function MarketplacePage() {
         data: error.response?.data
       });
 
-      toast.error("Using demo products - API connection issue");
+      toast("🛒 Showing demo marketplace products", {
+        icon: "ℹ️",
+        duration: 3000
+      });
 
       // Comprehensive fallback products that are always available
       const bulletproofFallback = [
