@@ -11,8 +11,8 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "vercel-build": "npm run build:prod",
-    "start:server": "node server.js",
-    "dev:server": "node server.js",
+    "start:server": "node server.cjs",
+    "dev:server": "node server.cjs",
     "dev:fullstack": "concurrently \"npm run dev:server\" \"npm run dev\"",
     "deploy-db": "node deploy-database.js"
   },
