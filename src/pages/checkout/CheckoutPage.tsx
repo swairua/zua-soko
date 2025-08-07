@@ -425,6 +425,7 @@ export default function CheckoutPage() {
               { step: 1, title: "Information" },
               { step: 2, title: "Review" },
               { step: 3, title: "Payment" },
+              ...(stkSent ? [{ step: 5, title: "STK Sent" }] : []),
               { step: 4, title: "Confirmation" },
             ].map((item, index) => (
               <React.Fragment key={item.step}>
