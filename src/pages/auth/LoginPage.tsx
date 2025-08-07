@@ -11,11 +11,16 @@ export default function LoginPage() {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, loginWithData } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from?.pathname || "/";
+
+  // Check if we're in production environment
+  const isProductionEnvironment = window.location.hostname.includes('fly.dev') ||
+                                 window.location.hostname.includes('vercel.app') ||
+                                 window.location.hostname !== 'localhost';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
