@@ -131,7 +131,7 @@ const initializeProducts = async () => {
   
   try {
     // Create products table if it doesn't exist
-    await pool.query(`
+    await currentPool.query(`
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
