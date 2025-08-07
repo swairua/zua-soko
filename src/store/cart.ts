@@ -160,30 +160,39 @@ export const useCartStore = create<CartState>()(
       refreshCart: () => {
         const state = get();
 
-        // Fix any items with zero prices by clearing them
-        const validItems = state.items.filter(item => {
-          const hasValidPrice = safeNumber(item.pricePerUnit) > 0;
-          if (!hasValidPrice) {
-            console.warn("🛒 Removing cart item with invalid price:", item);
-          }
-          return hasValidPrice;
-        });
+        // Check if there are any items with invalid prices
+        const invalidItems = state.items.filter(item => safeNumber(item.pricePerUnit) <= 0);
 
-        const totalItems = validItems.reduce(
+        let itemsToUse = state.items;
+
+        // Only filter if there are actually invalid items to avoid unnecessary array recreation
+        if (invalidItems.length > 0) {
+          console.warn("🛒 Removing cart items with invalid prices:", invalidItems.length);
+          itemsToUse = state.items.filter(item => safeNumber(item.pricePerUnit) > 0);
+        }
+
+        const totalItems = itemsToUse.reduce(
           (sum, item) => sum + safeNumber(item.quantity),
           0,
         );
-        const totalAmount = validItems.reduce(
+        const totalAmount = itemsToUse.reduce(
           (sum, item) =>
             sum + safeNumber(item.pricePerUnit) * safeNumber(item.quantity),
           0,
         );
 
-        set({
-          items: validItems,
-          totalItems,
-          totalAmount,
-        });
+        // Only update state if something actually changed
+        if (
+          itemsToUse.length !== state.items.length ||
+          totalItems !== state.totalItems ||
+          totalAmount !== state.totalAmount
+        ) {
+          set({
+            items: itemsToUse,
+            totalItems,
+            totalAmount,
+          });
+        }
       },
     }),
     {
