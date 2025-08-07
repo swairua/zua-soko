@@ -40,6 +40,9 @@ app.get('/api/products-basic', function(req, res) {
 
 // Ultra-simple marketplace products endpoint
 app.get('/api/marketplace/products', (req, res) => {
+  console.log('🛒 MARKETPLACE PRODUCTS REQUEST:', req.query);
+  console.log('🛒 MARKETPLACE PRODUCTS ENDPOINT CALLED');
+
   res.json({
     success: true,
     products: [
