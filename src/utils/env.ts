@@ -88,16 +88,27 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
  */
 export const getApiUrl = (): string => {
   const apiUrl = import.meta.env.VITE_API_URL;
-  
+
+  // Check if we're running in a cloud environment (not localhost)
+  const isCloudEnvironment = typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1';
+
+  // If running in cloud environment, always use relative API paths
+  if (isCloudEnvironment) {
+    console.log('🌐 Cloud environment detected, using relative API path');
+    return '/api';
+  }
+
   if (apiUrl) {
     return apiUrl;
   }
-  
+
   // Fallback logic based on environment
   if (import.meta.env.PROD) {
     return '/api'; // Relative to current domain in production
   } else {
-    return 'http://localhost:5002/api'; // Default development API
+    return 'http://localhost:5004/api'; // Default development API (updated port)
   }
 };
 
