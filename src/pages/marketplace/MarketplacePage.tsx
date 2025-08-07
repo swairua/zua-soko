@@ -118,52 +118,111 @@ export default function MarketplacePage() {
       }
     } catch (error: any) {
       console.error("❌ FAILED TO FETCH PRODUCTS:", error);
-      toast.error("Failed to load products - using demo data");
+      console.error("❌ Error details:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
 
-      // Always provide fallback products regardless of error type
-      const hardcodedFallback = [
+      toast.error("Using demo products - API connection issue");
+
+      // Comprehensive fallback products that are always available
+      const bulletproofFallback = [
         {
           id: 1,
           name: "Fresh Tomatoes",
           category: "Vegetables",
           price_per_unit: 85,
+          pricePerUnit: 85,
           unit: "kg",
-          description: "Organic red tomatoes",
-          stock_quantity: 500,
-          images: ["https://images.unsplash.com/photo-1546470427-e212b9d56085"],
-          farmer_name: "John Farmer",
+          description: "Fresh organic tomatoes from local farms",
+          stock_quantity: 100,
+          stockQuantity: 100,
+          images: ["https://images.unsplash.com/photo-1546470427-e212b9d56085?w=400"],
+          farmer_name: "John Kamau",
           farmer_county: "Nakuru",
-          is_featured: true
+          is_featured: true,
+          isFeatured: true,
+          isAvailable: true
         },
         {
           id: 2,
           name: "Sweet Potatoes",
           category: "Root Vegetables",
           price_per_unit: 80,
+          pricePerUnit: 80,
           unit: "kg",
-          description: "Fresh sweet potatoes",
-          stock_quantity: 300,
-          images: ["https://images.unsplash.com/photo-1518977676601-b53f82aba655"],
-          farmer_name: "Mary Farm",
+          description: "Fresh sweet potatoes rich in nutrients",
+          stock_quantity: 75,
+          stockQuantity: 75,
+          images: ["https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400"],
+          farmer_name: "Mary Wanjiku",
           farmer_county: "Meru",
-          is_featured: false
+          is_featured: false,
+          isFeatured: false,
+          isAvailable: true
+        },
+        {
+          id: 3,
+          name: "Spinach",
+          category: "Leafy Greens",
+          price_per_unit: 60,
+          pricePerUnit: 60,
+          unit: "kg",
+          description: "Fresh organic spinach leaves",
+          stock_quantity: 50,
+          stockQuantity: 50,
+          images: ["https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400"],
+          farmer_name: "Peter Mwangi",
+          farmer_county: "Nyeri",
+          is_featured: false,
+          isFeatured: false,
+          isAvailable: true
+        },
+        {
+          id: 4,
+          name: "Carrots",
+          category: "Root Vegetables",
+          price_per_unit: 70,
+          pricePerUnit: 70,
+          unit: "kg",
+          description: "Fresh orange carrots",
+          stock_quantity: 90,
+          stockQuantity: 90,
+          images: ["https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400"],
+          farmer_name: "Jane Njoki",
+          farmer_county: "Kiambu",
+          is_featured: false,
+          isFeatured: false,
+          isAvailable: true
+        },
+        {
+          id: 5,
+          name: "Cabbage",
+          category: "Leafy Greens",
+          price_per_unit: 40,
+          pricePerUnit: 40,
+          unit: "piece",
+          description: "Fresh green cabbage heads",
+          stock_quantity: 30,
+          stockQuantity: 30,
+          images: ["https://images.unsplash.com/photo-1594282486170-8c6c5b25cffe?w=400"],
+          farmer_name: "Daniel Kimani",
+          farmer_county: "Nakuru",
+          is_featured: true,
+          isFeatured: true,
+          isAvailable: true
         }
       ];
 
-      const fallbackProducts = error.response?.data?.fallback_products || hardcodedFallback;
-      const fallbackPagination = error.response?.data?.fallback_pagination || {
-        page,
+      // Always use our bulletproof fallback
+      setProducts(bulletproofFallback);
+      setPagination({
+        page: page,
         limit: pagination.limit,
-        total: fallbackProducts.length,
+        total: bulletproofFallback.length,
         totalPages: 1
-      };
-
-      setProducts(fallbackProducts);
-      setPagination((prev) => ({
-        ...prev,
-        ...fallbackPagination,
-        page
-      }));
+      });
     } finally {
       setLoading(false);
     }
