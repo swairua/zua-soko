@@ -223,11 +223,38 @@ export default function MarketplacePage() {
     return filteredProducts;
   };
 
-  // Fetch products with circuit breaker pattern
+  // Circuit breaker pattern - bypass API after 2 failures
   const fetchProducts = async (page = 1) => {
+    setLoading(true);
+
+    // Circuit breaker: if API has failed multiple times, go straight to local products
+    if (bypassApi || apiFailureCount >= 2) {
+      console.log("🔄 Circuit breaker active - using local products only");
+
+      const localProducts = getGuaranteedProducts();
+      setProducts(localProducts);
+      setPagination({
+        page: page,
+        limit: pagination.limit,
+        total: localProducts.length,
+        totalPages: Math.ceil(localProducts.length / pagination.limit)
+      });
+
+      if (!bypassApi) {
+        setBypassApi(true);
+        toast("🛒 Marketplace running in offline mode", {
+          icon: "📱",
+          duration: 4000
+        });
+      }
+
+      setLoading(false);
+      return;
+    }
+
+    // Try API first time or if failure count is low
     try {
-      setLoading(true);
-      console.log("🔍 FETCHING PRODUCTS - Page:", page, "Filters:", filters);
+      console.log("🔍 TRYING API - Page:", page, "Attempts left:", 2 - apiFailureCount);
 
       const params = {
         page: page.toString(),
@@ -241,136 +268,63 @@ export default function MarketplacePage() {
       };
 
       const data = await apiService.getProducts(params);
-      console.log("🔍 PRODUCTS RESPONSE:", data);
+      console.log("✅ API SUCCESS:", data);
 
-      // Ensure we always set an array
+      // Reset failure count on success
+      setApiFailureCount(0);
+
       const productsArray = data.products || data || [];
-      setProducts(Array.isArray(productsArray) ? productsArray : []);
+      if (Array.isArray(productsArray) && productsArray.length > 0) {
+        setProducts(productsArray);
+        toast.success("Products loaded from server");
 
-      if (data.pagination) {
-        setPagination((prev) => ({
-          ...prev,
-          ...data.pagination,
-          page,
-        }));
+        if (data.pagination) {
+          setPagination((prev) => ({
+            ...prev,
+            ...data.pagination,
+            page,
+          }));
+        } else {
+          setPagination((prev) => ({
+            ...prev,
+            page,
+            total: productsArray.length,
+            totalPages: 1,
+          }));
+        }
       } else {
-        // Set default pagination if not provided
-        setPagination((prev) => ({
-          ...prev,
-          page,
-          total: data.products?.length || data.length || 0,
-          totalPages: 1,
-        }));
+        throw new Error("No products received from API");
       }
     } catch (error: any) {
-      console.error("❌ FAILED TO FETCH PRODUCTS:", error);
-      console.error("❌ Error details:", {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data
-      });
+      console.error("❌ API FAILED:", error);
 
-      toast("🛒 Showing demo marketplace products", {
-        icon: "ℹ️",
-        duration: 3000
-      });
+      // Increment failure count
+      const newFailureCount = apiFailureCount + 1;
+      setApiFailureCount(newFailureCount);
 
-      // Comprehensive fallback products that are always available
-      const bulletproofFallback = [
-        {
-          id: 1,
-          name: "Fresh Tomatoes",
-          category: "Vegetables",
-          price_per_unit: 85,
-          pricePerUnit: 85,
-          unit: "kg",
-          description: "Fresh organic tomatoes from local farms",
-          stock_quantity: 100,
-          stockQuantity: 100,
-          images: ["https://images.unsplash.com/photo-1546470427-e212b9d56085?w=400"],
-          farmer_name: "John Kamau",
-          farmer_county: "Nakuru",
-          is_featured: true,
-          isFeatured: true,
-          isAvailable: true
-        },
-        {
-          id: 2,
-          name: "Sweet Potatoes",
-          category: "Root Vegetables",
-          price_per_unit: 80,
-          pricePerUnit: 80,
-          unit: "kg",
-          description: "Fresh sweet potatoes rich in nutrients",
-          stock_quantity: 75,
-          stockQuantity: 75,
-          images: ["https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400"],
-          farmer_name: "Mary Wanjiku",
-          farmer_county: "Meru",
-          is_featured: false,
-          isFeatured: false,
-          isAvailable: true
-        },
-        {
-          id: 3,
-          name: "Spinach",
-          category: "Leafy Greens",
-          price_per_unit: 60,
-          pricePerUnit: 60,
-          unit: "kg",
-          description: "Fresh organic spinach leaves",
-          stock_quantity: 50,
-          stockQuantity: 50,
-          images: ["https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400"],
-          farmer_name: "Peter Mwangi",
-          farmer_county: "Nyeri",
-          is_featured: false,
-          isFeatured: false,
-          isAvailable: true
-        },
-        {
-          id: 4,
-          name: "Carrots",
-          category: "Root Vegetables",
-          price_per_unit: 70,
-          pricePerUnit: 70,
-          unit: "kg",
-          description: "Fresh orange carrots",
-          stock_quantity: 90,
-          stockQuantity: 90,
-          images: ["https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400"],
-          farmer_name: "Jane Njoki",
-          farmer_county: "Kiambu",
-          is_featured: false,
-          isFeatured: false,
-          isAvailable: true
-        },
-        {
-          id: 5,
-          name: "Cabbage",
-          category: "Leafy Greens",
-          price_per_unit: 40,
-          pricePerUnit: 40,
-          unit: "piece",
-          description: "Fresh green cabbage heads",
-          stock_quantity: 30,
-          stockQuantity: 30,
-          images: ["https://images.unsplash.com/photo-1594282486170-8c6c5b25cffe?w=400"],
-          farmer_name: "Daniel Kimani",
-          farmer_county: "Nakuru",
-          is_featured: true,
-          isFeatured: true,
-          isAvailable: true
-        }
-      ];
+      console.log(`💥 API failure #${newFailureCount}`);
 
-      // Always use our bulletproof fallback
-      setProducts(bulletproofFallback);
+      if (newFailureCount >= 2) {
+        setBypassApi(true);
+        toast("🛒 Switching to offline mode", {
+          icon: "📱",
+          duration: 4000
+        });
+      } else {
+        toast("⚠️ Server issue - will retry once more", {
+          icon: "⚠️",
+          duration: 3000
+        });
+      }
+
+      // Load local products immediately
+      const localProducts = getGuaranteedProducts();
+      setProducts(localProducts);
       setPagination({
         page: page,
         limit: pagination.limit,
-        total: bulletproofFallback.length,
-        totalPages: 1
+        total: localProducts.length,
+        totalPages: Math.ceil(localProducts.length / pagination.limit)
       });
     } finally {
       setLoading(false);
