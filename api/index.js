@@ -18,6 +18,11 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'API is working', success: true });
 });
 
+// Ultra basic products test
+app.get('/api/products-basic', function(req, res) {
+  res.json({ test: 'basic products endpoint working' });
+});
+
 // Absolute minimal marketplace products endpoint
 app.get('/api/marketplace/products', function(req, res) {
   res.status(200);
