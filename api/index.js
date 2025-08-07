@@ -24,6 +24,15 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'API is working', success: true });
 });
 
+// Debug marketplace endpoint
+app.get('/api/debug/products', (req, res) => {
+  res.json({
+    message: 'Debug endpoint working',
+    timestamp: new Date().toISOString(),
+    products: [{id: 1, name: 'Test Product', price_per_unit: 100}]
+  });
+});
+
 // Ultra basic products test
 app.get('/api/products-basic', function(req, res) {
   res.json({ test: 'basic products endpoint working' });
