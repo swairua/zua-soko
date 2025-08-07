@@ -101,7 +101,7 @@ app.get('/api/status', async (req, res) => {
         // Auto-initialize if no products exist
         if (productCount === 0) {
           await initializeProducts();
-          const newResult = await pool.query('SELECT COUNT(*) FROM products');
+          const newResult = await currentPool.query('SELECT COUNT(*) FROM products');
           productCount = parseInt(newResult.rows[0].count);
         }
       } catch (dbError) {
