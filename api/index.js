@@ -634,6 +634,7 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
     }
 
     // Ensure users table exists with consistent schema
+    console.log("🔄 Creating users table if not exists...");
     await currentPool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -646,21 +647,23 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
+    console.log("✅ Users table creation completed");
 
     // Query users with the actual table schema
+    console.log("🔄 Querying users from database...");
     const result = await currentPool.query(`
-      SELECT 
-        id, 
-        phone, 
-        role, 
-        status, 
+      SELECT
+        id,
+        phone,
+        role,
+        status,
         full_name,
         email,
         created_at
       FROM users
       ORDER BY created_at DESC
     `);
-
+    console.log("✅ Database query completed");
     console.log(`👥 Found ${result.rows.length} users`);
 
     // Map users to match expected frontend format
