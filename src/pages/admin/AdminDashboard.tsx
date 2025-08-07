@@ -23,6 +23,7 @@ import {
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
 import { apiService } from "../../services/api";
+import ApiDebugTest from "../../components/ApiDebugTest";
 
 interface DashboardStats {
   totalUsers: number;
@@ -47,7 +48,7 @@ export default function AdminDashboard() {
     }
 
     if (user.role !== "ADMIN") {
-      console.log("�� User is not admin, redirecting to home");
+      console.log("🚫 User is not admin, redirecting to home");
       navigate("/");
       return;
     }
@@ -282,6 +283,9 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {/* API Debug Component - Temporary */}
+        <ApiDebugTest />
+
         {/* Header */}
         <div className="bg-white shadow rounded-lg mb-8">
           <div className="px-4 py-5 sm:p-6">
