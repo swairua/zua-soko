@@ -68,20 +68,9 @@ export default function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      console.log("👥 Fetching users from real database");
-      const response = await fetch("/api/admin/users", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log("👥 Raw API response:", data);
+      console.log("👥 Fetching users from API service");
+      const response = await apiService.get("/admin/users");
+      console.log("👥 Raw API response:", response);
 
       // Multiple layers of safe data extraction
       let userData = [];
