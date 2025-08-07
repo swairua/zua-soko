@@ -99,6 +99,11 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+// Minimal products test endpoint
+app.get('/api/products-test', (req, res) => {
+  res.json({ message: 'Products endpoint test', success: true });
+});
+
 // Admin test endpoint to debug authentication
 app.get('/api/admin/test', authenticateAdmin, (req, res) => {
   res.json({
