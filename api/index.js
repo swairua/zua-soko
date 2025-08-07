@@ -523,7 +523,7 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
     }
 
     // Ensure users table exists with consistent schema
-    await pool.query(`
+    await currentPool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         phone VARCHAR(20) UNIQUE NOT NULL,
@@ -537,7 +537,7 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
     `);
 
     // Query users with the actual table schema
-    const result = await pool.query(`
+    const result = await currentPool.query(`
       SELECT
         id,
         phone,
