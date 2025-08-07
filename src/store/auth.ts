@@ -167,37 +167,36 @@ export const useAuthStore = create<AuthState>()(
             console.log(`❌ No demo user found for any phone variation of: "${phone}"`);
           }
 
-          // Only show error if fallback didn't work
-          if (!fallbackSuccess) {
-            set({ isLoading: false });
+          // If we reach here, both API and fallback failed
+          set({ isLoading: false });
+          console.log("❌ Both API and fallback authentication failed");
 
-            let errorMessage = "Login failed";
+          let errorMessage = "Login failed";
 
-            // For 500 errors on production, provide helpful message
-            if (error.response?.status === 500) {
-              errorMessage = "Server temporarily unavailable. Try demo login: +254734567890 / password123";
-            } else if (
-              error.code === "ERR_NETWORK" ||
-              (error.name === "AxiosError" && !error.response)
-            ) {
-              errorMessage = "Cannot connect to server. Try demo login: +254734567890 / password123";
-            } else if (error.code === "ECONNREFUSED") {
-              errorMessage = "Connection refused. Try demo login: +254734567890 / password123";
-            } else if (error.response?.status === 401) {
-              errorMessage = "Invalid phone number or password. Try demo: +254734567890 / password123";
-            } else if (error.response?.status === 400) {
-              errorMessage = error.response.data?.error || "Invalid request";
-            } else if (error.response?.data?.error) {
-              errorMessage = error.response.data.error;
-            } else if (error.response?.data?.message) {
-              errorMessage = error.response.data.message;
-            } else if (error.message && error.message !== "[object Object]") {
-              errorMessage = error.message;
-            }
-
-            console.error("❌ Final error message:", errorMessage);
-            throw new Error(errorMessage);
+          // For 500 errors on production, provide helpful message
+          if (error.response?.status === 500) {
+            errorMessage = "Server temporarily unavailable. Try demo login: +254734567890 / password123";
+          } else if (
+            error.code === "ERR_NETWORK" ||
+            (error.name === "AxiosError" && !error.response)
+          ) {
+            errorMessage = "Cannot connect to server. Try demo login: +254734567890 / password123";
+          } else if (error.code === "ECONNREFUSED") {
+            errorMessage = "Connection refused. Try demo login: +254734567890 / password123";
+          } else if (error.response?.status === 401) {
+            errorMessage = "Invalid phone number or password. Try demo: +254734567890 / password123";
+          } else if (error.response?.status === 400) {
+            errorMessage = error.response.data?.error || "Invalid request";
+          } else if (error.response?.data?.error) {
+            errorMessage = error.response.data.error;
+          } else if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+          } else if (error.message && error.message !== "[object Object]") {
+            errorMessage = error.message;
           }
+
+          console.error("❌ Final error message:", errorMessage);
+          throw new Error(errorMessage);
         }
       },
 
