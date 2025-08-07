@@ -149,9 +149,46 @@ export default function LoginPage() {
                   password: "password123",
                 });
               }}
-              className="w-full mb-4 bg-green-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-green-700"
+              className="w-full mb-3 bg-green-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-green-700"
             >
               🧪 Quick Fill Farmer Demo (+254734567890 / password123)
+            </button>
+
+            <button
+              type="button"
+              onClick={async () => {
+                // Emergency login for when API is completely broken
+                try {
+                  setFormData({
+                    phone: "+254734567890",
+                    password: "password123",
+                  });
+                  await login("+254734567890", "password123");
+                  toast.success("Emergency demo login successful!");
+
+                  // Get the updated user from the store
+                  const { user } = useAuthStore.getState();
+
+                  // Redirect to role-specific dashboard
+                  if (user?.role === "ADMIN") {
+                    navigate("/admin/dashboard", { replace: true });
+                  } else if (user?.role === "FARMER") {
+                    navigate("/farmer/dashboard", { replace: true });
+                  } else if (user?.role === "CUSTOMER") {
+                    navigate("/customer/dashboard", { replace: true });
+                  } else if (user?.role === "DRIVER") {
+                    navigate("/driver/dashboard", { replace: true });
+                  } else {
+                    navigate(from, { replace: true });
+                  }
+                } catch (error) {
+                  console.error("Emergency login failed:", error);
+                  toast.error("Even emergency login failed. Please try manual credentials.");
+                }
+              }}
+              className="w-full mb-3 bg-red-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-red-700"
+            >
+              🚨 Emergency Login (If API is down)
             </button>
 
             <div className="relative">
