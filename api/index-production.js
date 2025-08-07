@@ -325,6 +325,7 @@ export default async function handler(req, res) {
       available_endpoints: [
         "POST /api/auth/login",
         "GET /api/products",
+        "GET /api/marketplace/products",
         "POST /api/demo/login",
         "GET /api/demo/products",
         "GET /api/status",
