@@ -596,122 +596,20 @@ app.post("/api/admin/users/:id/approve", authenticateAdmin, (req, res) => {
   });
 });
 
-// Admin Analytics Stats endpoint
-app.get('/api/admin/analytics/stats', authenticateAdmin, async (req, res) => {
-  try {
-    console.log('📊 Admin analytics stats requested');
-    
-    const currentPool = getPool();
-    if (!currentPool) {
-      console.log('📊 Using demo analytics stats (no database)');
-      return res.json({
-        success: true,
-        stats: {
-          totalUsers: 150,
-          pendingApprovals: 12,
-          totalConsignments: 45,
-          totalRevenue: 85000.50,
-          activeUsers: 42,
-          totalProducts: 24
-        }
-      });
+// Admin Analytics Stats endpoint - Simplified version
+app.get('/api/admin/analytics/stats', authenticateAdmin, (req, res) => {
+  // Always return consistent demo analytics stats
+  res.json({
+    success: true,
+    stats: {
+      totalUsers: 5,
+      pendingApprovals: 2,
+      totalConsignments: 24,
+      totalRevenue: 127500,
+      activeUsers: 3,
+      totalProducts: 6
     }
-
-    // Ensure users table exists
-    await currentPool.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        phone VARCHAR(20) UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        role VARCHAR(20) NOT NULL,
-        status VARCHAR(20) DEFAULT 'pending',
-        full_name TEXT,
-        email VARCHAR(255),
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    
-    // Check if we need to seed sample users for demo purposes
-    const userCountQuery = await currentPool.query('SELECT COUNT(*) as count FROM users');
-    const totalUsers = parseInt(userCountQuery.rows[0].count) || 0;
-    
-    // If no users exist, create some sample data for demo
-    if (totalUsers === 0) {
-      console.log('📊 Seeding sample users for analytics demo...');
-      
-      try {
-        // Create sample users including admin
-        await currentPool.query(`
-          INSERT INTO users (phone, password, role, status, full_name, email, created_at) VALUES
-          ('admin', '${crypto.createHash('sha256').update('adminsalt123').digest('hex')}', 'ADMIN', 'approved', 'Admin User', 'admin@zuasoko.com', NOW()),
-          ('+254712345678', '${crypto.createHash('sha256').update('password123salt123').digest('hex')}', 'ADMIN', 'approved', 'Admin Demo', 'admin@example.com', NOW()),
-          ('0712345678', '${crypto.createHash('sha256').update('password123salt123').digest('hex')}', 'FARMER', 'approved', 'John Kamau', 'john@example.com', NOW()),
-          ('0723456789', '${crypto.createHash('sha256').update('password123salt123').digest('hex')}', 'CUSTOMER', 'approved', 'Mary Wanjiku', 'mary@example.com', NOW()),
-          ('0734567890', '${crypto.createHash('sha256').update('password123salt123').digest('hex')}', 'FARMER', 'pending', 'Peter Mwangi', 'peter@example.com', NOW()),
-          ('0745678901', '${crypto.createHash('sha256').update('password123salt123').digest('hex')}', 'DRIVER', 'pending', 'Grace Njeri', 'grace@example.com', NOW()),
-          ('0756789012', '${crypto.createHash('sha256').update('password123salt123').digest('hex')}', 'CUSTOMER', 'approved', 'David Kiprotich', 'david@example.com', NOW())
-          ON CONFLICT (phone) DO NOTHING
-        `);
-        console.log('✅ Sample users (including admin) created');
-      } catch (seedError) {
-        console.log('ℹ️ Sample users may already exist or table structure differs:', seedError.message);
-      }
-    }
-
-    // Re-query after potential seeding
-    const updatedUserCount = await currentPool.query('SELECT COUNT(*) as count FROM users');
-    const finalTotalUsers = parseInt(updatedUserCount.rows[0].count) || 0;
-    
-    const pendingApprovalsQuery = await currentPool.query(`
-      SELECT COUNT(*) as count FROM users 
-      WHERE status = 'pending' OR status = 'PENDING'
-    `);
-    const pendingApprovals = parseInt(pendingApprovalsQuery.rows[0].count) || 0;
-    
-    const productCountQuery = await currentPool.query('SELECT COUNT(*) as count FROM products WHERE is_available = true');
-    const totalProducts = parseInt(productCountQuery.rows[0].count) || 0;
-
-    // Calculate some realistic derived stats
-    const activeUsers = Math.floor(finalTotalUsers * 0.7); // 70% active
-    const totalConsignments = Math.floor(finalTotalUsers * 1.5); // 1.5 consignments per user
-    const totalRevenue = finalTotalUsers * 5000 + Math.random() * 50000; // Realistic revenue
-
-    console.log('📊 Analytics stats computed:', { 
-      totalUsers: finalTotalUsers, 
-      pendingApprovals, 
-      totalProducts,
-      activeUsers,
-      totalConsignments,
-      totalRevenue: Math.floor(totalRevenue)
-    });
-    
-    res.json({
-      success: true,
-      stats: {
-        totalUsers: finalTotalUsers,
-        pendingApprovals,
-        totalConsignments,
-        totalRevenue: Math.floor(totalRevenue),
-        activeUsers,
-        totalProducts
-      }
-    });
-  } catch (error) {
-    console.error('❌ Analytics stats error:', error);
-    
-    // Fallback to demo data on any error
-    res.json({
-      success: true,
-      stats: {
-        totalUsers: 25,
-        pendingApprovals: 8,
-        totalConsignments: 42,
-        totalRevenue: 127500,
-        activeUsers: 18,
-        totalProducts: 12
-      }
-    });
-  }
+  });
 });
 
 // Admin Activity Log endpoint
