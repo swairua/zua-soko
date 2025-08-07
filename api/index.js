@@ -591,6 +591,20 @@ app.get('/api/admin/analytics/stats', authenticateAdmin, async (req, res) => {
     // Initialize database and seed data if empty
     await initializeDatabase();
 
+    // Ensure users table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        phone VARCHAR(20) UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role VARCHAR(20) NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending',
+        full_name TEXT,
+        email VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
     // Check if we need to seed sample users for demo purposes
     const userCountQuery = await pool.query('SELECT COUNT(*) as count FROM users');
     const totalUsers = parseInt(userCountQuery.rows[0].count) || 0;
