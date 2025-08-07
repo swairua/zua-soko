@@ -400,7 +400,23 @@ app.get('/api/marketplace/products/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch product',
-      error: error.message
+      error: error.message,
+      fallback_product: {
+        id: 1,
+        name: 'Fresh Tomatoes',
+        category: 'Vegetables',
+        price_per_unit: 85.00,
+        unit: 'kg',
+        description: 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.',
+        stock_quantity: 500,
+        quantity: 500,
+        images: ['https://images.unsplash.com/photo-1546470427-e212b9d56085'],
+        farmer_name: 'John Farmer',
+        farmer_county: 'Nakuru',
+        is_featured: true,
+        is_available: true,
+        created_at: new Date().toISOString()
+      }
     });
   }
 });
