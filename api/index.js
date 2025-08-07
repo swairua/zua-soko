@@ -192,9 +192,8 @@ const initializeProducts = async () => {
   }
 };
 
-// Marketplace Products endpoint - Simplified version
+// Marketplace Products endpoint - Ultra-simple version
 app.get('/api/marketplace/products', (req, res) => {
-  // Always return demo products to ensure marketplace works
   res.json({
     success: true,
     products: [
@@ -202,103 +201,46 @@ app.get('/api/marketplace/products', (req, res) => {
         id: 1,
         name: 'Fresh Tomatoes',
         category: 'Vegetables',
-        price_per_unit: 85.00,
+        price_per_unit: 85,
         unit: 'kg',
-        description: 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.',
+        description: 'Organic red tomatoes',
         stock_quantity: 500,
-        quantity: 500,
         images: ['https://images.unsplash.com/photo-1546470427-e212b9d56085'],
         farmer_name: 'John Farmer',
         farmer_county: 'Nakuru',
-        is_featured: true,
-        is_available: true,
-        created_at: new Date().toISOString()
+        is_featured: true
       },
       {
         id: 2,
         name: 'Sweet Potatoes',
         category: 'Root Vegetables',
-        price_per_unit: 80.00,
+        price_per_unit: 80,
         unit: 'kg',
-        description: 'Fresh sweet potatoes, rich in nutrients and vitamins.',
+        description: 'Fresh sweet potatoes',
         stock_quantity: 300,
-        quantity: 300,
         images: ['https://images.unsplash.com/photo-1518977676601-b53f82aba655'],
         farmer_name: 'Mary Farm',
         farmer_county: 'Meru',
-        is_featured: false,
-        is_available: true,
-        created_at: new Date().toISOString()
+        is_featured: false
       },
       {
         id: 3,
         name: 'Fresh Spinach',
         category: 'Leafy Greens',
-        price_per_unit: 120.00,
+        price_per_unit: 120,
         unit: 'kg',
-        description: 'Organic spinach leaves, perfect for healthy meals.',
+        description: 'Organic spinach leaves',
         stock_quantity: 150,
-        quantity: 150,
         images: ['https://images.unsplash.com/photo-1576045057995-568f588f82fb'],
         farmer_name: 'Grace Farm',
         farmer_county: 'Nyeri',
-        is_featured: false,
-        is_available: true,
-        created_at: new Date().toISOString()
-      },
-      {
-        id: 4,
-        name: 'Green Beans',
-        category: 'Vegetables',
-        price_per_unit: 95.00,
-        unit: 'kg',
-        description: 'Tender green beans, freshly harvested and ready for pickup.',
-        stock_quantity: 200,
-        quantity: 200,
-        images: ['https://images.unsplash.com/photo-1628773822503-930a7eaecf80'],
-        farmer_name: 'John Farmer',
-        farmer_county: 'Nakuru',
-        is_featured: true,
-        is_available: true,
-        created_at: new Date().toISOString()
-      },
-      {
-        id: 5,
-        name: 'Fresh Carrots',
-        category: 'Root Vegetables',
-        price_per_unit: 75.00,
-        unit: 'kg',
-        description: 'Crunchy orange carrots, perfect for cooking and snacking.',
-        stock_quantity: 400,
-        quantity: 400,
-        images: ['https://images.unsplash.com/photo-1582515073490-39981397c445'],
-        farmer_name: 'David Farm',
-        farmer_county: 'Eldoret',
-        is_featured: false,
-        is_available: true,
-        created_at: new Date().toISOString()
-      },
-      {
-        id: 6,
-        name: 'Organic Lettuce',
-        category: 'Leafy Greens',
-        price_per_unit: 100.00,
-        unit: 'kg',
-        description: 'Fresh organic lettuce, great for salads and sandwiches.',
-        stock_quantity: 250,
-        quantity: 250,
-        images: ['https://images.unsplash.com/photo-1622206151226-18ca2c9ab4a1'],
-        farmer_name: 'Sarah Farm',
-        farmer_county: 'Kiambu',
-        is_featured: false,
-        is_available: true,
-        created_at: new Date().toISOString()
+        is_featured: false
       }
     ],
     pagination: {
       page: 1,
       limit: 12,
-      total: 6,
+      total: 3,
       totalPages: 1
     }
   });
