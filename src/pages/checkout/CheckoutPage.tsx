@@ -110,8 +110,7 @@ const kenyanCounties = [
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const cartStore = useCart();
-  const { cart, clearCart, refreshCart, removeFromCart, validateCartItems } = cartStore;
+  const { cart, clearCart, refreshCart } = useCart();
   const { user, isAuthenticated, loginWithData } = useAuthStore();
   const [cartSummary, setCartSummary] = useState<CartSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -143,13 +142,13 @@ export default function CheckoutPage() {
   const watchCreateAccount = watch("createAccount");
 
   useEffect(() => {
-    // Check cart validity and fetch summary
     fetchCartSummary();
-  }, []); // Only run once on mount
+  }, []);
 
   const fetchCartSummary = async () => {
     try {
       setLoading(true);
+<<<<<<< HEAD:src/pages/checkout/CheckoutPage.tsx
 
       console.log("🛒 CHECKOUT - Current cart state:", cart);
       console.log("🛒 CHECKOUT - Cart items detail:", cart.items);
@@ -174,6 +173,8 @@ export default function CheckoutPage() {
         toast.error(`${itemsWithInvalidPrices.length} items have pricing issues. Please review your cart.`);
       }
 
+=======
+>>>>>>> origin/main:frontend/src/pages/checkout/CheckoutPage.tsx
       // Use local cart data from Zustand store
       const deliveryFee = cart.totalAmount > 2000 ? 0 : 300;
       const cartData = {
@@ -188,7 +189,6 @@ export default function CheckoutPage() {
         unavailableItems: [],
       };
 
-      console.log("🛒 CHECKOUT - Final cart data:", cartData);
       setCartSummary(cartData);
 
       // Check if cart is empty
@@ -386,54 +386,6 @@ export default function CheckoutPage() {
     );
   }
 
-  // Check if cart has zero values issue
-  const hasZeroValueIssue = cartSummary.totalAmount === 0 && cartSummary.items.length > 0;
-
-  if (hasZeroValueIssue) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Cart Contains Invalid Items
-          </h1>
-          <p className="text-gray-600 mb-4">
-            Your cart contains items with Ksh 0 pricing data. This happens when items were added before system updates.
-          </p>
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <h3 className="text-sm font-medium text-yellow-800 mb-2">What you need to do:</h3>
-            <ol className="text-sm text-yellow-700 list-decimal list-inside space-y-1">
-              <li>Clear your current cart (items with Ksh 0 prices)</li>
-              <li>Visit the marketplace to see current products with correct prices</li>
-              <li>Add fresh products to your cart</li>
-            </ol>
-          </div>
-          <div className="space-y-3">
-            <button
-              onClick={() => {
-                clearCart();
-                toast.success("Cart cleared! You can now add products with correct prices.");
-                navigate("/marketplace");
-              }}
-              className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors mr-4"
-            >
-              Clear Cart & Go to Marketplace
-            </button>
-            <button
-              onClick={() => navigate("/marketplace")}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              View Marketplace (Keep Cart)
-            </button>
-          </div>
-          <p className="text-sm text-gray-500 mt-4">
-            The marketplace has products with correct prices (Ksh 85, Ksh 120, etc.)
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
@@ -446,27 +398,7 @@ export default function CheckoutPage() {
           Back to Cart
         </button>
 
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
-
-          {/* Force Fix Button if issues detected */}
-          {cart.items.some(item => !item.pricePerUnit || item.pricePerUnit <= 0) && (
-            <button
-              onClick={() => {
-                console.log("🛒 FORCE FIX - Nuclear reset and redirecting");
-                clearCart();
-                toast.success("Cart completely reset! Redirecting to marketplace...");
-                setTimeout(() => {
-                  window.location.href = '/marketplace'; // Force full page reload
-                }, 1000);
-              }}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center animate-pulse"
-            >
-              <AlertCircle className="w-4 h-4 mr-2" />
-              🚨 Force Fix Cart
-            </button>
-          )}
-        </div>
+        <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
 
         {/* Progress Steps */}
         <div className="mt-6">
@@ -970,7 +902,7 @@ export default function CheckoutPage() {
                           {item.name}
                         </p>
                         <p className="text-xs text-gray-600">
-                          {item.quantity} × {formatPrice(item.pricePerUnit || 0)}
+                          {item.quantity} × {formatPrice(item.pricePerUnit)}
                         </p>
                       </div>
 

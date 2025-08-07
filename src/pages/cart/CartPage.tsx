@@ -10,9 +10,8 @@ import {
   MapPin,
   Clock,
   Tag,
-  AlertCircle,
 } from "lucide-react";
-import { useCart, useCartStore } from "../../store/cart";
+import { useCart } from "../../store/cart";
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
 
@@ -39,91 +38,6 @@ interface CartItemData {
   };
 }
 
-// Component for live product suggestions
-const LiveProductSuggestions: React.FC<{ onAddToCart: (product: any) => void }> = ({ onAddToCart }) => {
-  const [suggestedProducts, setSuggestedProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { getSuggestedProducts } = useCart();
-
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      try {
-        setLoading(true);
-        const products = await getSuggestedProducts();
-        setSuggestedProducts(products.slice(0, 4)); // Show top 4
-      } catch (error) {
-        console.error("Failed to fetch suggestions:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSuggestions();
-  }, [getSuggestedProducts]);
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-KE", {
-      style: "currency",
-      currency: "KES",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
-  if (loading) {
-    return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-2xl mx-auto">
-        <h3 className="text-sm font-medium text-green-800 mb-3">🌱 Loading Fresh Products...</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="h-4 bg-green-200 rounded w-full mb-1"></div>
-              <div className="h-3 bg-green-100 rounded w-2/3"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (suggestedProducts.length === 0) {
-    return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
-        <h3 className="text-sm font-medium text-green-800 mb-2">🌱 Fresh Products Available:</h3>
-        <p className="text-sm text-green-700">
-          Browse our marketplace for fresh, local produce from verified farmers.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-2xl mx-auto">
-      <h3 className="text-sm font-medium text-green-800 mb-3">🌱 Fresh Products Available:</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-        {suggestedProducts.map((product) => (
-          <div key={product.id} className="flex items-center justify-between bg-white rounded-md p-2 border border-green-100">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-green-900">{product.name}</p>
-              <p className="text-xs text-green-600">
-                {formatPrice(product.price_per_unit)}/{product.unit} • {product.category}
-              </p>
-            </div>
-            <button
-              onClick={() => onAddToCart(product)}
-              className="ml-2 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 transition-colors"
-            >
-              Add
-            </button>
-          </div>
-        ))}
-      </div>
-      <p className="text-xs text-green-600 text-center">
-        Click "Add" to quickly add products to your cart, or browse all products below.
-      </p>
-    </div>
-  );
-};
-
 export default function CartPage() {
   const {
     cart,
@@ -132,111 +46,16 @@ export default function CartPage() {
     clearCart,
     isLoading,
     refreshCart,
-    reconstructCart,
   } = useCart();
-  const { addToCart } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
   const [updating, setUpdating] = useState<string | null>(null);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
 
-  // Modal state
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<{
-    type: 'clearCart' | 'removeItem';
-    message: string;
-    onConfirm: () => void;
-    itemId?: string;
-  } | null>(null);
-
   useEffect(() => {
-    // FORCE COMPLETE UUID CLEANUP
-    console.log("🚨 CART UUID CLEANUP - Checking cart contents:", cart);
-
-    if (cart?.items) {
-      console.log("🛒 CART PRODUCT IDS:", cart.items.map(item => ({
-        id: item.productId,
-        type: typeof item.productId,
-        name: item.name,
-        price: item.pricePerUnit
-      })));
-
-      // Find all UUID items
-      const uuidItems = cart.items.filter(item =>
-        typeof item.productId === 'string' &&
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.productId)
-      );
-
-      if (uuidItems.length > 0) {
-        console.log("🗑️ REMOVING UUID ITEMS:", uuidItems.map(item => item.productId));
-
-        // Remove UUID items immediately
-        uuidItems.forEach(item => {
-          removeFromCart(item.id);
-        });
-
-        toast.error(`Removed ${uuidItems.length} outdated items. Please add fresh products from marketplace.`, {
-          duration: 4000
-        });
-      }
-    }
-
-    // Clear any UUID-based localStorage entries
-    try {
-      const cartStorage = localStorage.getItem('cart-storage');
-      if (cartStorage) {
-        const parsed = JSON.parse(cartStorage);
-        if (parsed?.state?.cart?.items) {
-          const hasUuids = parsed.state.cart.items.some((item: any) =>
-            typeof item.productId === 'string' &&
-            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.productId)
-          );
-
-          if (hasUuids) {
-            console.log("🗑️ CLEARING UUID-contaminated localStorage");
-            localStorage.removeItem('cart-storage');
-            clearCart();
-          }
-        }
-      }
-    } catch (e) {
-      console.warn("Storage cleanup error:", e);
-    }
-
-    // Refresh cart to validate remaining items
     refreshCart();
-  }, []); // Only run once on mount
-
-  // Modal functions
-  const showConfirmation = (type: 'clearCart' | 'removeItem', message: string, onConfirm: () => void, itemId?: string) => {
-    setConfirmAction({ type, message, onConfirm, itemId });
-    setShowConfirmModal(true);
-  };
-
-  const handleConfirm = () => {
-    if (confirmAction) {
-      confirmAction.onConfirm();
-    }
-    setShowConfirmModal(false);
-    setConfirmAction(null);
-  };
-
-  const handleCancel = () => {
-    setShowConfirmModal(false);
-    setConfirmAction(null);
-  };
-
-  const handleQuickAddToCart = async (product: any) => {
-    try {
-      console.log("🛒 Quick adding product to cart:", product);
-      await addToCart(product, 1);
-      toast.success(`Added ${product.name} to cart`);
-    } catch (error) {
-      console.error("Failed to add product to cart:", error);
-      toast.error("Failed to add product to cart");
-    }
-  };
+  }, [refreshCart]);
 
   const handleQuantityChange = async (itemId: string, newQuantity: number) => {
     if (newQuantity < 0) return;
@@ -256,34 +75,27 @@ export default function CartPage() {
   };
 
   const handleRemoveItem = async (itemId: string) => {
-    showConfirmation(
-      'removeItem',
-      "Are you sure you want to remove this item from your cart?",
-      () => {
-        try {
-          removeFromCart(itemId);
-          toast.success("Item removed from cart");
-        } catch (error) {
-          // Error is handled in the context
-        }
-      },
-      itemId
-    );
+    if (
+      window.confirm(
+        "Are you sure you want to remove this item from your cart?",
+      )
+    ) {
+      try {
+        removeFromCart(itemId);
+      } catch (error) {
+        // Error is handled in the context
+      }
+    }
   };
 
   const handleClearCart = async () => {
-    showConfirmation(
-      'clearCart',
-      "Are you sure you want to clear your entire cart? This action cannot be undone.",
-      async () => {
-        try {
-          await clearCart();
-          toast.success("Cart cleared successfully");
-        } catch (error) {
-          // Error is handled in the context
-        }
+    if (window.confirm("Are you sure you want to clear your entire cart?")) {
+      try {
+        await clearCart();
+      } catch (error) {
+        // Error is handled in the context
       }
-    );
+    }
   };
 
   const applyCoupon = () => {
@@ -362,28 +174,16 @@ export default function CartPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             Your cart is empty
           </h1>
-          <p className="text-gray-600 mb-6">
-            {cart?.totalAmount === 0 ?
-              "Invalid items were automatically removed. Let's add some fresh products!" :
-              "Looks like you haven't added any items to your cart yet."
-            }
+          <p className="text-gray-600 mb-8">
+            Looks like you haven't added any items to your cart yet.
           </p>
-          <LiveProductSuggestions onAddToCart={handleQuickAddToCart} />
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={reconstructCart}
-              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium inline-flex items-center"
-            >
-              🔧 Refresh Cart
-            </button>
-            <Link
-              to="/marketplace"
-              className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium inline-flex items-center"
-            >
-              <ShoppingBag className="w-5 h-5 mr-2" />
-              Browse All Products
-            </Link>
-          </div>
+          <Link
+            to="/marketplace"
+            className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium inline-flex items-center"
+          >
+            <ShoppingBag className="w-5 h-5 mr-2" />
+            Start Shopping
+          </Link>
         </div>
       </div>
     );
@@ -408,69 +208,14 @@ export default function CartPage() {
         </div>
 
         {cart.items.length > 0 && (
-          <div className="flex space-x-3">
-            {/* Check if any items have zero prices */}
-            {cart.items.some(item => !item.pricePerUnit || item.pricePerUnit <= 0) && (
-              <>
-                <button
-                  onClick={() => {
-                    const invalidItems = cart.items.filter(item => !item.pricePerUnit || item.pricePerUnit <= 0);
-                    invalidItems.forEach(item => removeFromCart(item.id));
-                    toast.success(`Removed ${invalidItems.length} items with invalid prices. Please add fresh products from marketplace.`);
-                  }}
-                  className="text-orange-600 hover:text-orange-700 text-sm font-medium bg-orange-50 px-3 py-1 rounded border border-orange-200"
-                >
-                  🔧 Fix Ksh 0 Items
-                </button>
-                <button
-                  onClick={() => {
-                    clearCart();
-                    toast.success("Cart cleared! Visit marketplace to add products with correct prices.");
-                    setTimeout(() => navigate("/marketplace"), 1500);
-                  }}
-                  className="text-white bg-green-600 hover:bg-green-700 text-sm font-medium px-3 py-1 rounded"
-                >
-                  🌱 Clear & Shop Fresh
-                </button>
-              </>
-            )}
-            <button
-              onClick={handleClearCart}
-              className="text-red-600 hover:text-red-700 text-sm font-medium"
-            >
-              Clear Cart
-            </button>
-          </div>
+          <button
+            onClick={handleClearCart}
+            className="text-red-600 hover:text-red-700 text-sm font-medium"
+          >
+            Clear Cart
+          </button>
         )}
       </div>
-
-      {/* Warning banner for zero-price items */}
-      {cart.items.some(item => !item.pricePerUnit || item.pricePerUnit <= 0) && (
-        <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-lg p-6 mb-6">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <AlertCircle className="w-6 h-6 text-red-600 mt-1" />
-            </div>
-            <div className="ml-3 flex-1">
-              <h3 className="text-lg font-semibold text-red-800 mb-2">⚠️ Cart Contains Invalid Items</h3>
-              <p className="text-sm text-red-700 mb-3">
-                Your cart has items showing <strong>Ksh 0</strong> due to recent system updates. These items cannot be purchased.
-              </p>
-              <div className="bg-white rounded p-3 mb-3">
-                <h4 className="text-sm font-medium text-gray-800 mb-1">✅ Quick Fix Options:</h4>
-                <ul className="text-xs text-gray-600 space-y-1">
-                  <li>• Click "🔧 Fix Ksh 0 Items" to remove invalid items automatically</li>
-                  <li>• Click "🌱 Clear & Shop Fresh" to start over with working products</li>
-                  <li>• Visit marketplace to see current prices (Ksh 85, Ksh 120, etc.)</li>
-                </ul>
-              </div>
-              <p className="text-xs text-green-700 font-medium">
-                🌱 Marketplace has fresh products with correct pricing ready for you!
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Items */}
@@ -728,47 +473,6 @@ export default function CartPage() {
           </div>
         </div>
       </div>
-
-      {/* Confirmation Modal */}
-      {showConfirmModal && confirmAction && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-md w-full mx-4 shadow-xl">
-            <div className="p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
-                  <AlertCircle className="w-5 h-5 text-red-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {confirmAction.type === 'clearCart' ? 'Clear Cart' : 'Remove Item'}
-                </h3>
-              </div>
-
-              <p className="text-gray-600 mb-6">
-                {confirmAction.message}
-              </p>
-
-              <div className="flex space-x-3">
-                <button
-                  onClick={handleCancel}
-                  className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirm}
-                  className={`flex-1 py-2 px-4 rounded-lg transition-colors font-medium text-white ${
-                    confirmAction.type === 'clearCart'
-                      ? 'bg-red-600 hover:bg-red-700'
-                      : 'bg-red-600 hover:bg-red-700'
-                  }`}
-                >
-                  {confirmAction.type === 'clearCart' ? 'Clear Cart' : 'Remove Item'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

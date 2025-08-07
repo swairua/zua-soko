@@ -65,7 +65,7 @@ export default function WarehousePage() {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      setInventory(Array.isArray(response.data?.inventory) ? response.data.inventory : []);
+      setInventory(response.data.inventory);
     } catch (error) {
       console.error("Error fetching inventory:", error);
       toast.error("Failed to fetch warehouse inventory");
@@ -87,10 +87,10 @@ export default function WarehousePage() {
   };
 
   const addTag = () => {
-    if (newTag.trim() && Array.isArray(productForm.tags) && !productForm.tags.includes(newTag.trim())) {
+    if (newTag.trim() && !productForm.tags.includes(newTag.trim())) {
       setProductForm({
         ...productForm,
-        tags: [...(Array.isArray(productForm.tags) ? productForm.tags : []), newTag.trim()],
+        tags: [...productForm.tags, newTag.trim()],
       });
       setNewTag("");
     }
@@ -99,7 +99,7 @@ export default function WarehousePage() {
   const removeTag = (tagToRemove: string) => {
     setProductForm({
       ...productForm,
-      tags: Array.isArray(productForm.tags) ? productForm.tags.filter((tag) => tag !== tagToRemove) : [],
+      tags: productForm.tags.filter((tag) => tag !== tagToRemove),
     });
   };
 
@@ -108,7 +108,7 @@ export default function WarehousePage() {
     if (url && url.trim()) {
       setProductForm({
         ...productForm,
-        images: [...(Array.isArray(productForm.images) ? productForm.images : []), url.trim()],
+        images: [...productForm.images, url.trim()],
       });
     }
   };
@@ -116,7 +116,7 @@ export default function WarehousePage() {
   const removeImage = (indexToRemove: number) => {
     setProductForm({
       ...productForm,
-      images: Array.isArray(productForm.images) ? productForm.images.filter((_, index) => index !== indexToRemove) : [],
+      images: productForm.images.filter((_, index) => index !== indexToRemove),
     });
   };
 
@@ -207,7 +207,7 @@ export default function WarehousePage() {
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {Array.isArray(inventory) ? inventory.length : 0}
+                  {inventory.length}
                 </h3>
                 <p className="text-gray-600 text-sm">Items in Warehouse</p>
               </div>
@@ -221,7 +221,7 @@ export default function WarehousePage() {
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {Array.isArray(inventory) ? inventory.filter((item) => item.marketplaceProductId).length : 0}
+                  {inventory.filter((item) => item.marketplaceProductId).length}
                 </h3>
                 <p className="text-gray-600 text-sm">Added to Marketplace</p>
               </div>
@@ -236,8 +236,8 @@ export default function WarehousePage() {
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-gray-900">
                   {
-                    Array.isArray(inventory) ? inventory.filter((item) => !item.marketplaceProductId)
-                      .length : 0
+                    inventory.filter((item) => !item.marketplaceProductId)
+                      .length
                   }
                 </h3>
                 <p className="text-gray-600 text-sm">Pending Upload</p>
@@ -254,7 +254,7 @@ export default function WarehousePage() {
             </h2>
           </div>
 
-          {!Array.isArray(inventory) || inventory.length === 0 ? (
+          {inventory.length === 0 ? (
             <div className="p-12 text-center">
               <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -266,13 +266,13 @@ export default function WarehousePage() {
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
-              {Array.isArray(inventory) && inventory.map((item) => (
+              {inventory.map((item) => (
                 <div key={item.id} className="p-6 hover:bg-gray-50">
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-start gap-4">
                         <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                          {Array.isArray(item.images) && item.images.length > 0 ? (
+                          {item.images.length > 0 ? (
                             <img
                               src={item.images[0]}
                               alt={item.title}
@@ -418,9 +418,9 @@ export default function WarehousePage() {
                     Product Images
                   </label>
                   <div className="space-y-3">
-                    {Array.isArray(productForm.images) && productForm.images.length > 0 && (
+                    {productForm.images.length > 0 && (
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {Array.isArray(productForm.images) && productForm.images.map((image, index) => (
+                        {productForm.images.map((image, index) => (
                           <div key={index} className="relative">
                             <img
                               src={image}
@@ -455,9 +455,9 @@ export default function WarehousePage() {
                     Product Tags
                   </label>
                   <div className="space-y-3">
-                    {Array.isArray(productForm.tags) && productForm.tags.length > 0 && (
+                    {productForm.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2">
-                        {Array.isArray(productForm.tags) && productForm.tags.map((tag, index) => (
+                        {productForm.tags.map((tag, index) => (
                           <span
                             key={index}
                             className="inline-flex items-center gap-1 bg-primary-100 text-primary-800 px-2 py-1 rounded text-sm"

@@ -1,48 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import axios from "axios";
+import { apiService } from "../services/api";
 
-// Add request interceptor for debugging
-axios.interceptors.request.use(
-  (config) => {
-    console.log("🌐 Axios Request:", {
-      url: config.url,
-      method: config.method,
-      headers: config.headers,
-      data: config.data,
-      baseURL: config.baseURL,
-    });
-    return config;
-  },
-  (error) => {
-    console.error("🌐 Axios Request Error:", error);
-    return Promise.reject(error);
-  },
-);
 
-// Add response interceptor for debugging
-axios.interceptors.response.use(
-  (response) => {
-    console.log("🌐 Axios Response:", {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-      data: response.data,
-    });
-    return response;
-  },
-  (error) => {
-    console.error("🌐 Axios Response Error:");
-    console.error("  Status:", error.response?.status);
-    console.error("  Status Text:", error.response?.statusText);
-    console.error("  Headers:", error.response?.headers);
-    console.error("  Data:", error.response?.data);
-    console.error("  Message:", error.message);
-    console.error("  Config URL:", error.config?.url);
-    console.error("  Full Error:", error);
-    return Promise.reject(error);
-  },
-);
 
 interface User {
   id: string;
@@ -80,42 +40,15 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true });
 
-          console.log("🔑 Login attempt:", {
-            phone,
-            apiUrl: import.meta.env.VITE_API_URL,
-            fullUrl: `${import.meta.env.VITE_API_URL}/auth/login`,
-          });
+          console.log("🔑 Login attempt:", { phone });
 
-          console.log(
-            "📤 Request payload:",
-            JSON.stringify({ phone, password }),
-          );
+          const response = await apiService.login({ phone, password });
 
-          // FORCE REAL API CALLS - No more bypasses
-          console.log("🔥 FORCING REAL DATABASE CALLS - All bypasses disabled");
+          console.log("✅ Login success:", response);
 
-          const response = await axios.post(
-            "/api/auth/login",
-            {
-              phone: phone,
-              password: password,
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-              timeout: 10000,
-            },
-          );
+          const { user, token } = response;
 
-          console.log("📥 Response status:", response.status);
-          console.log("📥 Response headers:", response.headers);
-
-          console.log("✅ Login success:", response.data);
-
-          const { user, token } = response.data;
-
-          localStorage.setItem("token", token);
+          localStorage.setItem("authToken", token);
           set({
             user,
             token,
@@ -166,7 +99,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       loginWithData: (user: User, token: string) => {
-        localStorage.setItem("token", token);
+        localStorage.setItem("authToken", token);
         set({
           user,
           token,
@@ -175,7 +108,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        localStorage.removeItem("token");
+        localStorage.removeItem("authToken");
         set({
           user: null,
           token: null,

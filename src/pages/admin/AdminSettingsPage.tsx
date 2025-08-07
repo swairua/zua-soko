@@ -254,7 +254,7 @@ export default function AdminSettingsPage() {
                       </label>
                       <input
                         type="text"
-                        value={settings.platform.name}
+                        value={settings.platform?.name || ""}
                         onChange={(e) =>
                           updateSettings("platform", "name", e.target.value)
                         }
@@ -267,7 +267,7 @@ export default function AdminSettingsPage() {
                         Platform Description
                       </label>
                       <textarea
-                        value={settings.platform.description}
+                        value={settings.platform?.description || ""}
                         onChange={(e) =>
                           updateSettings(
                             "platform",
@@ -287,7 +287,7 @@ export default function AdminSettingsPage() {
                         </label>
                         <input
                           type="email"
-                          value={settings.platform.supportEmail}
+                          value={settings.platform?.supportEmail || ""}
                           onChange={(e) =>
                             updateSettings(
                               "platform",
@@ -305,7 +305,7 @@ export default function AdminSettingsPage() {
                         </label>
                         <input
                           type="tel"
-                          value={settings.platform.supportPhone}
+                          value={settings.platform?.supportPhone || ""}
                           onChange={(e) =>
                             updateSettings(
                               "platform",
@@ -345,7 +345,7 @@ export default function AdminSettingsPage() {
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={settings.payments.mpesaEnabled}
+                            checked={settings.payments?.mpesaEnabled || false}
                             onChange={(e) =>
                               updateSettings(
                                 "payments",
@@ -371,7 +371,7 @@ export default function AdminSettingsPage() {
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={settings.payments.bankTransferEnabled}
+                            checked={settings.payments?.bankTransferEnabled || false}
                             onChange={(e) =>
                               updateSettings(
                                 "payments",
@@ -520,9 +520,9 @@ export default function AdminSettingsPage() {
                           <input
                             type="checkbox"
                             checked={
-                              settings.notifications[
+                              settings.notifications?.[
                                 item.key as keyof typeof settings.notifications
-                              ]
+                              ] || false
                             }
                             onChange={(e) =>
                               updateSettings(
@@ -825,9 +825,9 @@ export default function AdminSettingsPage() {
                           <input
                             type="checkbox"
                             checked={
-                              settings.features[
+                              settings.features?.[
                                 item.key as keyof typeof settings.features
-                              ]
+                              ] || false
                             }
                             onChange={(e) =>
                               updateSettings(

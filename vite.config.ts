@@ -29,11 +29,15 @@ export default defineConfig(({ mode }) => {
       sourcemap: false,
       minify: isProduction ? "esbuild" : false,
       rollupOptions: {
+<<<<<<< HEAD:vite.config.ts
         input: path.resolve(__dirname, isProduction ? "index.production.html" : "index.html"),
         output: {
           entryFileNames: "assets/[name]-[hash].js",
           chunkFileNames: "assets/[name]-[hash].js",
           assetFileNames: "assets/[name]-[hash].[ext]",
+=======
+        output: {
+>>>>>>> origin/main:frontend/vite.config.ts
           manualChunks: {
             vendor: ["react", "react-dom"],
             router: ["react-router-dom"],
@@ -50,8 +54,9 @@ export default defineConfig(({ mode }) => {
       "process.env.NODE_ENV": JSON.stringify(mode),
     },
     server: {
-      port: 3000,
+      port: 5173,
       host: true,
+<<<<<<< HEAD:vite.config.ts
       allowedHosts: ["zua-soko.onrender.com", "localhost"],
       ...(mode === "development"
         ? {
@@ -64,6 +69,16 @@ export default defineConfig(({ mode }) => {
             },
           }
         : {}),
+=======
+      // Proxy API calls to backend server
+      proxy: {
+        "/api": {
+          target: "http://localhost:3000",
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+>>>>>>> origin/main:frontend/vite.config.ts
     },
   };
 });

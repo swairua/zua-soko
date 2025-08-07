@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "../../store/auth";
 import axios from "axios";
+import { apiService } from "../../services/api";
 import toast from "react-hot-toast";
 
 interface UnpaidFarmer {
@@ -73,12 +74,7 @@ export default function RegistrationFeesPage() {
       console.log("💰 Fetching unpaid farmers data");
 
       // Fetch settings first
-      const settingsResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL}/admin/settings`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const settingsResponse = await apiService.get("/admin/settings");
 
       if (
         settingsResponse.data.success &&
@@ -88,12 +84,7 @@ export default function RegistrationFeesPage() {
       }
 
       // Fetch unpaid farmers
-      const farmersResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL}/admin/registration-fees/unpaid`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const farmersResponse = await apiService.get("/admin/registration-fees/unpaid");
 
       if (farmersResponse.data.success) {
         const farmersData = farmersResponse.data.farmers;
@@ -203,15 +194,11 @@ export default function RegistrationFeesPage() {
     try {
       console.log(`💳 Initiating STK push for farmer ${farmer.id}`);
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/admin/registration-fees/stk-push`,
-        {
-          farmer_id: farmer.id,
-          phone_number: farmer.phone,
-          amount: feeSettings.farmerRegistrationFee,
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      const response = await apiService.post("/admin/registration-fees/stk-push", {
+        farmer_id: farmer.id,
+        phone_number: farmer.phone,
+        amount: feeSettings.farmerRegistrationFee,
+      });
 
       if (response.data.success) {
         toast.success(

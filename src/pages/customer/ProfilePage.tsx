@@ -23,17 +23,12 @@ interface Order {
   id: string;
   totalAmount: number;
   status: string;
-  paymentMethod?: string;
+  paymentMethod: string;
   paymentStatus: string;
-  orderDate?: string;
-  orderNumber?: string;
-  deliveryAddress?: string;
-  createdAt?: string;
+  orderDate: string;
   items: Array<{
-    quantity?: number;
-    productName?: string;
-    totalPrice?: number;
-    product?: {
+    quantity: number;
+    product: {
       name: string;
       images: string[];
     };
@@ -78,16 +73,15 @@ export default function ProfilePage() {
       setOrders(orders);
 
       // Calculate stats
-      const safeOrders = Array.isArray(orders) ? orders : [];
-      const totalOrders = safeOrders.length;
-      const completedOrders = safeOrders.filter(
-        (o: Order) => o?.status === "DELIVERED",
+      const totalOrders = orders.length;
+      const completedOrders = orders.filter(
+        (o: Order) => o.status === "DELIVERED",
       ).length;
-      const totalSpent = safeOrders
-        .filter((o: Order) => o?.paymentStatus === "COMPLETED")
-        .reduce((sum: number, o: Order) => sum + (o?.totalAmount || 0), 0);
-      const pendingOrders = safeOrders.filter(
-        (o: Order) => o?.status === "PENDING",
+      const totalSpent = orders
+        .filter((o: Order) => o.paymentStatus === "COMPLETED")
+        .reduce((sum: number, o: Order) => sum + o.totalAmount, 0);
+      const pendingOrders = orders.filter(
+        (o: Order) => o.status === "PENDING",
       ).length;
 
       setStats({
@@ -108,14 +102,18 @@ export default function ProfilePage() {
             orderNumber: "ORD-2024-001",
             totalAmount: 2500,
             paymentStatus: "COMPLETED",
+            paymentMethod: "M-PESA",
             status: "DELIVERED",
             deliveryAddress: "123 Main Street, Nairobi",
+            orderDate: new Date(Date.now() - 86400000).toISOString(),
             createdAt: new Date(Date.now() - 86400000).toISOString(),
             items: [
               {
-                productName: "Organic Tomatoes",
                 quantity: 5,
-                totalPrice: 600,
+                product: {
+                  name: "Organic Tomatoes",
+                  images: [],
+                },
               },
             ],
           },
@@ -468,7 +466,7 @@ export default function ProfilePage() {
                 </button>
               </div>
               <div className="space-y-3">
-                {(Array.isArray(orders) ? orders : []).slice(0, 3).map((order) => (
+                {orders.slice(0, 3).map((order) => (
                   <div
                     key={order.id}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"

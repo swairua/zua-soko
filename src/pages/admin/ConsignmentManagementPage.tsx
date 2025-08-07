@@ -41,14 +41,20 @@ interface Consignment {
 }
 
 interface Driver {
-  id: string;
-  userId: string;
-  name: string;
-  licenseNumber: string;
-  vehicleType: string;
-  vehicleRegNo: string;
-  isAvailable: boolean;
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  license_number: string;
+  vehicle_type: string;
+  vehicle_registration: string;
+  status: string;
+  location: string;
+  total_deliveries: number;
   rating: number;
+  earnings: number;
+  verified: boolean;
 }
 
 const statusConfig = {
@@ -118,7 +124,7 @@ export default function ConsignmentManagementPage() {
     try {
       console.log("📦 Fetching consignments from live database");
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/consignments`,
+        `/api/admin/consignments`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -147,7 +153,7 @@ export default function ConsignmentManagementPage() {
     try {
       console.log("🚛 Fetching drivers from live database");
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/drivers`,
+        `/api/admin/drivers`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -176,7 +182,9 @@ export default function ConsignmentManagementPage() {
     setShowActionModal(true);
 
     if (action === "suggest_price") {
-      setSuggestedPrice(consignment.proposedPricePerUnit?.toString() || "0");
+      // Handle both field names for compatibility
+      const currentPrice = consignment.proposedPricePerUnit || (consignment as any).price_per_unit || 0;
+      setSuggestedPrice(currentPrice.toString());
     }
   };
 
@@ -213,7 +221,7 @@ export default function ConsignmentManagementPage() {
       }
 
       await axios.patch(
-        `${import.meta.env.VITE_API_URL}/admin/consignments/${selectedConsignment.id}`,
+        `/api/admin/consignments/${selectedConsignment.id}`,
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -438,10 +446,10 @@ export default function ConsignmentManagementPage() {
                 const statusInfo =
                   statusConfig[consignment.status as keyof typeof statusConfig];
                 const StatusIcon = statusInfo?.icon || Package;
-                const totalValue =
-                  (consignment.finalPricePerUnit ||
-                    consignment.proposedPricePerUnit ||
-                    0) * (consignment.quantity || 0);
+                const currentPrice = consignment.finalPricePerUnit ||
+                  consignment.proposedPricePerUnit ||
+                  (consignment as any).price_per_unit || 0;
+                const totalValue = currentPrice * (consignment.quantity || 0);
 
                 return (
                   <div key={consignment.id} className="p-6 hover:bg-gray-50">
@@ -489,14 +497,14 @@ export default function ConsignmentManagementPage() {
                               </span>
                               <span>•</span>
                               <span>
-                                KSh {consignment.proposedPricePerUnit} per{" "}
+                                KSh {(consignment.proposedPricePerUnit || (consignment as any).price_per_unit || 0)} per{" "}
                                 {consignment.unit}
                               </span>
                               <span>•</span>
                               <span>{consignment.category}</span>
                               <span>•</span>
                               <span>
-                                Total: KSh {(totalValue || 0).toLocaleString()}
+                                Total: KSh {totalValue.toLocaleString()}
                               </span>
                             </div>
 
@@ -511,8 +519,8 @@ export default function ConsignmentManagementPage() {
                                     <span className="ml-2 text-blue-600">
                                       (Total: KSh{" "}
                                       {(
-                                        (consignment.adminSuggestedPrice || 0) *
-                                        (consignment.quantity || 0)
+                                        consignment.adminSuggestedPrice *
+                                        consignment.quantity
                                       ).toLocaleString()}
                                       )
                                     </span>
@@ -568,7 +576,7 @@ export default function ConsignmentManagementPage() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Current proposed price: KSh{" "}
-                        {selectedConsignment.proposedPricePerUnit} per{" "}
+                        {selectedConsignment.proposedPricePerUnit || (selectedConsignment as any).price_per_unit || 0} per{" "}
                         {selectedConsignment.unit}
                       </label>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -603,11 +611,11 @@ export default function ConsignmentManagementPage() {
                         <option value="">Choose a driver</option>
                         {Array.isArray(drivers)
                           ? drivers
-                              .filter((d) => d.isAvailable)
+                              .filter((d) => d.status === "ACTIVE" && d.verified)
                               .map((driver) => (
-                                <option key={driver.id} value={driver.userId}>
-                                  {driver.name} - {driver.vehicleType} (
-                                  {driver.vehicleRegNo}) - Rating:{" "}
+                                <option key={driver.id} value={driver.id}>
+                                  {driver.first_name} {driver.last_name} - {driver.vehicle_type} (
+                                  {driver.vehicle_registration}) - Rating:{" "}
                                   {driver.rating}⭐
                                 </option>
                               ))

@@ -14,6 +14,7 @@ import {
   Mail,
   MapPin,
   Calendar,
+  ArrowRight,
 } from "lucide-react";
 import { useAuthStore } from "../../store/auth";
 import toast from "react-hot-toast";
@@ -64,6 +65,7 @@ export default function UserManagementPage() {
 
   const fetchUsers = async () => {
     try {
+<<<<<<< HEAD:src/pages/admin/UserManagementPage.tsx
       console.log("📊 Fetching users from real API");
       console.log("🔐 Using token:", token ? "Present" : "Missing");
 
@@ -81,15 +83,77 @@ export default function UserManagementPage() {
           role: user.role,
           status: user.verified ? "ACTIVE" : "PENDING",
           createdAt: user.created_at,
+=======
+      // Since we don't have the API endpoint yet, using mock data
+      const mockUsers: User[] = [
+        {
+          id: "1",
+          phone: "+254712345678",
+          email: "admin@zuasoko.com",
+          firstName: "Admin",
+          lastName: "User",
+          role: "ADMIN",
+          status: "ACTIVE",
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: "2",
+          phone: "+254734567890",
+          email: "farmer@zuasoko.com",
+          firstName: "Jane",
+          lastName: "Wanjiku",
+          role: "FARMER",
+          status: "ACTIVE",
+          profile: { farmName: "Green Valley Farm", county: "Kiambu" },
+          createdAt: new Date(
+            Date.now() - 7 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+        },
+        {
+          id: "3",
+          phone: "+254756789012",
+          email: "customer@zuasoko.com",
+          firstName: "Mary",
+          lastName: "Wangari",
+          role: "CUSTOMER",
+          status: "ACTIVE",
+          profile: { county: "Nairobi" },
+          createdAt: new Date(
+            Date.now() - 14 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+        },
+        {
+          id: "4",
+          phone: "+254778901234",
+          email: "driver@zuasoko.com",
+          firstName: "Michael",
+          lastName: "Kiprotich",
+          role: "DRIVER",
+          status: "ACTIVE",
+>>>>>>> origin/main:frontend/src/pages/admin/UserManagementPage.tsx
           profile: {
-            county: user.county,
+            vehicleType: "Pickup Truck",
+            licenseNumber: "DL123456789",
           },
-        }));
-        console.log(`📊 Loaded ${apiUsers.length} users from API`);
-        setUsers(apiUsers);
-      } else {
-        throw new Error("API response not successful");
-      }
+          createdAt: new Date(
+            Date.now() - 21 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+        },
+        {
+          id: "5",
+          phone: "+254790123456",
+          email: "pending.farmer@zuasoko.com",
+          firstName: "John",
+          lastName: "Kimani",
+          role: "FARMER",
+          status: "PENDING",
+          profile: { farmName: "Highlands Farm", county: "Nyeri" },
+          createdAt: new Date(
+            Date.now() - 2 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+        },
+      ];
+      setUsers(mockUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("Failed to fetch users");
@@ -209,59 +273,99 @@ export default function UserManagementPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Users className="w-6 h-6 text-blue-600" />
+          <div
+            onClick={() => {
+              setRoleFilter("ALL");
+              setStatusFilter("ALL");
+              setSearch("");
+            }}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                  <Users className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                    {stats.total}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Total Users</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.total}
-                </h3>
-                <p className="text-gray-600 text-sm">Total Users</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <UserCheck className="w-6 h-6 text-green-600" />
+          <div
+            onClick={() => {
+              setRoleFilter("ALL");
+              setStatusFilter("ACTIVE");
+              setSearch("");
+            }}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-green-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                  <UserCheck className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
+                    {stats.active}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Active Users</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.active}
-                </h3>
-                <p className="text-gray-600 text-sm">Active Users</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-yellow-100 rounded-lg">
-                <UserCheck className="w-6 h-6 text-yellow-600" />
+          <div
+            onClick={() => {
+              setRoleFilter("ALL");
+              setStatusFilter("PENDING");
+              setSearch("");
+            }}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-yellow-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors">
+                  <UserCheck className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors">
+                    {stats.pending}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Pending Approval</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.pending}
-                </h3>
-                <p className="text-gray-600 text-sm">Pending Approval</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-yellow-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-red-100 rounded-lg">
-                <UserX className="w-6 h-6 text-red-600" />
+          <div
+            onClick={() => {
+              setRoleFilter("ALL");
+              setStatusFilter("SUSPENDED");
+              setSearch("");
+            }}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-red-300 transition-all duration-200 cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
+                  <UserX className="w-6 h-6 text-red-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-red-600 transition-colors">
+                    {stats.blocked}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Blocked/Suspended</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {stats.blocked}
-                </h3>
-                <p className="text-gray-600 text-sm">Blocked/Suspended</p>
-              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-red-600 group-hover:translate-x-1 transition-all duration-200" />
             </div>
           </div>
         </div>
@@ -344,7 +448,7 @@ export default function UserManagementPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {(Array.isArray(filteredUsers) ? filteredUsers : []).map((user) => (
+                {filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">

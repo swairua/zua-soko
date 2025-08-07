@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/auth";
 import { Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
+import AuthResetNotification from "../../components/AuthResetNotification";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -60,6 +61,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <AuthResetNotification />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center">

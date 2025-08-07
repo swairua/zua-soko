@@ -237,83 +237,46 @@ async function initializeDemoData() {
       );
     }
 
-    // Create marketplace products with auto-incrementing integer IDs
+    // Create marketplace products from approved consignments
     await pool.query(
       `
-      INSERT INTO products (name, description, category, quantity, unit, price_per_unit, images, stock_quantity, is_active)
-      VALUES
-        ('Fresh Tomatoes', 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.', 'Vegetables', 500, 'kg', 85.00, '{"https://images.unsplash.com/photo-1546470427-e212b9d56085"}', 500, true),
-        ('Green Beans', 'Tender green beans, freshly harvested and ready for pickup.', 'Vegetables', 200, 'kg', 95.00, '{"https://images.unsplash.com/photo-1628773822503-930a7eaecf80"}', 200, true),
-        ('Sweet Potatoes', 'Fresh sweet potatoes, rich in nutrients and vitamins.', 'Root Vegetables', 300, 'kg', 80.00, '{"https://images.unsplash.com/photo-1518977676601-b53f82aba655"}', 300, true),
-        ('Fresh Spinach', 'Organic spinach leaves, perfect for healthy meals.', 'Leafy Greens', 150, 'kg', 120.00, '{"https://images.unsplash.com/photo-1576045057995-568f588f82fb"}', 150, true),
-        ('White Maize', 'High quality white maize, perfect for ugali and other meals.', 'Grains', 400, 'kg', 60.00, '{"https://images.unsplash.com/photo-1551782450-a2132b4ba21d"}', 400, true),
-        ('Fresh Carrots', 'Organic carrots, crisp and sweet, freshly harvested.', 'Root Vegetables', 250, 'kg', 90.00, '{"https://images.unsplash.com/photo-1598170845058-32b9d6a5da37"}', 250, true),
-        ('Red Onions', 'Quality red onions for cooking and seasoning.', 'Vegetables', 180, 'kg', 110.00, '{"https://images.unsplash.com/photo-1518977676601-b53f82aba655"}', 180, true),
-        ('Fresh Kale', 'Nutritious kale leaves, locally grown and organic.', 'Leafy Greens', 120, 'kg', 140.00, '{"https://images.unsplash.com/photo-1515516969-d4008cc6241a"}', 120, true)
-      ON CONFLICT DO NOTHING
-    `);
+      INSERT INTO products (id, consignment_id, warehouse_id, name, category, quantity, unit, price_per_unit, images, stock_quantity)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      ON CONFLICT (id) DO NOTHING
+    `,
+      [
+        "product-1",
+        "consignment-1",
+        "warehouse-1",
+        "Fresh Tomatoes",
+        "Vegetables",
+        500,
+        "kg",
+        85,
+        ["https://images.unsplash.com/photo-1546470427-e212b9d56085"],
+        500,
+      ],
+    );
 
-    console.log("✅ Marketplace products created with real integer IDs");
-
-    // Create demo farmer categories
-    const categories = [
-      { name: "Vegetables", description: "Fresh vegetables and leafy greens" },
-      { name: "Fruits", description: "Fresh fruits and berries" },
-      { name: "Grains", description: "Cereals, rice, wheat, and other grains" },
-      { name: "Legumes", description: "Beans, peas, lentils, and pulses" },
-      { name: "Cereals", description: "Maize, millet, sorghum, and other cereals" },
-      { name: "Herbs", description: "Medicinal and culinary herbs" },
-      { name: "Root Vegetables", description: "Potatoes, carrots, onions, and tubers" },
-      { name: "Dairy", description: "Milk and dairy products" },
-      { name: "Poultry", description: "Chickens, eggs, and poultry products" },
-      { name: "Livestock", description: "Cattle, goats, sheep, and livestock products" }
-    ];
-
-    for (const category of categories) {
-      await pool.query(
-        `
-        INSERT INTO farmer_categories_list (name, description, is_active)
-        VALUES ($1, $2, $3)
-        ON CONFLICT (name) DO NOTHING
-        `,
-        [category.name, category.description, true]
-      );
-    }
-
-    // Assign demo categories to the demo farmer
-    try {
-      // Get vegetable and fruit category IDs
-      const vegetableCategory = await pool.query(
-        "SELECT id FROM farmer_categories_list WHERE name = 'Vegetables'"
-      );
-      const fruitCategory = await pool.query(
-        "SELECT id FROM farmer_categories_list WHERE name = 'Fruits'"
-      );
-
-      if (vegetableCategory.rows.length > 0) {
-        await pool.query(
-          `
-          INSERT INTO farmer_categories (farmer_id, category_id)
-          VALUES ($1, $2)
-          ON CONFLICT (farmer_id, category_id) DO NOTHING
-          `,
-          ["farmer-user-id", vegetableCategory.rows[0].id]
-        );
-      }
-
-      if (fruitCategory.rows.length > 0) {
-        await pool.query(
-          `
-          INSERT INTO farmer_categories (farmer_id, category_id)
-          VALUES ($1, $2)
-          ON CONFLICT (farmer_id, category_id) DO NOTHING
-          `,
-          ["farmer-user-id", fruitCategory.rows[0].id]
-        );
-      }
-    } catch (categoryError) {
-      console.log("⚠️ Could not assign demo categories:", categoryError.message);
-    }
+    await pool.query(
+      `
+      INSERT INTO products (id, consignment_id, warehouse_id, name, category, quantity, unit, price_per_unit, images, stock_quantity)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      ON CONFLICT (id) DO NOTHING
+    `,
+      [
+        "product-3",
+        "consignment-3",
+        "warehouse-1",
+        "Green Beans",
+        "Vegetables",
+        200,
+        "kg",
+        95,
+        ["https://images.unsplash.com/photo-1628773822503-930a7eaecf80"],
+        200,
+      ],
+    );
 
     console.log("✅ Demo data initialized successfully");
     console.log("📋 Demo credentials:");
@@ -322,7 +285,7 @@ async function initializeDemoData() {
     console.log("   Customer: +254756789012 / password123");
     console.log("   Driver: +254778901234 / password123");
   } catch (error) {
-    console.error("�� Error initializing demo data:", error);
+    console.error("❌ Error initializing demo data:", error);
     throw error;
   }
 }
