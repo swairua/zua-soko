@@ -146,6 +146,37 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6">
+            {isProductionEnvironment && (
+              <button
+                type="button"
+                onClick={() => {
+                  // Instant demo login that bypasses all API calls
+                  console.log("🚀 INSTANT PRODUCTION LOGIN: Bypassing API completely");
+
+                  const instantUser = {
+                    id: 'instant-demo',
+                    firstName: 'Demo',
+                    lastName: 'User',
+                    phone: '+254734567890',
+                    email: 'demo@zuasoko.com',
+                    role: 'FARMER' as const,
+                    county: 'Demo County',
+                    verified: true,
+                    registrationFeePaid: true
+                  };
+
+                  const instantToken = `instant_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+                  loginWithData(instantUser, instantToken);
+                  toast.success("🚀 Instant demo access activated!");
+                  navigate("/farmer/dashboard", { replace: true });
+                }}
+                className="w-full mb-3 bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 font-bold"
+              >
+                🚀 INSTANT DEMO ACCESS (Production)
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => {
