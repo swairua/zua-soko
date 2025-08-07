@@ -479,7 +479,8 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
   try {
     console.log("👥 Admin users request received");
 
-    if (!pool) {
+    const currentPool = getPool();
+    if (!currentPool) {
       // Demo mode - return demo users
       return res.json({
         success: true,
