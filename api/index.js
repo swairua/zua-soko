@@ -577,10 +577,17 @@ const authenticateAdmin = (req, res, next) => {
 app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
   try {
     console.log("👥 Admin users request received");
+    console.log("🔍 Request details:", {
+      method: req.method,
+      path: req.path,
+      headers: req.headers.authorization ? "Auth header present" : "No auth header",
+      user: req.user ? { userId: req.user.userId, role: req.user.role } : "No user"
+    });
     console.log("🔍 Environment variables check:");
     console.log("  - DATABASE_URL:", process.env.DATABASE_URL ? "Set" : "Not set");
     console.log("  - NODE_ENV:", process.env.NODE_ENV);
 
+    console.log("🔄 Attempting to get database pool...");
     const currentPool = getPool();
     console.log("💾 Database pool status:", currentPool ? "Available" : "Not available");
 
