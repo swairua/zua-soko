@@ -339,37 +339,85 @@ app.get('/api/marketplace/counties', async (req, res) => {
   }
 });
 
-// Login endpoint
-app.post('/api/auth/login', (req, res) => {
-  const { phone, password } = req.body;
-  
-  // Admin login
-  if (phone === 'admin' && password === 'admin') {
-    const adminToken = jwt.sign(
-      { userId: 'admin-1', role: 'ADMIN', phone: '+254700000000' },
-      process.env.JWT_SECRET || 'zuasoko-production-secret-2024',
-      { expiresIn: '24h' }
+// Live database login endpoint
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { phone, password } = req.body;
+
+    if (!phone || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone and password are required'
+      });
+    }
+
+    console.log(`🔐 Login attempt for: ${phone}`);
+
+    // Query database for user
+    const result = await query(
+      'SELECT * FROM users WHERE phone = $1 OR email = $1',
+      [phone.trim()]
     );
-    
-    return res.json({
-      success: true,
-      message: 'Admin login successful',
-      user: {
-        id: 'admin-1',
-        firstName: 'Admin',
-        lastName: 'User',
-        phone: '+254700000000',
-        role: 'ADMIN',
-        county: 'System'
+
+    if (result.rows.length === 0) {
+      console.log('❌ User not found');
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    const user = result.rows[0];
+
+    // Verify password
+    const isValidPassword = verifyPassword(password, user.password_hash);
+
+    if (!isValidPassword) {
+      console.log('❌ Invalid password');
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        phone: user.phone,
+        role: user.role
       },
-      token: adminToken
+      process.env.JWT_SECRET || 'zuasoko-production-secret-2024',
+      { expiresIn: '7d' }
+    );
+
+    console.log(`✅ Login successful for ${user.first_name} ${user.last_name}`);
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        phone: user.phone,
+        email: user.email,
+        role: user.role,
+        county: user.county,
+        verified: user.verified,
+        registrationFeePaid: user.registration_fee_paid
+      },
+      token: token,
+      source: 'live_database'
+    });
+
+  } catch (error) {
+    console.error('❌ Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Login system error'
     });
   }
-  
-  res.status(401).json({
-    success: false,
-    message: 'Invalid phone number or password'
-  });
 });
 
 // Catch-all for undefined routes
