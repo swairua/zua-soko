@@ -99,6 +99,16 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+// Admin test endpoint to debug authentication
+app.get('/api/admin/test', authenticateAdmin, (req, res) => {
+  res.json({
+    status: 'admin_auth_successful',
+    message: 'Admin authentication is working',
+    user: req.user,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Status endpoint with database info
 app.get('/api/status', async (req, res) => {
   try {
