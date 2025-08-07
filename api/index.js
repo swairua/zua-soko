@@ -592,45 +592,51 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
     console.log("💾 Database pool status:", currentPool ? "Available" : "Not available");
 
     if (!currentPool) {
+      console.log("💾 No database pool available - using demo mode");
       // Demo mode - return demo users
-      return res.json({
-        success: true,
-        users: [
-          {
-            id: '1',
-            first_name: 'Demo',
-            last_name: 'Admin',
-            email: 'admin@zuasoko.com',
-            phone: '+254712345678',
-            role: 'ADMIN',
-            county: 'Nairobi',
-            verified: true,
-            created_at: new Date().toISOString()
-          },
-          {
-            id: '2',
-            first_name: 'John',
-            last_name: 'Farmer',
-            email: 'farmer@example.com',
-            phone: '+254712345679',
-            role: 'FARMER',
-            county: 'Nakuru',
-            verified: true,
-            created_at: new Date().toISOString()
-          },
-          {
-            id: '3',
-            first_name: 'Jane',
-            last_name: 'Customer',
-            email: 'customer@example.com',
-            phone: '+254712345680',
-            role: 'CUSTOMER',
-            county: 'Mombasa',
-            verified: false,
-            created_at: new Date().toISOString()
-          }
-        ]
-      });
+      if (!res.headersSent) {
+        return res.json({
+          success: true,
+          users: [
+            {
+              id: '1',
+              first_name: 'Demo',
+              last_name: 'Admin',
+              email: 'admin@zuasoko.com',
+              phone: '+254712345678',
+              role: 'ADMIN',
+              county: 'Nairobi',
+              verified: true,
+              created_at: new Date().toISOString()
+            },
+            {
+              id: '2',
+              first_name: 'John',
+              last_name: 'Farmer',
+              email: 'farmer@example.com',
+              phone: '+254712345679',
+              role: 'FARMER',
+              county: 'Nakuru',
+              verified: true,
+              created_at: new Date().toISOString()
+            },
+            {
+              id: '3',
+              first_name: 'Jane',
+              last_name: 'Customer',
+              email: 'customer@example.com',
+              phone: '+254712345680',
+              role: 'CUSTOMER',
+              county: 'Mombasa',
+              verified: false,
+              created_at: new Date().toISOString()
+            }
+          ]
+        });
+      } else {
+        console.log("⚠️ Headers already sent in demo mode");
+        return;
+      }
     }
 
     // Ensure users table exists with consistent schema
