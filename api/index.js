@@ -83,69 +83,131 @@ app.get('/api/products-basic', function(req, res) {
   res.json({ test: 'basic products endpoint working' });
 });
 
-// Ultra-bulletproof marketplace products endpoint
-app.get('/api/marketplace/products', (req, res) => {
+// Live database marketplace products endpoint
+app.get('/api/marketplace/products', async (req, res) => {
   try {
-    console.log('🛒 MARKETPLACE ENDPOINT CALLED at', new Date().toISOString());
+    console.log('🛒 MARKETPLACE PRODUCTS REQUEST - Live Database');
 
-    // Return static data that cannot fail
-    const data = {
-      success: true,
-      products: [
-        {
-          id: 1,
-          name: "Fresh Tomatoes",
-          category: "Vegetables",
-          price_per_unit: 85,
-          pricePerUnit: 85,
-          unit: "kg",
-          description: "Fresh organic tomatoes",
-          stock_quantity: 100,
-          stockQuantity: 100,
-          images: ["https://images.unsplash.com/photo-1546470427-e212b9d56085?w=400"],
-          farmer_name: "John Kamau",
-          farmer_county: "Nakuru",
-          is_featured: true,
-          isFeatured: true,
-          isAvailable: true
-        },
-        {
-          id: 2,
-          name: "Sweet Potatoes",
-          category: "Root Vegetables",
-          price_per_unit: 80,
-          pricePerUnit: 80,
-          unit: "kg",
-          description: "Fresh sweet potatoes",
-          stock_quantity: 75,
-          stockQuantity: 75,
-          images: ["https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400"],
-          farmer_name: "Mary Wanjiku",
-          farmer_county: "Meru",
-          is_featured: false,
-          isFeatured: false,
-          isAvailable: true
-        }
-      ],
-      pagination: {
-        page: 1,
-        limit: 12,
-        total: 2,
-        totalPages: 1
-      }
-    };
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const offset = (page - 1) * limit;
 
-    res.status(200).json(data);
-    console.log('🛒 MARKETPLACE RESPONSE SENT SUCCESSFULLY');
+    // Build filters
+    let whereConditions = ['is_active = true'];
+    let queryParams = [];
+    let paramIndex = 1;
 
-  } catch (error) {
-    console.error('🚨 MARKETPLACE ENDPOINT ERROR:', error);
-    // Force a 200 response even on error
+    if (req.query.category) {
+      whereConditions.push(`category ILIKE $${paramIndex}`);
+      queryParams.push(`%${req.query.category}%`);
+      paramIndex++;
+    }
+
+    if (req.query.search) {
+      whereConditions.push(`(name ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`);
+      queryParams.push(`%${req.query.search}%`);
+      paramIndex++;
+    }
+
+    if (req.query.county) {
+      whereConditions.push(`farmer_county ILIKE $${paramIndex}`);
+      queryParams.push(`%${req.query.county}%`);
+      paramIndex++;
+    }
+
+    if (req.query.featured === 'true') {
+      whereConditions.push('is_featured = true');
+    }
+
+    if (req.query.minPrice) {
+      whereConditions.push(`price_per_unit >= $${paramIndex}`);
+      queryParams.push(parseFloat(req.query.minPrice));
+      paramIndex++;
+    }
+
+    if (req.query.maxPrice) {
+      whereConditions.push(`price_per_unit <= $${paramIndex}`);
+      queryParams.push(parseFloat(req.query.maxPrice));
+      paramIndex++;
+    }
+
+    const whereClause = whereConditions.join(' AND ');
+
+    // Get total count
+    const countQuery = `SELECT COUNT(*) FROM products WHERE ${whereClause}`;
+    const countResult = await query(countQuery, queryParams);
+    const total = parseInt(countResult.rows[0].count);
+
+    // Get products with pagination
+    const productsQuery = `
+      SELECT id, name, category, price_per_unit, unit, description,
+             stock_quantity, is_featured, farmer_name, farmer_county,
+             images, created_at
+      FROM products
+      WHERE ${whereClause}
+      ORDER BY is_featured DESC, created_at DESC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
+
+    queryParams.push(limit, offset);
+    const productsResult = await query(productsQuery, queryParams);
+
+    // Format products for frontend compatibility
+    const products = productsResult.rows.map(product => ({
+      ...product,
+      pricePerUnit: parseFloat(product.price_per_unit),
+      stockQuantity: product.stock_quantity,
+      isFeatured: product.is_featured,
+      isAvailable: product.stock_quantity > 0,
+      images: Array.isArray(product.images) ? product.images : (product.images ? JSON.parse(product.images) : [])
+    }));
+
+    const totalPages = Math.ceil(total / limit);
+
+    console.log(`✅ Found ${products.length} products from database`);
+
     res.status(200).json({
       success: true,
-      products: [],
-      pagination: { page: 1, limit: 12, total: 0, totalPages: 1 },
-      error: 'Fallback response'
+      products: products,
+      pagination: {
+        page: page,
+        limit: limit,
+        total: total,
+        totalPages: totalPages
+      },
+      source: 'live_database'
+    });
+
+  } catch (error) {
+    console.error('❌ Database error, using fallback:', error);
+
+    // Fallback to demo data if database fails
+    const fallbackProducts = [
+      {
+        id: 1,
+        name: "Fresh Tomatoes",
+        category: "Vegetables",
+        price_per_unit: 120,
+        pricePerUnit: 120,
+        unit: "kg",
+        description: "Fresh organic tomatoes",
+        stock_quantity: 100,
+        stockQuantity: 100,
+        images: ["https://images.unsplash.com/photo-1546470427-e212b9d56085?w=500&h=400&fit=crop"],
+        farmer_name: "Demo Farmer",
+        farmer_county: "Demo County",
+        is_featured: true,
+        isFeatured: true,
+        isAvailable: true
+      }
+    ];
+
+    res.status(200).json({
+      success: true,
+      products: fallbackProducts,
+      pagination: { page: 1, limit: 12, total: 1, totalPages: 1 },
+      source: 'fallback',
+      error: 'Database unavailable'
     });
   }
 });
