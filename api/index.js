@@ -151,7 +151,7 @@ const initializeProducts = async () => {
     `);
     
     // Insert sample products
-    await pool.query(`
+    await currentPool.query(`
       INSERT INTO products (name, description, category, price_per_unit, unit, stock_quantity, quantity, images, farmer_name, farmer_county, is_featured) VALUES
       ('Fresh Tomatoes', 'Organic red tomatoes, Grade A quality. Perfect for salads and cooking.', 'Vegetables', 85.00, 'kg', 500, 500, '["https://images.unsplash.com/photo-1546470427-e212b9d56085"]', 'John Farmer', 'Nakuru', true),
       ('Sweet Potatoes', 'Fresh sweet potatoes, rich in nutrients and vitamins.', 'Root Vegetables', 80.00, 'kg', 300, 300, '["https://images.unsplash.com/photo-1518977676601-b53f82aba655"]', 'Mary Farm', 'Meru', false),
