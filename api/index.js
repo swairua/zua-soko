@@ -692,11 +692,15 @@ app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
     console.log("✅ User mapping completed");
 
     console.log("🔄 Sending successful response...");
-    res.json({
-      success: true,
-      users: users,
-    });
-    console.log("✅ Response sent successfully");
+    if (!res.headersSent) {
+      res.json({
+        success: true,
+        users: users,
+      });
+      console.log("✅ Response sent successfully");
+    } else {
+      console.log("⚠️ Headers already sent, skipping response");
+    }
   } catch (err) {
     console.error("❌ Admin users error:", err);
     console.error("❌ Error stack:", err.stack);
