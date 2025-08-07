@@ -76,45 +76,61 @@ export default function UserManagementPage() {
 
       toast.error(`Failed to fetch users: ${error.response?.data?.message || error.message}`);
 
-      // Fallback to demo data
-      setUsers([
+      // Use fallback users from API response if available, otherwise use demo data
+      const fallbackUsers = error.response?.data?.fallback_users || [
         {
           id: '1',
+          first_name: 'John',
+          last_name: 'Kamau',
           phone: '+254712345678',
           email: 'john@example.com',
-          firstName: 'John',
-          lastName: 'Kamau',
           role: 'FARMER',
           status: 'approved',
           verified: true,
           county: 'Nakuru',
-          createdAt: new Date().toISOString()
+          created_at: new Date().toISOString()
         },
         {
           id: '2',
+          first_name: 'Mary',
+          last_name: 'Wanjiku',
           phone: '+254723456789',
           email: 'mary@example.com',
-          firstName: 'Mary',
-          lastName: 'Wanjiku',
           role: 'CUSTOMER',
           status: 'approved',
           verified: true,
           county: 'Nairobi',
-          createdAt: new Date().toISOString()
+          created_at: new Date().toISOString()
         },
         {
           id: '3',
+          first_name: 'Peter',
+          last_name: 'Mwangi',
           phone: '+254734567890',
           email: 'peter@example.com',
-          firstName: 'Peter',
-          lastName: 'Mwangi',
           role: 'FARMER',
           status: 'pending',
           verified: false,
           county: 'Kisumu',
-          createdAt: new Date().toISOString()
+          created_at: new Date().toISOString()
         }
-      ]);
+      ];
+
+      // Transform fallback users to match interface
+      const transformedUsers = fallbackUsers.map((user: any) => ({
+        id: user.id,
+        phone: user.phone,
+        email: user.email || '',
+        firstName: user.first_name || user.firstName || '',
+        lastName: user.last_name || user.lastName || '',
+        role: user.role,
+        status: user.status || (user.verified ? 'approved' : 'pending'),
+        verified: user.verified,
+        county: user.county || 'N/A',
+        createdAt: user.created_at || user.createdAt
+      }));
+
+      setUsers(transformedUsers);
     } finally {
       setLoading(false);
     }
