@@ -47,7 +47,7 @@ export default function AdminDashboard() {
     }
 
     if (user.role !== "ADMIN") {
-      console.log("🚫 User is not admin, redirecting to home");
+      console.log("�� User is not admin, redirecting to home");
       navigate("/");
       return;
     }
@@ -131,8 +131,12 @@ export default function AdminDashboard() {
           ]
         }));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Error fetching users:", error);
+      console.error("❌ Error status:", error.response?.status);
+      console.error("❌ Error data:", JSON.stringify(error.response?.data, null, 2));
+      console.error("❌ Error message:", error.message);
+      console.error("❌ Full error response:", error.response);
       console.log("🔄 Using fallback user data due to API error");
       
       // Set fallback data instead of showing error
