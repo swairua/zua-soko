@@ -6,7 +6,7 @@ const config = getEnvironmentConfig();
 const API_BASE_URL = config.apiUrl;
 const DEBUG_MODE = config.debugMode;
 
-console.log(`🔗 API Service initialized with base URL: ${API_BASE_URL}`);
+// API Service initialized
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -87,68 +87,50 @@ api.interceptors.response.use(
 export const apiService = {
   // Auth endpoints
   login: async (credentials: { phone: string; password: string }) => {
-    console.log("🔐 LOGIN request to real database");
     const response = await api.post("/auth/login", credentials);
-    console.log("🔐 LOGIN SUCCESS:", response.data);
     return response.data;
   },
 
   register: async (userData: any) => {
-    console.log("📝 REGISTER request to real database");
     const response = await api.post("/auth/register", userData);
-    console.log("📝 REGISTER SUCCESS:", response.data);
     return response.data;
   },
 
-  // Product endpoints - Real database only
+  // Product endpoints
   getProducts: async (params?: any) => {
-    console.log("🛍️ FETCHING PRODUCTS from real database");
     const response = await api.get("/marketplace/products", { params });
-    console.log("🛍️ PRODUCTS SUCCESS:", response.data);
     return response.data;
   },
 
   getProduct: async (id: string) => {
-    console.log("🛍️ FETCHING PRODUCT from real database", id);
     const response = await api.get(`/marketplace/products/${id}`);
-    console.log("🛍️ PRODUCT SUCCESS:", response.data);
     return response.data;
   },
 
   getCategories: async () => {
-    console.log("🏷️ FETCHING CATEGORIES from real database");
     const response = await api.get("/marketplace/categories");
-    console.log("🏷️ CATEGORIES SUCCESS:", response.data);
     return response.data;
   },
 
   getCounties: async () => {
-    console.log("🗺️ FETCHING COUNTIES from real database");
     const response = await api.get("/marketplace/counties");
-    console.log("🗺️ COUNTIES SUCCESS:", response.data);
     return response.data;
   },
 
-  // Wallet endpoints - Real database only
+  // Wallet endpoints
   getWalletBalance: async () => {
-    console.log("💰 FETCHING WALLET BALANCE from real database");
     const response = await api.get("/wallet/balance");
-    console.log("💰 WALLET BALANCE SUCCESS:", response.data);
     return response.data;
   },
 
-  // Farmer endpoints - Real database only
+  // Farmer endpoints
   getConsignments: async () => {
-    console.log("📦 FETCHING CONSIGNMENTS from real database");
     const response = await api.get("/consignments");
-    console.log("📦 CONSIGNMENTS SUCCESS:", response.data);
     return response.data;
   },
 
   createConsignment: async (consignmentData: any) => {
-    console.log("📦 CREATING CONSIGNMENT in real database");
     const response = await api.post("/consignments", consignmentData);
-    console.log("📦 CONSIGNMENT CREATION SUCCESS:", response.data);
     return response.data;
   },
 
