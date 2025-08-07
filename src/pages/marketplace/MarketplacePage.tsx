@@ -74,12 +74,8 @@ export default function MarketplacePage() {
     totalPages: 0,
   });
   const [apiFailureCount, setApiFailureCount] = useState(0);
-  // Start in offline mode if in production to avoid 500 errors
-  const [bypassApi, setBypassApi] = useState(
-    window.location.hostname.includes('fly.dev') ||
-    window.location.hostname.includes('vercel.app') ||
-    window.location.hostname !== 'localhost'
-  );
+  // Start with API enabled now that live database is connected
+  const [bypassApi, setBypassApi] = useState(false);
 
   const { addToCart, isLoading: cartLoading } = useCart();
   const { user, isAuthenticated } = useAuthStore();
