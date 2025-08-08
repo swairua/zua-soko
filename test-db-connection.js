@@ -1,41 +1,39 @@
-// Simple database connection test
-const handler = require("./api/index.js");
+const { Pool } = require('pg');
 
-// Mock request/response for health check
-const mockReq = {
-  url: "/api/health",
-  method: "GET",
-  headers: {},
-  body: {},
-};
-
-const mockRes = {
-  json: (data) => {
-    console.log("✅ Health check response:", JSON.stringify(data, null, 2));
-    process.exit(0);
-  },
-  status: (code) => ({
-    json: (data) => {
-      console.log(
-        `❌ Health check failed with status ${code}:`,
-        JSON.stringify(data, null, 2),
-      );
-      process.exit(1);
-    },
-    end: () => {
-      console.log(`❌ Health check failed with status ${code}`);
-      process.exit(1);
-    },
-  }),
-  setHeader: () => {},
-  end: () => {
-    console.log("✅ Health check completed");
-    process.exit(0);
-  },
-};
-
-console.log("🔄 Testing database connection...");
-handler.default(mockReq, mockRes).catch((error) => {
-  console.error("❌ Health check error:", error.message);
-  process.exit(1);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 
+    "postgresql://neondb_owner:npg_bKZoVXhMa8w5@ep-wild-firefly-aetjevra-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+  ssl: { rejectUnauthorized: false }
 });
+
+async function testConnection() {
+  try {
+    const result = await pool.query('SELECT NOW() as current_time, version() as version');
+    console.log('✅ Database connected successfully!');
+    console.log('📅 Current time:', result.rows[0].current_time);
+    console.log('🗄️ Database version:', result.rows[0].version.split(',')[0]);
+    
+    // Check if tables exist
+    const tableCheck = await pool.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+    `);
+    
+    console.log('\n📊 Existing tables:');
+    if (tableCheck.rows.length > 0) {
+      tableCheck.rows.forEach(row => {
+        console.log(`  - ${row.table_name}`);
+      });
+    } else {
+      console.log('  No tables found - ready for seeding!');
+    }
+    
+  } catch (error) {
+    console.error('❌ Database connection failed:', error.message);
+  } finally {
+    await pool.end();
+  }
+}
+
+testConnection();

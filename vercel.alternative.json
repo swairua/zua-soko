@@ -3,6 +3,9 @@
   "buildCommand": "npm run build:prod",
   "outputDirectory": "dist",
   "installCommand": "npm install",
+  "functions": {
+    "api/index.js": {}
+  },
   "routes": [
     {
       "src": "/api/(.*)",
