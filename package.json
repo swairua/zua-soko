@@ -15,7 +15,10 @@
     "start:server": "node server.cjs",
     "dev:server": "node server.cjs",
     "dev:fullstack": "concurrently \"npm run dev:server\" \"npm run dev\"",
-    "deploy-db": "node deploy-database.js"
+    "deploy-db": "node deploy-database.js",
+    "localhost": "node server-localhost.js",
+    "dev:localhost": "concurrently \"npm run localhost\" \"npm run dev\"",
+    "start:localhost": "node server-localhost.js"
   },
   "engines": {
     "node": ">=18"
