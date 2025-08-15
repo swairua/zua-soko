@@ -1,173 +1,54 @@
-# Zuasoko - Agricultural Marketplace
+# Zuasoko Agricultural Marketplace
 
-Zuasoko is a comprehensive agricultural marketplace platform that connects farmers directly with buyers, providing a transparent and efficient trading environment.
+A modern agricultural marketplace platform built with React, TypeScript, and Node.js.
 
 ## Features
 
-- **User Authentication**: Secure login/registration for farmers, buyers, and admins
-- **Product Marketplace**: Browse and search agricultural products by category and location
-- **Admin Dashboard**: Comprehensive management tools for platform administration
-- **Mobile Responsive**: Optimized for both desktop and mobile devices
-- **Real-time Data**: Live product listings and market information
+- 🌾 Farmer product listings and consignment management
+- 🛒 Customer marketplace and ordering system
+- 🚛 Driver delivery management
+- 👥 Admin user and platform management
+- 💳 M-Pesa payment integration (planned)
+- 📱 Responsive mobile-first design
 
 ## Tech Stack
 
-### Frontend
-- **React 18.2.0** - Modern React with hooks
-- **TypeScript** - Type-safe development
-- **Vite** - Fast build tool and dev server
-- **Tailwind CSS** - Utility-first CSS framework
-- **React Router** - Client-side routing
-- **Zustand** - State management
-- **React Query** - Data fetching and caching
-- **Axios** - HTTP client
+**Frontend:**
+- React 18 with TypeScript
+- Vite for build tooling
+- Tailwind CSS for styling
+- Zustand for state management
+- React Router for navigation
 
-### Backend
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **PostgreSQL** - Database
-- **JWT** - Authentication tokens
-- **CORS** - Cross-origin resource sharing
+**Backend:**
+- Node.js with Express
+- PostgreSQL database (Neon)
+- JWT authentication
+- Vercel serverless functions
 
 ## Quick Start
 
-### Prerequisites
-- Node.js 18+
-- PostgreSQL database (Neon DB recommended)
-- npm
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/swairua/zua-soko.git
-   cd zua-soko
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm run setup
-   ```
-
-3. **Environment Configuration**
-   ```bash
-   cp .env.example .env
-   ```
-   Update the `.env` file with your database credentials.
-
-4. **Start Production Server**
-   ```bash
-   npm start
-   ```
-
-   This starts the unified server on http://localhost:3000 with:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:3000/api
-   - Admin Dashboard: http://localhost:3000/admin.html
-
-5. **Development Mode**
-   ```bash
-   npm run dev:frontend & npm run dev:server
-   ```
-
-### Available Scripts
-
-- `npm run dev` - Start development server (frontend only)
-- `npm run dev:server` - Start backend server
-- `npm run dev:frontend` - Start frontend development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run start:minimal` - Start minimal static server
-- `npm run type-check` - Run TypeScript type checking
-
-## Project Structure
-
+### Development
+```bash
+npm install
+npm run dev
 ```
-zua-soko/
-├── frontend/          # React frontend application
-│   ├── src/
-│   │   ├── components/    # Reusable UI components
-│   │   ├── pages/         # Page components
-│   │   ├── services/      # API services
-│   │   ├── store/         # State management
-│   │   └── utils/         # Utility functions
-│   ├── package.json
-│   └── vite.config.ts
-├── api/               # Additional API configurations
-├── backend/           # Backend specific files
-├── database/          # Database scripts and migrations
-├── scripts/           # Utility scripts
-├── server.js          # Main Express server
-├── minimal-server.js  # Minimal static server
-└── package.json       # Root package.json
-```
-
-## Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-# Database
-DATABASE_URL=postgresql://username:password@localhost:5432/zuasoko
-
-# Security
-JWT_SECRET=your_super_secure_secret_key
-
-# Server
-NODE_ENV=development
-PORT=3000
-
-# Frontend
-VITE_API_URL=http://localhost:3000/api
-```
-
-## Database Setup
-
-1. Create a PostgreSQL database named `zuasoko`
-2. Update the `DATABASE_URL` in your `.env` file
-3. The application will automatically create the necessary tables on first run
-
-## Deployment
 
 ### Production Build
 ```bash
-npm run build
-npm run start
+npm run build:prod
 ```
 
-### Minimal Static Deployment
-```bash
-npm run build
-npm run start:minimal
-```
+### Deployment
+This project is configured for Vercel deployment with the following structure:
+- Frontend: React app served from root
+- API: Serverless functions in `/api`
+- Database: PostgreSQL (Neon)
 
-## API Endpoints
+## Environment Variables
 
-### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/register` - User registration
-
-### Products
-- `GET /api/products` - Get all products
-- `GET /api/marketplace/products` - Get marketplace products with filters
-- `GET /api/marketplace/categories` - Get product categories
-- `GET /api/marketplace/counties` - Get available counties
-
-### System
-- `GET /api/status` - Server health check
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Commit your changes: `git commit -am 'Add feature'`
-4. Push to the branch: `git push origin feature-name`
-5. Submit a pull request
+See `.env.production` for required environment variables in production.
 
 ## License
 
-This project is licensed under the MIT License.
-
-## Support
-
-For support and questions, please contact the development team or create an issue in the repository.
+Private commercial project.

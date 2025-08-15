@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#22c55e" />
+    <title>Zuasoko - Agricultural Platform</title>
+    <script>
+      // Comprehensive Vite HMR blocking for production
+      (function() {
+        'use strict';
+
+        // Block all Vite-related globals
+        window.__vite_is_modern_browser = false;
+        window.__vite_plugin_checker_runtime_config = null;
+        window.__HMR_PROTOCOL__ = null;
+        window.__HMR_HOSTNAME__ = null;
+        window.__HMR_PORT__ = null;
+        window.__HMR_DIRECT_TARGET__ = null;
+        window.__HMR_FALLBACK__ = null;
+        window.__HMR_BASE__ = null;
+        window.__HMR_TIMEOUT__ = null;
+        window.__HMR_ENABLE_OVERLAY__ = false;
+
+        // Override console methods that Vite might use
+        const noop = function() {};
+        if (typeof console !== 'undefined') {
+          ['debug', 'log'].forEach(method => {
+            const original = console[method];
+            console[method] = function(...args) {
+              const message = args.join(' ');
+              if (message && (
+                message.includes('[vite]') ||
+                message.includes('[hmr]') ||
+                message.includes('hot update') ||
+                message.includes('websocket')
+              )) {
+                return;
+              }
+              return original.apply(console, args);
+            };
+          });
+        }
+
+        // Block WebSocket connections for HMR
+        const OriginalWebSocket = window.WebSocket;
+        window.WebSocket = function(url, protocols) {
+          if (typeof url === 'string' && (
+            url.includes('/@vite/client') ||
+            url.includes('/vite-dev-server') ||
+            url.includes('ws://') && url.includes('/vite/')
+          )) {
+            console.warn('Blocked Vite WebSocket connection in production');
+            return {
+              addEventListener: noop,
+              removeEventListener: noop,
+              send: noop,
+              close: noop,
+              readyState: 3,
+              CLOSED: 3
+            };
+          }
+          return new OriginalWebSocket(url, protocols);
+        };
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

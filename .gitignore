@@ -4,6 +4,10 @@ frontend/node_modules/
 api/node_modules/
 backend/node_modules/
 
+# Lock files - keep package-lock.json for Vercel npm ci
+yarn.lock
+pnpm-lock.yaml
+
 # Environment variables
 .env
 .env.local
